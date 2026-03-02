@@ -24,6 +24,11 @@ metadata:
         package: bambu-studio
         optional: true
         label: "Bambu Studio (recommended for model preview and slicing — required before printing generated models)"
+      - id: blender
+        kind: cask
+        package: blender
+        optional: true
+        label: "Blender 4.0+ (required for multi-color printing only)"
 env:
   - name: BAMBU_MODE
     required: false
@@ -132,6 +137,9 @@ pip3 install bambulabs-api bambu-lab-cloud-api requests trimesh
 | Download model | `python3 scripts/generate.py download <task_id> --format 3mf` |
 | Analyze model before printing | `python3 scripts/analyze.py model.3mf --material PLA --purpose functional` |
 | Analyze + auto-repair mesh | `python3 scripts/analyze.py model.3mf --repair --material PLA` |
+| Auto-orient for printing | `python3 scripts/analyze.py model.stl --orient` |
+| Orient + repair combo | `python3 scripts/analyze.py model.stl --orient --repair --material PLA` |
+| Convert to multi-color OBJ | `python3 scripts/colorize.py model.glb --colors "#FF0,#000,#F00,#FFF" --height 80` |
 | Single print check | `python3 scripts/monitor.py --once` |
 | Continuous monitoring | `python3 scripts/monitor.py --interval 120` |
 | Monitor with auto-pause | `python3 scripts/monitor.py --interval 120 --auto-pause` |
@@ -396,12 +404,12 @@ After research, confirm:
 ### Step 4: Generate
 
 **Before generating, tell the user:**
-> "提醒一下：AI 生成的 3D 模型质量主要取决于两个因素：
-> 1. 你选的 3D 生成服务商（Meshy/Tripo 等）的能力
-> 2. Prompt 的详细程度 — 越具体越好
+> "A quick heads-up: AI-generated 3D model quality depends mainly on two things:
+> 1. Your 3D generation provider (Meshy, Tripo, etc.) — each has different strengths
+> 2. How detailed your prompt is — the more specific, the better
 > 
-> AI 生成的模型不是成品，通常需要在 Bambu Studio 里检查和调整。
-> 如果效果不理想，可以换个服务商或者优化 prompt 再试。"
+> AI-generated models are not production-ready out of the box. Always review in Bambu Studio.
+> If the result isn't great, try a different provider or refine your prompt."
 
 Call `generate.py` with a detailed, dimensions-aware prompt. The script auto-enhances prompts with printability instructions and scales to your printer's build volume.
 
@@ -468,7 +476,7 @@ Use `--raw` to skip auto-enhancement if you've crafted a precise prompt.
 
 **How to enable LAN mode on your printer:**
 1. On printer touchscreen → **Settings** → **Network** → **LAN Mode**
-2. Toggle **LAN Mode** to **ON** (实况/Live)
+2. Toggle **LAN Mode** to **ON** (Live)
 3. Note down:
    - **IP Address** — shown on the network screen
    - **Serial Number** — Settings → Device Info

@@ -11,6 +11,79 @@ Output: JSON report with issues, warnings, suggestions, and optional rendered vi
 """
 
 import argparse
+
+
+def auto_orient(mesh):
+    """Auto-orient model for optimal 3D printing position.
+    Finds the orientation with the largest flat surface on the build plate,
+    minimizes overhangs, and places the model on the floor (z=0).
+    """
+    try:
+        import trimesh
+        best_mesh = mesh.copy()
+        best_score = -1
+        best_transform = None
+
+        # Try principal orientations + stable poses
+        # Method 1: Use trimesh's stable poses if available
+        try:
+            transforms, probs = trimesh.poses.compute_stable_poses(mesh, n_samples=50)
+            for i, (T, p) in enumerate(zip(transforms, probs)):
+                candidate = mesh.copy()
+                candidate.apply_transform(T)
+                # Score: probability * base area
+                bounds = candidate.bounds
+                base_area = (bounds[1][0] - bounds[0][0]) * (bounds[1][1] - bounds[0][1])
+                height = bounds[1][2] - bounds[0][2]
+                # Prefer: high probability, large base, low height (less supports)
+                score = p * base_area / max(height, 0.001)
+                if score > best_score:
+                    best_score = score
+                    best_transform = T
+        except Exception:
+            # Fallback: try 6 cardinal orientations
+            import numpy as np
+            rotations = [
+                np.eye(4),  # original
+                trimesh.transformations.rotation_matrix(np.pi/2, [1, 0, 0]),   # +90 X
+                trimesh.transformations.rotation_matrix(-np.pi/2, [1, 0, 0]),  # -90 X
+                trimesh.transformations.rotation_matrix(np.pi/2, [0, 1, 0]),   # +90 Y
+                trimesh.transformations.rotation_matrix(-np.pi/2, [0, 1, 0]),  # -90 Y
+                trimesh.transformations.rotation_matrix(np.pi, [1, 0, 0]),     # 180 X
+            ]
+            for T in rotations:
+                candidate = mesh.copy()
+                candidate.apply_transform(T)
+                bounds = candidate.bounds
+                base_area = (bounds[1][0] - bounds[0][0]) * (bounds[1][1] - bounds[0][1])
+                height = bounds[1][2] - bounds[0][2]
+                # Count downward-facing faces (potential base)
+                normals = candidate.face_normals
+                down_faces = normals[normals[:, 2] < -0.9]
+                base_coverage = len(down_faces) / max(len(normals), 1)
+                score = base_area * (1 + base_coverage * 5) / max(height, 0.001)
+                if score > best_score:
+                    best_score = score
+                    best_transform = T
+
+        if best_transform is not None:
+            mesh.apply_transform(best_transform)
+
+        # Drop to floor (z=0)
+        bounds = mesh.bounds
+        mesh.apply_translation([0, 0, -bounds[0][2]])
+
+        print(f"🔄 Auto-oriented: base area optimized, placed on build plate (z=0)")
+        bounds = mesh.bounds
+        dims = bounds[1] - bounds[0]
+        print(f"   Dimensions: {dims[0]*1000:.1f} × {dims[1]*1000:.1f} × {dims[2]*1000:.1f} mm")
+        return mesh
+    except Exception as e:
+        print(f"⚠️ Auto-orient failed: {e}")
+        # At least drop to floor
+        bounds = mesh.bounds
+        mesh.apply_translation([0, 0, -bounds[0][2]])
+        return mesh
 import json
 import math
 import os
@@ -76,7 +149,7 @@ def analyze_mesh(mesh, printer_model, material, purpose="general"):
     }
 
     bounds = mesh.bounds
-    dims = mesh.extents  # [x, y, z] dimensions in mm
+    dims = mesh.extents if mesh.extents is not None else [0, 0, 0]  # [x, y, z] dimensions in mm
     # Check if model is too complex (may be too large for printer SD card)
     if len(mesh.faces) > 500000:
         report["warnings"].append(
@@ -86,7 +159,7 @@ def analyze_mesh(mesh, printer_model, material, purpose="general"):
         )
     
     report["geometry"] = {
-        "dimensions_mm": [round(d, 2) for d in dims],
+        "dimensions_mm": [round(d, 2) for d in dims] if dims is not None else [0, 0, 0],
         "volume_cm3": round(mesh.volume / 1000, 2),
         "surface_area_cm2": round(mesh.area / 100, 2),
         "triangle_count": len(mesh.faces),
@@ -324,9 +397,9 @@ def repair_mesh(mesh, output_path=None):
     trimesh.repair.fill_holes(mesh)
     
     # Remove degenerate faces
-    mesh.remove_degenerate_faces()
-    mesh.remove_duplicate_faces()
-    mesh.remove_unreferenced_vertices()
+    mesh.update_faces(mesh.nondegenerate_faces())
+    mesh.merge_vertices()
+    # mesh cleanup done via merge_vertices
     
     repaired = mesh.is_watertight and mesh.is_volume
     
@@ -408,6 +481,7 @@ def main():
                         help="Purpose affects infill/wall recommendations")
     parser.add_argument("--render", action="store_true", help="Render preview images")
     parser.add_argument("--json", action="store_true", help="Output raw JSON")
+    parser.add_argument("--orient", action="store_true", help="Auto-orient for optimal print position")
     parser.add_argument("--repair", action="store_true", help="Auto-repair non-manifold mesh before analysis")
     parser.add_argument("--output-dir", default=".", help="Directory for rendered images")
     args = parser.parse_args()
@@ -437,16 +511,52 @@ def main():
         print(f"ERROR: Failed to load '{args.file}': {e}", file=sys.stderr)
         sys.exit(1)
 
-    # Auto-repair if requested or if mesh has issues
-    if args.repair or not mesh.is_watertight or not mesh.is_volume:
-        if not args.repair and (not mesh.is_watertight or not mesh.is_volume):
-            print(f"⚠️ Mesh has issues (watertight={mesh.is_watertight}, manifold={mesh.is_volume})")
-            print(f"   Auto-repairing... (use --repair to always repair)")
-        repair_path = os.path.splitext(args.file)[0] + "_repaired" + os.path.splitext(args.file)[1]
-        mesh, was_repaired = repair_mesh(mesh, repair_path if args.repair else None)
-        if was_repaired and args.repair:
-            print(f"\n📁 Original: {args.file}")
-            print(f"📁 Repaired: {repair_path}\n")
+    # Auto-orient if requested
+    if args.orient:
+        mesh = auto_orient(mesh)
+        # Export oriented model
+        orient_path = os.path.splitext(args.file)[0] + "_oriented" + os.path.splitext(args.file)[1]
+        mesh.export(orient_path)
+        print(f"📁 Oriented model: {orient_path}")
+
+    # Tiered repair: don't over-process good models
+    has_holes = not mesh.is_watertight
+    has_nonmanifold = not mesh.is_volume
+    try:
+        bodies = mesh.split(only_watertight=False)
+        has_disconnected = len(bodies) > 1
+    except:
+        has_disconnected = False
+
+    if has_holes or has_nonmanifold or has_disconnected:
+        severity = "minor" if (has_holes and not has_nonmanifold) else "major" if has_nonmanifold else "disconnected"
+        print(f"\n🔍 Mesh issues detected (severity: {severity}):")
+        if has_holes: print(f"   - Not watertight (has holes)")
+        if has_nonmanifold: print(f"   - Non-manifold edges")
+        if has_disconnected: print(f"   - {len(bodies)} disconnected parts")
+
+        if severity == "minor":
+            # Small holes only — light repair
+            print(f"\n🔧 Light repair (filling holes, fixing normals)...")
+            repair_path = os.path.splitext(args.file)[0] + "_repaired" + os.path.splitext(args.file)[1]
+            mesh, was_repaired = repair_mesh(mesh, repair_path)
+        elif severity == "major":
+            # Non-manifold — full repair
+            print(f"\n🔧 Full repair (voxel remesh may be needed for severe cases)...")
+            print(f"   💡 If auto-repair fails, try in Blender:")
+            print(f"      Remesh modifier → Voxel (size: 0.15-0.25mm) → Smooth")
+            print(f"      ⚠️ Use smallest voxel size that preserves detail")
+            repair_path = os.path.splitext(args.file)[0] + "_repaired" + os.path.splitext(args.file)[1]
+            mesh, was_repaired = repair_mesh(mesh, repair_path)
+        else:
+            print(f"\n⚠️ Disconnected parts — repair may not help.")
+            print(f"   Consider re-generating or manually merging in Blender.")
+            if args.repair:
+                repair_path = os.path.splitext(args.file)[0] + "_repaired" + os.path.splitext(args.file)[1]
+                mesh, was_repaired = repair_mesh(mesh, repair_path)
+    elif args.repair:
+        print(f"\n✅ Mesh is clean — no repair needed.")
+    # If no issues and no --repair flag, skip entirely
 
     # Analyze
     report = analyze_mesh(mesh, printer, material, args.purpose)

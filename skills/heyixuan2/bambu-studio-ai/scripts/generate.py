@@ -96,7 +96,7 @@ def get_max_size():
 
 # ─── Prompt Enhancement ──────────────────────────────────────────────
 
-def enhance_prompt(user_prompt, max_size=None):
+def enhance_prompt(user_prompt, max_size=None, multicolor=False):
     """Add 3D-printing-specific instructions to user prompt."""
     if not max_size:
         max_size = get_max_size()
@@ -212,7 +212,7 @@ class TripoBackend:
     def text_to_3d(self, prompt, **kwargs):
         r = requests.post(f"{self.BASE}/task",
             headers=self.headers(),
-            json={"type": "text_to_model", "prompt": prompt}
+            json={"type": "text_to_model", "texture": True, "prompt": prompt}
         )
         r.raise_for_status()
         task_id = r.json()["data"]["task_id"]
@@ -234,7 +234,7 @@ class TripoBackend:
         
         r = requests.post(f"{self.BASE}/task",
             headers=self.headers(),
-            json={"type": "image_to_model", "file": {"type": "jpg", "file_token": image_token}}
+            json={"type": "image_to_model", "texture": True, "file": {"type": "jpg", "file_token": image_token}}
         )
         r.raise_for_status()
         task_id = r.json()["data"]["task_id"]
@@ -248,7 +248,7 @@ class TripoBackend:
         return {
             "status": data.get("status", "unknown"),
             "progress": data.get("progress", 0),
-            "model_urls": {"glb": data.get("output", {}).get("model", "")},
+            "model_urls": {"glb": data.get("output", {}).get("pbr_model") or data.get("output", {}).get("model", "")},
         }
     
     def download(self, task_id, fmt="3mf"):
@@ -405,7 +405,7 @@ def get_backend():
 
 # ─── Commands ────────────────────────────────────────────────────────
 
-def cmd_text(prompt, wait=False, **kwargs):
+def cmd_text(prompt, wait=False, multicolor=False, **kwargs):
     backend = get_backend()
 
     # Enhance prompt for printability
@@ -458,7 +458,7 @@ def cmd_status(task_id):
         bar = "█" * (progress // 5) + "░" * (20 - progress // 5)
         print(f"📊 Progress: [{bar}] {progress}%")
     
-    if state == "completed":
+    if state in ("completed", "success"):
         urls = status.get("model_urls", {})
         if urls:
             print(f"📦 Available formats: {', '.join(urls.keys())}")
@@ -519,7 +519,7 @@ def _wait_and_download(backend, task_id, fmt="3mf"):
         bar = "█" * (progress // 5) + "░" * (20 - progress // 5)
         print(f"\r  [{bar}] {progress}% - {state}", end="", flush=True)
         
-        if state == "completed":
+        if state in ("completed", "success"):
             print(f"\n✅ Done!")
             path = backend.download(task_id, fmt)
             if path:
