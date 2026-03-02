@@ -1,6 +1,7 @@
 ---
 name: consensus-agent-action-guard
 description: Pre-execution governance for high-risk agent actions. Uses persona-weighted consensus to decide ALLOW/BLOCK/REQUIRE_REWRITE before external or irreversible side effects occur, with board-native audit artifacts.
+version: 1.1.13
 homepage: https://github.com/kaicianflone/consensus-agent-action-guard
 source: https://github.com/kaicianflone/consensus-agent-action-guard
 upstream:
@@ -13,14 +14,21 @@ requires:
   env:
     - CONSENSUS_STATE_FILE
     - CONSENSUS_STATE_ROOT
-install:
-  - id: npm
-    kind: node
-    package: consensus-agent-action-guard
-    bins:
-      - node
-      - tsx
-    label: Install consensus-agent-action-guard from npm
+metadata:
+  openclaw:
+    requires:
+      bins:
+        - node
+        - tsx
+      env:
+        - CONSENSUS_STATE_FILE
+        - CONSENSUS_STATE_ROOT
+    install:
+      - kind: node
+        package: consensus-agent-action-guard
+        bins:
+          - node
+          - tsx
 ---
 
 # consensus-agent-action-guard
@@ -54,7 +62,6 @@ Built on the same consensus stack as communication and merge guards, giving one 
 
 - runtime binaries: `node`, `tsx`
 - network calls: none in the guard decision path itself
-- credentials: none required
 - filesystem writes: board/state artifacts under the configured consensus state path
 
 ## Dependency trust model
