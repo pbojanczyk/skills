@@ -2,7 +2,7 @@
 name: bailian-web-search
 description: AI-optimized web search via Bailian(Alibaba ModelStdio) API. Returns multisourced, concise web search results for LLMs.
 homepage: https://bailian.console.aliyun.com/cn-beijing?tab=app#/mcp-market/detail/WebSearch
-metadata: {"clawdbot":{"emoji":"🔍","requires":{"bins":["bash"],"env":["DASHSCOPE_API_KEY"]},"primaryEnv":"DASHSCOPE_API_KEY"}}
+metadata: {"clawdbot":{"emoji":"🔍","requires":{"bins":["bash","curl","jq"],"env":["DASHSCOPE_API_KEY"]},"primaryEnv":"DASHSCOPE_API_KEY"}}
 ---
 
 # Bailian Web Search
