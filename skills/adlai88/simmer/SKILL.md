@@ -1,11 +1,10 @@
 ---
 name: simmer
-version: 1.18.0
-difficulty: beginner
-published: true
 description: The best prediction market interface for AI agents. Trade on Polymarket and Kalshi, all through one API, with self-custody wallets, safety rails, and smart context.
-homepage: https://simmer.markets
-metadata: {"openclaw":{"emoji":"🔮","category":"trading","api_base":"https://api.simmer.markets"}}
+metadata:
+  author: "Simmer (@simmer_markets)"
+  version: "1.18.2"
+  homepage: "https://simmer.markets"
 ---
 
 # Simmer
@@ -361,11 +360,13 @@ for market in candidates[:3]:  # Limit to top 3 — context is ~2-3s per call
 
 ## Links
 
+- **FAQ:** [simmer.markets/faq.md](https://simmer.markets/faq.md) — common questions about venues, tiers, wallets, fees
 - **Full API Reference:** [simmer.markets/docs.md](https://simmer.markets/docs.md)
 - **Dashboard:** [simmer.markets/dashboard](https://simmer.markets/dashboard)
 - **Skills:** [clawhub.ai](https://clawhub.ai) (search "simmer")
 - **Support:** [Telegram](https://t.me/+m7sN0OLM_780M2Fl)
 - **SDK Source:** [github.com/SpartanLabsXyz/simmer-sdk](https://github.com/SpartanLabsXyz/simmer-sdk)
+- **Troubleshoot errors:** `POST /api/sdk/troubleshoot` with `{"error_text": "..."}` — returns a fix for known errors. No auth required. Also: all 4xx errors now include a `fix` field inline.
 - **MCP Server:** `pip install simmer-mcp` — gives your agent direct access to Simmer docs and error troubleshooting ([PyPI](https://pypi.org/project/simmer-mcp/))
 
 ---
