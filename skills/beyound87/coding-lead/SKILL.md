@@ -36,6 +36,29 @@ When starting a new project, propose tech stack based on these preferences and g
 - **Existing projects**: follow their current stack, never migrate without explicit approval
 - **New projects**: propose stack in the PLAN phase, wait for confirmation
 - Include tech stack choice in the Claude Code prompt so it uses the right framework
+
+## Model Routing (Multi-Model Setup)
+
+When multiple coding agents/models are available, route tasks by strength:
+
+| Task Type | Best Model | Why |
+|-----------|-----------|-----|
+| Backend logic, complex bugs, multi-file refactors | Strongest reasoning model (e.g., Claude Opus, Codex) | Needs deep cross-file reasoning |
+| Frontend, quick fixes, simple features | Fast model (e.g., Claude Sonnet, GPT-4o) | Speed matters more than depth |
+| UI/UX design mockups | Vision-capable model (e.g., Gemini) | Design sense + visual understanding |
+| Code review | Different model than the one that wrote the code | Avoids same-bias blind spots |
+
+### Current Setup
+If only one coding agent (e.g., Claude Code) is available, skip model routing — use it for everything. This table is a reference for when you add more models.
+
+### How to Route
+When spawning, choose the model via the `model` parameter if supported:
+```
+sessions_spawn(runtime: "acp", task: <prompt>, cwd: <dir>, model: "claude-opus-4-6")
+```
+
+Record which model worked best for each task type in the Prompt Pattern Library.
+
 ## Task Classification
 
 Assess every coding request before executing:
@@ -105,6 +128,7 @@ Structure for Claude Code:
 - [ ] Existing tests pass
 - [ ] No unrelated changes
 - [ ] Cleaned up: no debug logs, unused imports, temp files
+- [ ] If UI changed: screenshots/descriptions of visual changes included
 ```
 
 ### Step 3: Spawn
@@ -167,7 +191,7 @@ For complex tasks involving multiple layers (architecture + frontend + backend +
 | **Frontend** | UI components, pages, responsive design, state management | "You are a frontend specialist. Write clean, accessible, performant UI code. Follow the project's frontend patterns." |
 | **Backend** | API endpoints, business logic, data layer, integrations | "You are a backend specialist. Write secure, efficient server-side code. Follow the project's backend patterns." |
 | **Reviewer** | Code review after implementation | "You are a senior code reviewer. Review for: logic errors, security issues, performance problems, style violations. Be specific, cite line numbers." |
-| **QA** | Test writing, edge case analysis | "You are a QA engineer. Write thorough tests. Think about edge cases, error paths, and integration scenarios." |
+| **QA** | Test writing, edge case analysis | "You are an independent QA engineer. You have NOT seen the implementation code. Based on the requirements and interface definitions provided, write thorough tests covering: happy paths, edge cases, error paths, boundary conditions, and concurrency scenarios." |
 
 ### Complex Task Flow with Roles
 
@@ -183,8 +207,11 @@ For complex tasks involving multiple layers (architecture + frontend + backend +
 5. REVIEW (spawn) -- independent reviewer session
    -> input: diff of all changes
    -> output: issues found, suggestions
-6. FIX (spawn or sessions_send) -- address review findings
-7. RECORD (agent logs to memory)
+6. QA (spawn) -- independent test writing session (see QA Isolation Rule below)
+   -> input: requirements doc + interface definitions only (NOT implementation code)
+   -> output: test files
+7. FIX (spawn or sessions_send) -- address review + QA findings
+8. RECORD (agent logs to memory)
 ```
 
 Not every step is needed. Skip what doesn't apply:
@@ -217,6 +244,47 @@ Session 2: Backend role -> "Build the favorites API endpoint..."
 # This must wait for both to finish
 Session 3: Reviewer role -> "Review all changes in [files from session 1 + 2]..."
 ```
+
+
+
+## QA Isolation Rule
+
+> **Critical**: QA sessions must be isolated from implementation to avoid "testing your own homework."
+
+When spawning a QA session:
+
+1. **DO NOT include implementation code** in the QA prompt
+2. **DO include**: requirements/task description, interface definitions (function signatures, API contracts, DB schema), acceptance criteria
+3. **Spawn as a separate session** — never in the same session that wrote the code
+4. **QA prompt structure**:
+
+```
+You are an independent QA engineer. You have NOT seen the implementation.
+
+## What to Test
+[Requirements / user story / acceptance criteria]
+
+## Interfaces
+[Function signatures, API endpoints, DB schema — NO implementation details]
+
+## Project Test Setup
+[Test framework, how to run tests, existing test patterns]
+
+## Write Tests For
+- Happy paths (normal usage)
+- Edge cases (empty input, max values, unicode, special chars)
+- Error paths (invalid input, network failure, timeout)
+- Boundary conditions (off-by-one, pagination limits, rate limits)
+- Business logic edges (concurrent access, partial failure, state transitions)
+
+Do NOT assume implementation details. Test the contract, not the code.
+```
+
+5. After QA tests are written, run them against the implementation
+6. Failures may indicate **real bugs** (good!) or **spec misunderstandings** (clarify with user)
+
+### Why This Matters
+When AI writes code and then writes tests for that code in the same session, the tests mirror the implementation — including its bugs. Isolation forces tests to come from "what should happen" rather than "what does happen."
 
 ## Claude Code Tool Tips
 
@@ -294,6 +362,63 @@ Example: fix 3 independent bugs simultaneously, each in its own session.
 
 Limit: be mindful of API rate limits and system resources. 2-3 parallel sessions is usually safe.
 
+## Task Registry
+
+Track all active coding tasks in a structured JSON file for visibility and automation.
+
+### File: `<project>/.openclaw/active-tasks.json`
+
+When spawning a Claude Code session for medium/complex tasks, register it:
+
+```json
+{
+  "id": "feat-custom-templates",
+  "task": "Custom email templates for agency customer",
+  "agent": "claude-code",
+  "branch": "feat/custom-templates",
+  "cwd": "/path/to/project",
+  "sessionKey": "acp:run:abc123",
+  "status": "running",
+  "startedAt": 1740268800000,
+  "complexity": "medium"
+}
+```
+
+Update on completion:
+
+```json
+{
+  "status": "done",
+  "completedAt": 1740275400000,
+  "filesChanged": ["src/templates/engine.ts", "src/api/templates.ts"],
+  "checks": {
+    "lintPassed": true,
+    "testsPassed": true,
+    "reviewPassed": true
+  },
+  "note": "All checks passed. 2 files changed."
+}
+```
+
+Update on failure:
+
+```json
+{
+  "status": "failed",
+  "failedAt": 1740275400000,
+  "attempt": 2,
+  "failReason": "Type error in template engine, missing generic constraint"
+}
+```
+
+### Rules
+- Create `<project>/.openclaw/` directory if it doesn't exist
+- One entry per task, keyed by `id`
+- Agent reads this file before spawning to avoid duplicate work on the same feature
+- Clean up completed/failed entries older than 7 days
+- This is for the agent's own tracking — not committed to git (add `.openclaw/` to `.gitignore`)
+
+
 
 
 ## Review by Complexity
@@ -316,6 +441,48 @@ Not every task needs a full review. Match review effort to task complexity:
 - [ ] Tests: existing tests pass, new logic has coverage
 
 If any checklist item fails, send follow-up via sessions_send to fix it (counts toward the 3 retry limit).
+
+## Definition of Done
+
+Every task must meet these criteria before being marked complete. Match the checklist to complexity:
+
+### Simple Tasks (agent did directly)
+- [ ] Code change works as intended
+- [ ] No syntax errors
+- [ ] Logged in daily memory
+
+### Medium Tasks (Claude Code)
+- [ ] Claude Code reported success
+- [ ] Linter passed (if available)
+- [ ] Existing tests pass
+- [ ] No unrelated file changes
+- [ ] Task registry updated to "done"
+- [ ] Logged in daily memory
+
+### Complex Tasks (Claude Code, multi-file)
+- [ ] All acceptance criteria met
+- [ ] Linter passed
+- [ ] All tests pass (existing + new)
+- [ ] Code review passed (Reviewer role or manual)
+- [ ] QA tests written and passing (if applicable)
+- [ ] **UI changes: screenshots included** in completion summary
+- [ ] No unrelated file changes
+- [ ] No debug logs, unused imports, temp files
+- [ ] Task registry updated to "done" with filesChanged list
+- [ ] Logged in daily memory with decisions and lessons
+
+### UI Screenshot Rule
+If a task changes any visible UI (pages, components, modals, emails), the completion report **must include screenshots**. Append this to the Claude Code prompt:
+
+```
+If this task changes any visible UI:
+1. After completing the code changes, take a screenshot or describe the visual result
+2. List all visual changes in your final output with before/after descriptions
+3. If a dev server is available, run it and capture the output
+```
+
+This saves massive review time — the reviewer can see what changed without running the app.
+
 
 ## Auto-Check in Prompts
 
