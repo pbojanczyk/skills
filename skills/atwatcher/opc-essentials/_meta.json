@@ -1,0 +1,11 @@
+{
+  "owner": "atwatcher",
+  "slug": "opc-essentials",
+  "displayName": "OPC Essentials",
+  "latest": {
+    "version": "1.5.0",
+    "publishedAt": 1772577867427,
+    "commit": null
+  },
+  "history": []
+}
