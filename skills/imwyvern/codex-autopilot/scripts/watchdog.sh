@@ -50,6 +50,8 @@ COMMIT_COUNT_DIR="$STATE_DIR/watchdog-commits"
 REVIEW_COOLDOWN=7200       # 增量 review 冷却（秒）= 2 小时
 COMMITS_FOR_REVIEW=15      # 触发增量 review 的 commit 数
 FEAT_WITHOUT_TEST_LIMIT=5  # 连续 feat 无 test 触发写测试 nudge
+QUEUE_IN_PROGRESS_TIMEOUT_SECONDS="${QUEUE_IN_PROGRESS_TIMEOUT_SECONDS:-3600}"
+TRACKED_TASK_TIMEOUT_SECONDS="${TRACKED_TASK_TIMEOUT_SECONDS:-3600}"
 PRD_DONE_FILTER_RE='✅\|⛔\|blocked\|（done）\|(done)\|done\|完成\|^\- \[x\]\|^\- \[X\]'
 mkdir -p "$(dirname "$LOG")" "$LOCK_DIR" "$COOLDOWN_DIR" "$ACTIVITY_DIR" "$COMMIT_COUNT_DIR"
 
@@ -97,7 +99,9 @@ detect_prd_todo_changes() {
 }
 
 is_prd_todo_complete() {
-    [ "$(count_prd_todo_remaining "$1")" -eq 0 ]
+    local project_dir="$1"
+    [ -f "${project_dir}/prd-todo.md" ] || return 1
+    [ "$(count_prd_todo_remaining "$project_dir")" -eq 0 ]
 }
 
 # ---- 项目配置 ----
@@ -187,7 +191,8 @@ send_tmux_message() {
     local safe_w
     safe_w=$(echo "$window" | tr -cd 'a-zA-Z0-9_-')
 
-    output=$("$SCRIPT_DIR/tmux-send.sh" "$window" "$message" 2>&1)
+    # watchdog 自动发送不应写 tracked-task，避免与人工任务追踪混淆。
+    output=$("$SCRIPT_DIR/tmux-send.sh" --no-track "$window" "$message" 2>&1)
     rc=$?
     # 清除 tmux-send 写的 manual-task 标记（这是 watchdog 自己发的，不是人工的）
     rm -f "${STATE_DIR}/manual-task-${safe_w}" 2>/dev/null
@@ -245,6 +250,19 @@ send_telegram_alert() {
     send_telegram "🚨 ${window}: ${text}"
 }
 
+send_discord_to_target() {
+    local target="$1" text="$2" context="$3"
+    [ -n "$target" ] || return 1
+    [ -n "$text" ] || return 0
+    [ -x "${SCRIPT_DIR}/discord-notify.sh" ] || return 1
+
+    (
+        "${SCRIPT_DIR}/discord-notify.sh" "$target" "$text" >/dev/null 2>&1 \
+            || log "⚠️ ${context}: discord notify failed (target=${target})"
+    ) &
+    return 0
+}
+
 send_discord_by_window() {
     local window="$1" text="$2"
     [ -n "$text" ] || return 0
@@ -254,10 +272,178 @@ send_discord_by_window() {
     discord_channel=$(get_discord_channel_for_window "$window" 2>/dev/null || true)
     [ -n "$discord_channel" ] || return 0
 
-    (
-        "${SCRIPT_DIR}/discord-notify.sh" "$discord_channel" "$text" >/dev/null 2>&1 \
-            || log "⚠️ ${window}: discord notify failed"
-    ) &
+    send_discord_to_target "$discord_channel" "$text" "$window" || return 0
+}
+
+parse_iso_minute_to_ts() {
+    local datetime="${1:-}"
+    local ts=0
+    [ -n "$datetime" ] || { echo 0; return 1; }
+
+    if ts=$(date -j -f '%Y-%m-%d %H:%M' "$datetime" +%s 2>/dev/null); then
+        echo "$ts"
+        return 0
+    fi
+    if ts=$(date -d "$datetime" +%s 2>/dev/null); then
+        echo "$ts"
+        return 0
+    fi
+
+    echo 0
+    return 1
+}
+
+recover_stale_queue_in_progress() {
+    local window="$1" safe="$2"
+    local queue_file="${HOME}/.autopilot/task-queue/${safe}.md"
+    [ -f "$queue_file" ] || return 0
+
+    local in_progress_line started_at started_ts now_val age
+    in_progress_line=$(grep -m1 '^\- \[→\]' "$queue_file" 2>/dev/null || true)
+    [ -n "$in_progress_line" ] || return 0
+
+    started_at=$(printf '%s\n' "$in_progress_line" \
+        | sed -n 's/^.* | started: \([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\} [0-9]\{2\}:[0-9]\{2\}\).*/\1/p' \
+        | head -n1)
+    [ -n "$started_at" ] || return 0
+
+    started_ts=$(parse_iso_minute_to_ts "$started_at" 2>/dev/null || echo 0)
+    started_ts=$(normalize_int "$started_ts")
+    [ "$started_ts" -gt 0 ] || return 0
+
+    now_val=$(now_ts)
+    age=$((now_val - started_ts))
+    if [ "$age" -lt "$QUEUE_IN_PROGRESS_TIMEOUT_SECONDS" ]; then
+        return 0
+    fi
+
+    if "${SCRIPT_DIR}/task-queue.sh" fail "$safe" "in-progress-timeout-${age}s" >/dev/null 2>&1; then
+        log "♻️ ${window}: queue in-progress stale (${age}s), auto requeued"
+        send_telegram "♻️ ${window}: 队列任务超时 ${age}s，已自动重新入队。"
+    fi
+}
+
+format_duration_short() {
+    local seconds
+    seconds=$(normalize_int "${1:-0}")
+
+    if [ "$seconds" -ge 3600 ]; then
+        local hours minutes
+        hours=$((seconds / 3600))
+        minutes=$(((seconds % 3600) / 60))
+        if [ "$minutes" -gt 0 ]; then
+            echo "${hours}h${minutes}m"
+        else
+            echo "${hours}h"
+        fi
+        return 0
+    fi
+
+    if [ "$seconds" -ge 60 ]; then
+        echo "$((seconds / 60))m"
+        return 0
+    fi
+
+    echo "${seconds}s"
+}
+
+is_idle_state_for_tracked_completion() {
+    local state="${1:-}"
+    [ "$state" = "$CODEX_STATE_IDLE" ] || [ "$state" = "$CODEX_STATE_IDLE_LOW_CONTEXT" ]
+}
+
+mark_tracked_task_timeout_notified() {
+    local tracked_file="$1" now_val="$2"
+    local tmp_file="${tracked_file}.tmp"
+
+    if ! command -v jq >/dev/null 2>&1; then
+        return 1
+    fi
+
+    jq --argjson now "$now_val" \
+        '.stall_notified = true | .stall_notified_at = $now' \
+        "$tracked_file" > "$tmp_file" 2>/dev/null \
+        && mv -f "$tmp_file" "$tracked_file" \
+        || rm -f "$tmp_file" 2>/dev/null || true
+}
+
+check_tracked_manual_task() {
+    local window="$1" safe="$2" project_dir="$3" state="$4"
+    local tracked_file="${STATE_DIR}/tracked-task-${safe}.json"
+    [ -f "$tracked_file" ] || return 0
+
+    if ! command -v jq >/dev/null 2>&1; then
+        return 0
+    fi
+    if ! jq -e '.status' "$tracked_file" >/dev/null 2>&1; then
+        log "⚠️ ${window}: tracked-task json 无法解析，已清理"
+        rm -f "$tracked_file" 2>/dev/null || true
+        return 0
+    fi
+
+    local status task source source_channel head_before started_at stall_notified
+    status=$(jq -r '.status // ""' "$tracked_file" 2>/dev/null || echo "")
+    [ "$status" = "in-progress" ] || return 0
+
+    task=$(jq -r '.task // ""' "$tracked_file" 2>/dev/null || echo "")
+    source=$(jq -r '.source // ""' "$tracked_file" 2>/dev/null || echo "")
+    source_channel=$(jq -r '.source_channel // ""' "$tracked_file" 2>/dev/null || echo "")
+    head_before=$(jq -r '.head_before // "none"' "$tracked_file" 2>/dev/null || echo "none")
+    started_at=$(jq -r '.started_at // 0' "$tracked_file" 2>/dev/null || echo 0)
+    stall_notified=$(jq -r '.stall_notified // false' "$tracked_file" 2>/dev/null || echo "false")
+
+    started_at=$(normalize_int "$started_at")
+    if [ "$started_at" -le 0 ]; then
+        started_at=$(file_mtime "$tracked_file")
+        started_at=$(normalize_int "$started_at")
+    fi
+
+    local now_val age
+    now_val=$(now_ts)
+    age=$((now_val - started_at))
+    [ "$age" -ge 0 ] || age=0
+
+    local current_head="none"
+    current_head=$(run_with_timeout 10 git -C "$project_dir" rev-parse HEAD 2>/dev/null || echo "none")
+
+    if [[ "$head_before" =~ ^[0-9a-f]{7,40}$ ]] \
+        && [[ "$current_head" =~ ^[0-9a-f]{7,40}$ ]] \
+        && [ "$current_head" != "$head_before" ] \
+        && is_idle_state_for_tracked_completion "$state"; then
+        local commit_msg elapsed_text done_msg
+        commit_msg=$(run_with_timeout 10 git -C "$project_dir" log -1 --format="%s" "$current_head" 2>/dev/null || echo "")
+        elapsed_text=$(format_duration_short "$age")
+        done_msg=$(
+            printf '✅ %s: 手动任务完成\n任务: %s\nCommit: %s — %s\n耗时: %s' \
+                "$window" "${task:0:180}" "${current_head:0:7}" "${commit_msg:0:120}" "$elapsed_text"
+        )
+
+        if [ -n "$source_channel" ]; then
+            send_discord_to_target "$source_channel" "$done_msg" "$window" || send_discord_by_window "$window" "$done_msg"
+        else
+            send_discord_by_window "$window" "$done_msg"
+        fi
+
+        log "✅ ${window}: tracked task completed (${current_head:0:7}, source=${source:-unknown})"
+        rm -f "$tracked_file" "${STATE_DIR}/manual-task-${safe}" 2>/dev/null || true
+        return 0
+    fi
+
+    if [ "$age" -ge "$TRACKED_TASK_TIMEOUT_SECONDS" ] && [ "$stall_notified" != "true" ] && [ "$stall_notified" != "1" ]; then
+        local elapsed_text warn_msg
+        elapsed_text=$(format_duration_short "$age")
+        warn_msg=$(
+            printf '⚠️ %s: 手动任务可能卡住\n任务: %s\n已运行: %s，尚未检测到新的 commit。' \
+                "$window" "${task:0:180}" "$elapsed_text"
+        )
+        if [ -n "$source_channel" ]; then
+            send_discord_to_target "$source_channel" "$warn_msg" "$window" || send_discord_by_window "$window" "$warn_msg"
+        else
+            send_discord_by_window "$window" "$warn_msg"
+        fi
+        mark_tracked_task_timeout_notified "$tracked_file" "$now_val"
+        log "⚠️ ${window}: tracked task timeout (${elapsed_text}, source=${source:-unknown})"
+    fi
 }
 
 start_nudge_ack_check() {
@@ -577,7 +763,22 @@ handle_idle() {
     if is_prd_todo_complete "$project_dir" && [ "$has_pending_work" = "false" ]; then
         local review_file="${STATE_DIR}/layer2-review-${safe}.txt"
         if [ -f "$review_file" ] && ! grep -qi "CLEAN" "$review_file" 2>/dev/null; then
-            log "ℹ️ ${window}: PRD complete but review has issues, normal nudge"
+            # review issues 退避计数
+            local review_nudge_file="${STATE_DIR}/review-nudge-count-${safe}"
+            local review_nudge_count
+            review_nudge_count=$(cat "$review_nudge_file" 2>/dev/null || echo 0)
+            review_nudge_count=$(normalize_int "$review_nudge_count")
+            if [ "$review_nudge_count" -ge 5 ]; then
+                # 连续 5 次 nudge review issues 都没新 commit → 停止 nudge
+                if [ ! -f "${STATE_DIR}/review-issues-paused-${safe}" ]; then
+                    log "⏸ ${window}: review issues nudge 已达 5 次无新 commit，暂停 nudge（等待手动安排或新 commit）"
+                    touch "${STATE_DIR}/review-issues-paused-${safe}"
+                fi
+                prd_skip_nudge=true
+            else
+                echo $((review_nudge_count + 1)) > "$review_nudge_file"
+                log "ℹ️ ${window}: PRD complete but review has issues, nudge #$((review_nudge_count + 1))/5"
+            fi
         else
             if [ "$has_queue_task_early" = "true" ]; then
                 # 队列有任务 → 绕过 prd-done 冷却
@@ -808,7 +1009,11 @@ handle_idle() {
             nudge_msg="PRD checker 未通过，先修复以下失败项：${prd_issues}"
             used_prd_issues_file=true
         else
-            nudge_msg=$(get_smart_nudge "$safe" "$project_dir")
+            # 没有明确任务（无 queue、无 issues、无 PRD 问题）→ 不 nudge
+            # 避免空转浪费 token。等手动安排任务或队列有新条目再 nudge
+            log "💤 ${window}: idle 但无待办任务，跳过 nudge"
+            release_lock "$safe"
+            return
         fi
 
         local nudge_reason="idle"
@@ -819,6 +1024,8 @@ handle_idle() {
             | grep -v 'status\.json' \
             | grep -v 'prd-progress\.json' \
             | grep -v '\.code-review/' \
+            | grep -v '\.DS_Store$' \
+            | grep -v '\.last-review-commit$' \
             | grep -v 'locks/' \
             | grep -v 'logs/' \
             | grep -v 'state/' \
@@ -975,6 +1182,9 @@ check_new_commits() {
 
     log "📝 ${window}: new commit (+${new_commits}, total since review: ${count}) — ${msg}"
     sync_project_status "$project_dir" "commit" "window=${window}" "head=${current_head}" "new_commits=${new_commits}" "since_review=${count}" "state=working"
+
+    # 新 commit → 重置 review issues 退避计数
+    rm -f "${STATE_DIR}/review-nudge-count-${safe}" "${STATE_DIR}/review-issues-paused-${safe}" 2>/dev/null || true
 
     # 队列任务完成检测：如果有进行中的队列任务，新 commit = 任务完成
     local queue_in_progress
@@ -1336,6 +1546,9 @@ while true; do
 
         state=$(detect_state "$window" "$safe")
 
+        # 队列保护：进行中任务超时自动回收，避免 [→] 长期僵死
+        recover_stale_queue_in_progress "$window" "$safe"
+
         # 每 30 轮（~5 分钟）记录一次状态
         if [ $((cycle % 30)) -eq 0 ] && [ "$cycle" -gt 0 ]; then
             log "📊 ${window}: state=${state}"
@@ -1343,6 +1556,9 @@ while true; do
 
         # Layer 1: 检测新 commit 并自动检查
         check_new_commits "$window" "$safe" "$project_dir"
+
+        # 手动 tmux-send 任务追踪：检测完成与超时（不影响 queue 逻辑）
+        check_tracked_manual_task "$window" "$safe" "$project_dir" "$state"
 
         # 检测 prd-todo.md 变化（新需求加入）→ 重置 nudge 计数，重新激活
         if detect_prd_todo_changes "$safe" "$project_dir"; then
