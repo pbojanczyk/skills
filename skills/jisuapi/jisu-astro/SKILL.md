@@ -37,7 +37,7 @@ $env:JISU_API_KEY="your_appkey_here"
 python3 skills/astro/astro.py all
 ```
 
-返回结果示例（节选自 [官方文档](https://www.jisuapi.com/api/astro/)）：
+返回结果示例（节选自 [极速数据文档](https://www.jisuapi.com/api/astro/)）：
 
 ```json
 [
@@ -83,7 +83,7 @@ python3 skills/astro/astro.py fortune '{"astroid":1,"date":"2016-01-19"}'
 | astroid | int  | 是   | 星座 ID（1–12）               |
 | date    | string | 否 | 日期（`YYYY-MM-DD`），默认今天 |
 
-返回结果示例（节选自 [官方文档](https://www.jisuapi.com/api/astro/)）：
+返回结果示例（节选自 [极速数据文档](https://www.jisuapi.com/api/astro/)）：
 
 ```json
 {
@@ -148,7 +148,7 @@ python3 skills/astro/astro.py fortune '{"astroid":1,"date":"2016-01-19"}'
 
 ## 常见错误码
 
-来自 [官方星座运势文档](https://www.jisuapi.com/api/astro/) 的业务错误码：
+来自 [极速数据星座运势文档](https://www.jisuapi.com/api/astro/) 的业务错误码：
 
 | 代号 | 说明        |
 |------|-------------|
