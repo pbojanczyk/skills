@@ -1,11 +1,17 @@
 {
   "owner": "dophinl",
   "slug": "nano-banana-pro-prompts-recommend",
-  "displayName": "Nano Banana Pro Prompt Recommender",
+  "displayName": "Nano Banana Pro Prompts Recommend",
   "latest": {
-    "version": "1.4.5",
-    "publishedAt": 1772328747441,
-    "commit": "https://github.com/openclaw/skills/commit/aa396590a2f67c1857f2a08516740b22015e75b4"
+    "version": "1.5.5",
+    "publishedAt": 1772543637801,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.4.5",
+      "publishedAt": 1772328747441,
+      "commit": "https://github.com/openclaw/skills/commit/aa396590a2f67c1857f2a08516740b22015e75b4"
+    }
+  ]
 }
