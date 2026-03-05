@@ -1,0 +1,11 @@
+{
+  "owner": "adhikjoshi",
+  "slug": "macpilot",
+  "displayName": "MacPilot :  Control macOS using CLI",
+  "latest": {
+    "version": "0.7.0",
+    "publishedAt": 1772654443212,
+    "commit": null
+  },
+  "history": []
+}
