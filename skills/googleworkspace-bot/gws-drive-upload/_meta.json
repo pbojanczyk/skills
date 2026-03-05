@@ -1,0 +1,11 @@
+{
+  "owner": "googleworkspace-bot",
+  "slug": "gws-drive-upload",
+  "displayName": "Gws Drive Upload",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1772670406064,
+    "commit": null
+  },
+  "history": []
+}
