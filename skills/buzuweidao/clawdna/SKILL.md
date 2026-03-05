@@ -1,77 +1,62 @@
 ---
 name: clawdna
-description: Generate a public, privacy-safe wiki-style profile (persona/card/bio/about) from full OpenClaw history. Use when users ask to summarize who this agent is, what it consistently does, and what it is known for based on historical behavior (not guesses).
+description: Generate a public, privacy-safe wiki-style profile from full OpenClaw history when the user explicitly asks to run ClawDNA.
 ---
 
-# History Wiki Profile (Public Privacy Version)
+# ClawDNA
 
 ## Goal
-
-Produce a concise, interesting, wiki-style profile from **full historical behavior**.
+Generate a concise, interesting, wiki-style profile from full historical behavior.
 Output must be factual, standardized, and privacy-safe.
 
----
-
-## Installation
-
-Preferred (ClawHub CLI):
-
-```bash
-clawhub install clawdna
-```
-
-Manual:
-
-```bash
-git clone <repo-url-containing-clawdna-skill> ~/.openclaw/skills/clawdna
-```
-
-After install, start a new OpenClaw session so the skill is loaded.
-
----
-
 ## When to Use
+Trigger this skill **only** on explicit user intent, such as:
+- `use ClawDNA`
+- `/clawdna`
+- `generate with ClawDNA`
 
-Trigger this skill only on explicit user intent to run ClawDNA, e.g.:
-- "use ClawDNA"
-- "/clawdna"
-- "generate with ClawDNA"
+Do not auto-trigger from generic bio/profile requests.
 
-Do not auto-trigger from generic biography/chat requests unless the user explicitly asks for ClawDNA.
+## Required Tools
+- `jq` (required)
+- `rg` or `grep` (recommended)
 
----
+If `jq` is unavailable, stop and ask the user to install it before continuing.
 
 ## Mandatory Data Scope
+Default scope (minimal): recent window only.
+Full-history mode requires explicit user confirmation in the current request.
 
-Analyze full accessible history, not recent-only:
-1. `~/.openclaw/agents/<agentId>/sessions/*.jsonl`
+Allowed paths only:
+1. `~/.openclaw/agents/<runtime-agent-id>/sessions/*.jsonl`
 2. `memory/*.md`
-3. `MEMORY.md` (if allowed in current context)
+3. `MEMORY.md` (only when allowed in the current context)
 
-If primary session path misses data, auto-discover accessible session directories and continue.
-
----
+Scope controls:
+- Use current runtime agent id only.
+- Do not read other agents' logs unless user explicitly asks and confirms.
+- Do not expand to additional directories automatically.
+- If required paths are missing, ask before changing scope.
 
 ## Non-Negotiable Rules
+1. No speculation. If unsupported, omit.
+2. Public privacy output only (redacted by default).
+3. Show time span only in coverage note (no file-count disclosure).
+4. Output language follows the user's current language by default.
+5. Keep proper nouns/agent names in original form (no translation of names).
+6. `Core Capabilities` and `Representative Work` must be titles only.
+7. Avoid rigid wording like “OpenClaw instance” in final prose.
+8. Data minimization: extract only fields needed for the profile, keep no raw-log copies, and do not output raw transcript excerpts.
 
-1. Full-history required.
-2. No speculation. If unsupported, omit.
-3. Public privacy output only (redacted by default).
-4. Show **time span only** in coverage note (no file-count disclosure).
-5. Keep sections standardized.
-6. `Core Capabilities` and `Representative Work` must be **titles only**.
-7. Output language must follow the user's current language by default.
-8. Keep proper nouns/agent names in original form (do not translate names).
+## Context Overflow Strategy
+When history is too large:
+1. Build metadata index first (do not load all raw text at once).
+2. Process by time chunks (week/month).
+3. Produce fixed-format chunk summaries.
+4. Merge chunk summaries (map-reduce style).
+5. Keep cross-window high-frequency patterns when conflicts appear.
 
----
-
-## Required Tooling
-
-Use `jq` as primary parser for JSONL logs.
-Use `rg/grep/awk` only as helpers.
-
-Core commands (adapt path/agentId):
-
+## Core Commands
 ```bash
 # message events
 jq -c 'select(.type=="message")' ~/.openclaw/agents/<agentId>/sessions/*.jsonl
@@ -92,19 +77,14 @@ jq -r '.timestamp // empty' ~/.openclaw/agents/<agentId>/sessions/*.jsonl \
 | sort | sed -n '1p;$p'
 ```
 
----
-
-## Extraction Method (High-Coverage)
-
-### Step 1: Full Index
-Extract:
+## Extraction Method
+Step 1: Build full index
 - first active timestamp
 - latest active timestamp
-- interaction surfaces (chat/thread/cron/subsession)
+- interaction surfaces
 - recurring action clusters
 
-### Step 2: Broad Action Recognition
-Classify signals across these families:
+Step 2: Broad action recognition
 - Execution: edit/fix/deploy/restart/cleanup/release
 - Collaboration: reply/thread/split/coordinate/follow-up
 - Analysis: search/compare/evaluate/summarize/review
@@ -112,111 +92,88 @@ Classify signals across these families:
 - Creation: write/generate/design/propose/script
 - Governance: confirm/risk-gate/privacy-redaction/boundary
 
-Require multilingual synonym handling and tool+text cross-signals.
+Step 3: Stability filtering
+- Keep only repeated cross-window patterns.
+- Single events cannot become persona traits.
 
-### Step 3: Stability Filtering
-Only keep patterns repeated across time windows.
-Single events cannot become personality traits.
+Step 4: Privacy redaction
+- Remove secrets, direct identifiers, and sensitive internal references.
 
-### Step 4: Map to Wiki Sections
-Map stable signals into fixed sections below.
+Step 5: Section mapping
+- Map stable signals to the fixed output template.
 
-### Step 5: Privacy Redaction
-Remove or generalize secrets, direct identifiers, sensitive internal references.
-
----
-
-## Context Overflow Strategy (Required)
-
-When history is too large for context:
-1. Build metadata index first (do not load raw text fully).
-2. Process logs in time chunks (week/month windows).
-3. Produce per-chunk structured summaries with fixed keys.
-4. Merge summaries (map-reduce style) into final profile.
-5. If conflicts exist, keep high-frequency cross-window patterns.
-
----
-
-## Output (Single Display File)
-
+## Output
 Return one Markdown display profile only.
 Do not output audit appendix.
 
-Style requirement:
-- Avoid rigid phrasing like "OpenClaw instance" in final prose.
-- Prefer natural, human-readable role descriptions in the user's language.
-
----
-
 ## Fixed Output Template
+
+Use section labels in one language only (the output language).
+Do not output bilingual headings.
 
 # {{Name}}
 
-## Lead
+## {{LeadLabel}}
 {{1 paragraph: identity + start time + stable traits + value}}
 
-## Infobox
-- Name: {{}}
-- Type: {{execution/creative/analysis/operations/hybrid}}
-- First Activation: {{YYYY-MM-DD}}
-- Active Time Span: {{Start ~ Now}}
-- Total Tokens: {{optional; include only if reliably available from full history, otherwise omit}}
-- Primary Domains: {{max 3}}
-- Interaction Style: {{}}
-- Collaboration Mode: {{}}
-- Default Principles: {{privacy-first / risk-confirmation / rollback-first}}
+## {{InfoboxLabel}}
+- {{NameLabel}}: {{}}
+- {{TypeLabel}}: {{execution/creative/analysis/operations/hybrid}}
+- {{FirstActivationLabel}}: {{YYYY-MM-DD}}
+- {{ActiveTimeSpanLabel}}: {{Start ~ Now}}
+- {{TotalTokensLabel}}: {{optional; include only if reliably available}}
+- {{PrimaryDomainsLabel}}: {{max 3}}
+- {{InteractionStyleLabel}}: {{}}
+- {{CollaborationModeLabel}}: {{}}
+- {{DefaultPrinciplesLabel}}: {{privacy-first / risk-confirmation / rollback-first}}
 
-## Origin & Evolution
-- Initial Stage: {{}}
-- Evolution Stage: {{}}
-- Current Stage: {{}}
+## {{OriginEvolutionLabel}}
+- {{InitialStageLabel}}: {{}}
+- {{EvolutionStageLabel}}: {{}}
+- {{CurrentStageLabel}}: {{}}
 
-## Operating Method
+## {{OperatingMethodLabel}}
 - {{}}
 - {{}}
 - {{}}
 
-## Personality Snapshot
+## {{PersonalitySnapshotLabel}}
 {{2-3 short behavior-based sentences}}
 
-## Core Capabilities
+## {{CoreCapabilitiesLabel}}
 - {{title only}}
 - {{title only}}
 - {{title only}}
 
-## Representative Work
+## {{RepresentativeWorkLabel}}
 - {{title only}}
 - {{title only}}
 - {{title only}}
 
-## Milestones
+## {{MilestonesLabel}}
 - {{Date}}: {{}}
 - {{Date}}: {{}}
 - {{Date}}: {{}}
 
-## Collaboration Guide
-- Best Input: {{goal / constraints / priority / deadline}}
-- Best Rhythm: {{}}
-- Preferred Output: {{}}
+## {{CollaborationGuideLabel}}
+- {{BestInputLabel}}: {{goal / constraints / priority / deadline}}
+- {{BestRhythmLabel}}: {{}}
+- {{PreferredOutputLabel}}: {{}}
 
-## Boundaries & Safety
+## {{BoundariesSafetyLabel}}
 - {{}}
 - {{}}
 - {{}}
 
-## Persona Tags
+## {{PersonaTagsLabel}}
 {{tag1}} / {{tag2}} / {{tag3}} / {{tag4}}
 
-## Ending
-{{Use a short closing in the user's language, e.g.}}
-{{Preset persona = initial intent; long-term behavior = real persona; user habits = persona shaper.}}
+## {{EndingLabel}}
+Preset persona = initial intent; long-term behavior = real persona; user habits = persona shaper.
 
----
-
-## Final Checks Before Output
-
+## Final Checks
 - Full history used (not recent-only)
 - No speculative claims
-- Core Capabilities & Representative Work are title-only
+- Core Capabilities and Representative Work are title-only
 - Privacy-safe wording
 - Coverage includes time span only
