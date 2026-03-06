@@ -1,14 +1,14 @@
 ---
-name: wreckit
+name: reckit
 description: >
   Bulletproof AI code verification. The agent IS the engine — no external tools required.
   Spawns parallel verification workers that slop-scan, type-check, mutation-test, and
-  cross-verify before shipping. Language-agnostic. Framework-agnostic.
+  cross-verify before shipping. Language-agnostic. Framework-agnostic. Now with Swift/iOS support.
   Use when: (1) Building new projects and need verified, tested code ("build X with tests"),
   (2) Migrating/rebuilding codebases ("rewrite in TypeScript"), (3) Fixing bugs with proof
   nothing else broke ("fix this bug, verify no regressions"), (4) Auditing existing code
   quality ("audit this project", "how good are these tests?"), (5) Any request mentioning
-  "wreckit", "mutation testing", "verification", "proof bundle", "code audit", or
+  "reckit", "wreckit", "mutation testing", "verification", "proof bundle", "code audit", or
   "bulletproof". Produces a proof bundle (.wreckit/) with gate results and Ship/Caution/Blocked verdict.
 metadata:
   openclaw:
@@ -16,7 +16,7 @@ metadata:
     notes: "Uses sessions_spawn for parallel verification swarms. Requires maxSpawnDepth >= 2."
 ---
 
-# wreckit — Bulletproof AI Code Verification
+# Reckit — Bulletproof AI Code Verification
 
 Build it. Break it. Prove it works.
 
@@ -123,6 +123,29 @@ Worker output format: `references/swarm/handoff.md`.
 | **Blocked** 🚫 | Any hard block OR corroborated non-hard failure pattern (multi-signal, multi-domain, high-confidence) |
 
 Hard-block + corroboration rule details: `references/gates/corroboration.md`
+
+## Supported Languages & Stacks
+
+| Language | Gates Available | Notes |
+|----------|----------------|-------|
+| TypeScript/JS | 11/11 | Full support via Stryker, tsc, vitest/jest |
+| Python | 11/11 | Full support via mutmut, mypy/pyright, pytest |
+| Rust | 11/11 | Full support via cargo-mutants, cargo check/test |
+| Go | 11/11 | Full support via go vet, go test |
+| **Swift (SPM)** | **9/11** | mutation = AI-estimated CAUTION, cross-verify = manual |
+| **Swift (Xcode)** | **7/11** | type-check = xcodebuild, mutation = AI-estimated, coverage = limited |
+| **iOS apps** | **7/11** | Same as Xcode projects |
+| Java/Kotlin | 10/11 | Gradle/Maven, mutation via PIT (manual setup) |
+| Shell | 8/11 | shellcheck, limited mutation testing |
+
+### Swift Notes
+
+- **Mutation testing requires manual verification** — no automated mutation testing tool exists for Swift as of 2026. The mutation gate uses AI-estimated analysis (counts mutation surface, compares to test count) and always outputs `CAUTION`, never `SHIP`.
+- **SPM projects** get high-confidence type checking via `swift build` (the compiler IS the type checker).
+- **Xcode projects** get medium-confidence type checking via `xcodebuild` with auto-detected schemes.
+- **Dependency checking** lists SPM dependencies but notes that no automated CVE database exists for Swift packages — manual review is always recommended.
+- **CocoaPods** projects: `pod outdated` is checked if Podfile present.
+- **Build systems detected:** SPM, xcodebuild, CocoaPods, Carthage, mixed.
 
 ## Running an Audit (Single-Agent, No Swarm)
 
