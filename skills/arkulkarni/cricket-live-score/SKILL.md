@@ -1,15 +1,16 @@
 ---
 name: cricket-live-score
-description: Send live cricket score updates (text + voice memo) to Telegram at a configurable interval. Use when the user asks for live score updates for any ongoing cricket match. Supports T20, ODI formats, both innings, auto-detection of teams/target/innings.
+description: Send live cricket score updates (text + voice memo) to Telegram for any ongoing T20 or ODI match. Completely free. 
 author: Amit Kulkarni
 tags: cricket, sports, live-score, telegram, voice
-dependencies: gTTS, requests
-config: Telegram bot token (via --bot-token, TELEGRAM_BOT_TOKEN env var, or OpenClaw config)
+dependencies: gTTS
+env: TELEGRAM_BOT_TOKEN (optional — can also use --bot-token arg or OpenClaw config)
+config: ~/.openclaw/openclaw.json (optional fallback for bot token)
 ---
 
 # 🏏 Cricket Live Score Updates
 
-Real-time cricket score updates delivered to Telegram — with optional voice memos so you can follow along without reading.
+Real-time cricket score updates delivered to Telegram — with optional voice memos so you can follow along without reading. Scrapes data from cricbuzz and does not need any API key setup to get the scores. 
 
 Supports T20 and ODI formats, both innings, auto-detection of teams, target, and required run rate.
 
@@ -123,7 +124,7 @@ Currently **Telegram only** — the script sends updates directly via the Telegr
 
 ## Requirements
 
-- Python 3
+- Python 3 (uses only `urllib` from the standard library — no `requests` needed)
 - `gTTS` package (for voice memos)
 - Telegram bot token — provided via one of:
   1. `--bot-token` argument (recommended)
