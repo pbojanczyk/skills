@@ -31,7 +31,7 @@ def create_educlaw_scheduling_tables(db_path):
         "SELECT name FROM sqlite_master WHERE type='table'"
     ).fetchall()]
     if "company" not in tables:
-        print("ERROR: Foundation tables not found. Run erpclaw-setup first.")
+        print("ERROR: Foundation tables not found. Run erpclaw first.")
         sys.exit(1)
 
     # Verify parent schema (educlaw) exists

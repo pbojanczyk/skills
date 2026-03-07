@@ -1,12 +1,15 @@
 ---
 name: educlaw-scheduling
 display_name: EduClaw Advanced Scheduling
-version: 1.0.0
+version: 1.0.3
 description: >
   Master scheduling, schedule patterns, conflict resolution, and room assignment
   for K-12 and higher-education institutions. Sub-vertical of EduClaw SIS.
 author: ERPForge
 parent: educlaw
+requires: [erpclaw, educlaw]
+database: ~/.openclaw/erpclaw/data.sqlite
+user-invocable: true
 scripts:
   - scripts/db_query.py
 domains:
@@ -25,6 +28,7 @@ tables:
   - educlaw_schedule_conflict
   - educlaw_room_booking
   - educlaw_instructor_constraint
+metadata: {"openclaw":{"type":"executable","install":{"post":"python3 init_db.py && python3 scripts/db_query.py --action status"},"requires":{"bins":["python3"],"env":[],"optionalEnv":[]},"os":["darwin","linux"]}}
 ---
 
 # EduClaw Advanced Scheduling
@@ -49,10 +53,10 @@ python3 db_query.py --action activate-schedule-pattern --pattern-id <id>
 # 2. Build and publish master schedule
 python3 db_query.py --action create-master-schedule \
   --academic-term-id <id> --schedule-pattern-id <id> --name "Fall 2026" --company-id <id>
-python3 db_query.py --action place-section-meeting \
+python3 db_query.py --action add-section-meeting \
   --master-schedule-id <id> --section-id <id> --day-type-id <id> --bell-period-id <id>
-python3 db_query.py --action run-conflict-check --master-schedule-id <id>
-python3 db_query.py --action publish-master-schedule --master-schedule-id <id>
+python3 db_query.py --action generate-conflict-check --master-schedule-id <id>
+python3 db_query.py --action submit-master-schedule --master-schedule-id <id>
 ```
 
 ---
@@ -112,7 +116,7 @@ Create a master schedule container for an academic term.
 | `--company-id` | ✓ | Company ID |
 | `--build-notes` | | Internal building notes |
 
-### `place-section-meeting`
+### `add-section-meeting`
 Place a section into a specific day-type + period slot.
 
 | Parameter | Required | Description |
@@ -126,7 +130,7 @@ Place a section into a specific day-type + period slot.
 | `--meeting-type` | | `regular` (default), `lab`, `exam`, `field_trip`, `make_up` |
 | `--meeting-mode` | | `in_person` (default), `hybrid`, `online` |
 
-### `run-conflict-check`
+### `generate-conflict-check`
 Run all 11 conflict categories for a master schedule. **Required:** `--master-schedule-id`
 
 Types: `instructor_double_booking` (CRITICAL), `room_double_booking` (CRITICAL),
@@ -134,7 +138,7 @@ Types: `instructor_double_booking` (CRITICAL), `room_double_booking` (CRITICAL),
 `capacity_exceeded` (HIGH), `singleton_overlap` (HIGH), `room_shortage` (HIGH),
 `room_type_mismatch` (MEDIUM), `credential_mismatch` (MEDIUM), `contact_hours_deficit` (MEDIUM)
 
-### `publish-master-schedule`
+### `submit-master-schedule`
 Publish the master schedule (blocks if open CRITICAL conflicts exist).
 **Required:** `--master-schedule-id`. Opt: `--published-by`
 
@@ -145,39 +149,39 @@ Publish the master schedule (blocks if open CRITICAL conflicts exist).
 `update-schedule-pattern` **Req:** `--pattern-id`. Opt: `--name`, `--description`, `--notes`
 `get-schedule-pattern` **Req:** `--pattern-id`
 `list-schedule-patterns` Opt: `--company-id`, `--pattern-type`, `--is-active`, `--search`, `--limit`
-`map-day-type-to-dates` **Req:** `--pattern-id`, `--date-range-start`, `--date-range-end`
+`get-day-type-calendar` **Req:** `--pattern-id`, `--date-range-start`, `--date-range-end`
 `get-pattern-calendar` **Req:** `--pattern-id`
-`calculate-contact-hours` **Req:** `--pattern-id`. Opt: `--section-id`, `--master-schedule-id`
+`get-contact-hours` **Req:** `--pattern-id`. Opt: `--section-id`, `--master-schedule-id`
 `update-master-schedule` **Req:** `--master-schedule-id`. Opt: `--name`, `--build-notes`, `--schedule-status`
 `get-master-schedule` Opt: `--master-schedule-id`, `--naming-series`
 `list-master-schedules` Opt: `--company-id`, `--schedule-status`, `--academic-term-id`
 `add-section-to-schedule` **Req:** `--master-schedule-id`, `--section-id`
-`remove-section-meeting` **Req:** `--section-meeting-id`
+`delete-section-meeting` **Req:** `--section-meeting-id`
 `list-section-meetings` **Req:** `--master-schedule-id`. Opt: `--section-id`, `--day-type-id`, `--instructor-id`, `--room-id`
 `get-schedule-matrix` **Req:** `--master-schedule-id`
-`lock-master-schedule` **Req:** `--master-schedule-id`. Opt: `--locked-by`
-`clone-master-schedule` **Req:** `--master-schedule-id`, `--target-academic-term-id`. Opt: `--name`, `--company-id`
+`update-schedule-lock` **Req:** `--master-schedule-id`. Opt: `--locked-by`
+`create-schedule-clone` **Req:** `--master-schedule-id`, `--target-academic-term-id`. Opt: `--name`, `--company-id`
 
 ## Tier 2 — Course Requests
 
-`open-course-requests` **Req:** `--academic-term-id`
+`activate-course-requests` **Req:** `--academic-term-id`
 `submit-course-request` **Req:** `--student-id`, `--academic-term-id`, `--course-id`. Opt: `--request-priority`, `--is-alternate`, `--alternate-for-course-id`, `--has-iep-flag`, `--prerequisite-override`, `--prerequisite-override-by`, `--prerequisite-override-note`, `--submitted-by`, `--company-id`
 `approve-course-requests` **Req:** `--academic-term-id`, `--approved-by`. Opt: `--course-id`
 `get-demand-report` **Req:** `--academic-term-id`
 `get-singleton-analysis` **Req:** `--academic-term-id`. Opt: `--min-requests`
-`analyze-course-demand` **Req:** `--academic-term-id`
+`get-course-demand-analysis` **Req:** `--academic-term-id`
 `get-fulfillment-report` Opt: `--master-schedule-id`, `--academic-term-id`
 `get-load-balance-report` **Req:** `--master-schedule-id`
 `update-course-request` **Req:** `--course-request-id`. Opt: `--request-priority`, `--is-alternate`, `--has-iep-flag`
 `get-course-request` **Req:** `--course-request-id`
 `list-course-requests` Opt: `--student-id`, `--academic-term-id`, `--course-id`, `--request-status`
-`close-course-requests` **Req:** `--academic-term-id`
+`complete-course-requests` **Req:** `--academic-term-id`
 
 ## Tier 2 — Conflict Resolution
 
 `list-conflicts` **Req:** `--master-schedule-id`. Opt: `--conflict-type`, `--severity`, `--conflict-status`
 `get-conflict` **Req:** `--conflict-id`
-`resolve-conflict` **Req:** `--conflict-id`, `--resolution-notes`. Opt: `--resolved-by`
+`complete-conflict` **Req:** `--conflict-id`, `--resolution-notes`. Opt: `--resolved-by`
 `accept-conflict` **Req:** `--conflict-id` (not CRITICAL). Opt: `--resolution-notes`, `--resolved-by`
 `get-conflict-summary` **Req:** `--master-schedule-id`
 `get-singleton-conflict-map` **Req:** `--master-schedule-id`
@@ -186,15 +190,15 @@ Publish the master schedule (blocks if open CRITICAL conflicts exist).
 ## Tier 2 — Room Assignment
 
 `assign-room` **Req:** `--section-meeting-id`, `--room-id`. Opt: `--booking-type`, `--accessibility-required`, `--booked-by`
-`suggest-room` **Req:** `--section-meeting-id`. Opt: `--room-type`, `--accessibility-required`
-`bulk-assign-rooms` **Req:** `--master-schedule-id`. Opt: `--room-type`
-`unassign-room` Opt: `--section-meeting-id`, `--booking-id`
-`block-room` **Req:** `--room-id`, `--day-type-id`, `--bell-period-id`, `--booking-title`. Opt: `--booked-by`, `--booking-type`
-`swap-rooms` **Req:** `--section-meeting-id` (A), `--section-meeting-id-b` (B)
+`propose-room` **Req:** `--section-meeting-id`. Opt: `--room-type`, `--accessibility-required`
+`assign-rooms` **Req:** `--master-schedule-id`. Opt: `--room-type`
+`delete-room-assignment` Opt: `--section-meeting-id`, `--booking-id`
+`add-room-block` **Req:** `--room-id`, `--day-type-id`, `--bell-period-id`, `--booking-title`. Opt: `--booked-by`, `--booking-type`
+`update-room-swap` **Req:** `--section-meeting-id` (A), `--section-meeting-id-b` (B)
 `get-room-availability` **Req:** `--room-id`, `--master-schedule-id`
 `get-room-utilization-report` **Req:** `--master-schedule-id`
-`search-rooms-by-features` Opt: `--company-id`, `--room-type`, `--capacity`, `--building`, `--features` (JSON)
-`emergency-reassign-room` **Req:** `--room-id`, `--target-room-id`, `--master-schedule-id`
+`list-rooms-by-features` Opt: `--company-id`, `--room-type`, `--capacity`, `--building`, `--features` (JSON)
+`assign-room-emergency` **Req:** `--room-id`, `--target-room-id`, `--master-schedule-id`
 
 ## Tier 3 — Instructor Constraints
 
@@ -214,7 +218,7 @@ Publish the master schedule (blocks if open CRITICAL conflicts exist).
 ## Workflows
 
 1. **Pattern:** `add-schedule-pattern → add-day-type (×N) → add-bell-period (×N) → activate-schedule-pattern`
-2. **Demand:** `open-course-requests → submit-course-request (×N) → approve-course-requests → get-demand-report → close-course-requests`
-3. **Build:** `create-master-schedule → add-section-to-schedule (×N) → place-section-meeting (×N) → assign-room OR bulk-assign-rooms → update-master-schedule (status=review)`
-4. **Publish:** `run-conflict-check → get-conflict-summary → [resolve-conflict|accept-conflict] (×N) → publish-master-schedule → lock-master-schedule`
-5. **Emergency:** `get-room-availability → emergency-reassign-room → run-conflict-check`
+2. **Demand:** `activate-course-requests → submit-course-request (×N) → approve-course-requests → get-demand-report → complete-course-requests`
+3. **Build:** `create-master-schedule → add-section-to-schedule (×N) → add-section-meeting (×N) → assign-room OR assign-rooms → update-master-schedule (status=review)`
+4. **Publish:** `generate-conflict-check → get-conflict-summary → [complete-conflict|accept-conflict] (×N) → submit-master-schedule → update-schedule-lock`
+5. **Emergency:** `get-room-availability → assign-room-emergency → generate-conflict-check`
