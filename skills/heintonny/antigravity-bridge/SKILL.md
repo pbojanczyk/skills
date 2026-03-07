@@ -72,23 +72,52 @@ Show what changed in tasks since last sync:
 python3 scripts/diff_tasks.py
 ```
 
-### Pick Task (`pick-task`)
+### Next Task (`next-task`)
 
-Select the next available task and prepare a coding sub-agent:
+Analyze project state and recommend 2-3 tasks interactively
+(mirrors Antigravity's `/next-task` workflow):
 
+**Step 1: Gather context** (run the script for raw data):
 ```bash
-python3 scripts/pick_task.py
+python3 scripts/pick_task.py --dry-run
 ```
 
-What it does:
-1. Reads `.agent/tasks.md` and finds `[ ]` (todo) tasks
-2. Marks the selected task as `[>]` (active)
-3. Collects relevant rules, skills, memory, and KIs
-4. Outputs a task brief for spawning a coding sub-agent
+**Step 2: Agent analysis** (do NOT just pick the first `[ ]` task):
 
-After the sub-agent completes:
-- Task is marked `[x]` (done) in tasks.md
-- Next logical task is marked `[>]`
+1. Read `.agent/tasks.md` — check `[>]` (active) tasks first
+2. Read `git log --oneline -15` for recent development context
+3. Read relevant `.agent/memory/` files for lessons learned
+4. Read KI summaries for domain awareness
+5. Cross-reference: what's active? What's blocked? What's a quick win?
+
+**Step 3: Present 2-3 recommendations** in this format:
+
+> 🎯 **Recommended Next Tasks** — Reply with the number to start.
+>
+> **Option 1: [Task Name]** ⭐ (if active/in-progress)
+> - Context: Why this task is recommended now
+> - Scope: What's involved
+> - Effort: Small / Medium / Large
+>
+> **Option 2: [Task Name]**
+> - Context: ...
+> - Scope: ...
+> - Effort: ...
+>
+> Reply `1`, `2`, or `3` to start • `all` for details • `skip` to defer
+
+**Step 4: On selection:**
+- Mark chosen task `[>]` in tasks.md
+- Create feature branch: `clawd/<task-kebab-name>`
+- Load all relevant rules, memory, KIs
+- Spawn coding sub-agent or begin implementation
+
+**Priority criteria (in order):**
+1. Active but incomplete (`[>]` tasks)
+2. Unblocking (enables other work)
+3. Quick wins (low effort, high value)
+4. Technical debt
+5. Natural phase progression
 
 ### Self-Improve (`self-improve`)
 

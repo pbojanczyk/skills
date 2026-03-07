@@ -39,8 +39,16 @@ def write_ki(knowledge_dir: str, topic: str, title: str, summary: str,
     # metadata.json
     meta_path = ki_dir / "metadata.json"
     if meta_path.exists():
-        with open(meta_path) as f:
-            meta = json.load(f)
+        try:
+            with open(meta_path) as f:
+                meta = json.load(f)
+        except json.JSONDecodeError:
+            with open(meta_path) as f:
+                raw = f.read().strip()
+            try:
+                meta = json.loads(raw[:raw.rindex("}") + 1])
+            except (ValueError, json.JSONDecodeError):
+                meta = {"title": title, "summary": summary, "references": []}
         # Append to summary if new info
         if summary not in meta.get("summary", ""):
             meta["summary"] = meta["summary"].rstrip(". ") + ". " + summary
