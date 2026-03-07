@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-基于AgentScope实现了Trading-Agent的股票诊断智能体技能
+AgentScope 股票诊断智能体系统
 基于 AgentScope 框架实现的多智能体协作股票分析系统
 
 核心功能:
@@ -22,9 +22,8 @@ from datetime import datetime
 from typing import Dict, List, Optional
 from dataclasses import dataclass, field
 
-# 添加项目路径（scripts 目录）
-SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, SCRIPTS_DIR)
+# 添加项目路径
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # 设置日志级别，过滤 AgentScope 的 WARNING 日志（如 thinking 块警告）
 logging.getLogger("agentscope").setLevel(logging.ERROR)
@@ -36,28 +35,27 @@ import agentscope
 from dotenv import load_dotenv
 load_dotenv()
 
-# 使用绝对导入
-from config import config
-from tools.tushare_tools import TushareTools
+from .config import config
+from .tools.tushare_tools import TushareTools
 
 # 分析师团队（ReActAgent）
-from agents.analysts import (
+from .agents.analysts import (
     MarketAnalystAgent,
     FundamentalsAnalystAgent,
     NewsAnalystAgent,
 )
 # 研究员团队（AgentBase）
-from agents.researchers import (
+from .agents.researchers import (
     BullishResearcherAgent,
     BearishResearcherAgent,
     ResearchFacilitatorAgent,
 )
 # 交易员和风控（原实现）
-from agents.trader import Trader
-from agents.risk_managers import (
+from .agents.trader import Trader
+from .agents.risk_managers import (
     AggressiveRisk, NeutralRisk, ConservativeRisk, RiskFacilitator
 )
-from agents.manager import Manager
+from .agents.manager import Manager
 
 
 @dataclass
