@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0] - 2026-03-07
+
+### Added
+- Bilingual documentation support (English + Chinese)
+- Default English documentation with Chinese translation
+- Language switch links between README.md ↔ README.zh.md and SKILL.md ↔ SKILL.zh.md
+
 ## [1.0.0] - 2026-03-07
 
 ### Added

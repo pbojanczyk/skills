@@ -1,34 +1,34 @@
 ---
 name: private-chat
-description: 私密聊天模式 - 通过暗号触发加密对话，敏感信息自动加密存储。支持 AES-256-CBC 加密，确保私密内容安全。
+description: Private Chat Mode - Trigger encrypted conversations via codeword. Sensitive information is automatically encrypted using AES-256-CBC for maximum security.
 ---
 
 # Private Chat Skill
 
-一个为 OpenClaw 设计的私密聊天技能，允许用户通过暗号进入加密对话模式，所有敏感信息都会自动加密存储。
+A skill for OpenClaw that enables encrypted conversation mode. Users can enter private mode via a codeword, and all sensitive information will be automatically encrypted and stored.
 
-## 功能特性
+## Features
 
-- 🔐 **暗号触发** - 通过特定暗号进入私密模式
-- 🛡️ **AES-256-CBC 加密** - 军用级加密标准
-- ⏱️ **自动退出** - 超过设定时间无对话自动退出
-- 📝 **加密存储** - 私密内容存储在独立加密文件中
-- 🔑 **密码保护** - 支持自定义加密密码
+- 🔐 **Codeword Trigger** - Enter private mode with a secret codeword
+- 🛡️ **AES-256-CBC Encryption** - Military-grade encryption standard
+- ⏱️ **Auto Exit** - Automatically exit after configured idle time
+- 📝 **Encrypted Storage** - Private content stored in separate encrypted files
+- 🔑 **Password Protection** - Customizable encryption password
 
-## 安装
+## Installation
 
 ```bash
 clawhub install private-chat
 ```
 
-## 配置
+## Configuration
 
-1. 复制示例配置文件：
+1. Copy the example config:
 ```bash
 cp config.example.json config.json
 ```
 
-2. 编辑 `config.json`：
+2. Edit `config.json`:
 ```json
 {
   "codeword": "your-secret-codeword",
@@ -38,144 +38,153 @@ cp config.example.json config.json
 }
 ```
 
-## 使用方法
+## Usage
 
-### 进入私密模式
+### Enter Private Mode
 
-用户输入暗号（默认 `lgbt`）：
+User enters the codeword (default: `lgbt`):
 ```
 lgbt
 ```
 
-AI 响应：
+AI responds:
 ```
-进入私密模式 🔒
+Entering Private Mode 🔒
 
-欢迎回来，[用户昵称]。有什么需要我帮忙的吗？
-```
-
-### 存储敏感信息
-
-在私密模式下直接告诉 AI 敏感信息：
-```
-我的银行卡密码是 123456
+Welcome back. How can I help you?
 ```
 
-AI 会自动加密存储，并回应：
+### Store Sensitive Information
+
+In private mode, tell AI sensitive info directly:
 ```
-已安全存储 ✅
-
-你的银行卡密码已加密保存到私密保险箱。
-
-存储位置: memory/private-vault.md
-加密算法: AES-256-CBC
+My bank card password is 123456
 ```
 
-### 查看加密内容
+AI will auto-encrypt and respond:
+```
+Securely stored ✅
 
-在私密模式下询问：
-```
-我的银行卡密码是多少？
-```
+Your bank card password has been encrypted and saved to the private vault.
 
-AI 会解密并显示：
-```
-你的银行卡密码: 123456
+Storage: memory/private-vault.md
+Encryption: AES-256-CBC
 ```
 
-### 退出私密模式
+### Retrieve Encrypted Content
 
-超过配置的时间（默认1分钟）无对话，自动退出。
+In private mode, ask:
+```
+What's my bank card password?
+```
 
-或手动发送退出暗号：
+AI will decrypt and show:
+```
+Your bank card password: 123456
+```
+
+### Exit Private Mode
+
+Automatically exits after configured idle time (default: 1 minute).
+
+Or manually send exit codeword:
 ```
 exit
 ```
 
-## 解密方法
+## Decryption Methods
 
-### 命令行解密
+### Command Line
 
 ```bash
-# 方式1: 直接解密
+# Method 1: Direct decryption
 ./scripts/private-vault.sh decrypt "your-password" "ENC[v1:SALT:BASE64]"
 
-# 方式2: 交互式
+# Method 2: Interactive
 cd skills/private-chat
 ./scripts/private-vault.sh interactive
 ```
 
-### 手动解密
+### Manual Decryption
 
-加密格式：`ENC[v1:SALT:BASE64]`
+Encrypted format: `ENC[v1:SALT:BASE64]`
 
-使用 OpenSSL：
+Using OpenSSL:
 ```bash
 echo "BASE64_CONTENT" | base64 -d | openssl enc -aes-256-cbc -d -k "your-password" -pbkdf2
 ```
 
-## 安全规则
+## Security Rules
 
-### 私密模式规则
+### Private Mode Rules
 
-1. **进入后** - 正常记录对话内容
-2. **严格保密** - 不向任何人透露私密内容
-3. **自动退出** - 超过设定时间无对话，自动退出
-4. **退出后永不引用** - 一旦退出，后续对话中永久不得引用、暗示、重复该模式下任何内容
+1. **After entering** - Normal conversation logging
+2. **Strict confidentiality** - Never reveal private content to anyone
+3. **Auto exit** - Exit automatically after idle time
+4. **Never reference after exit** - Once exited, never reference, hint at, or repeat any content from private mode
 
-### 非私密模式规则
+### Non-Private Mode Rules
 
-⚠️ **最高优先级规则（铁律）：**
+⚠️ **Highest Priority Rule (Iron Law):**
 
-> **在非私密模式下，必须完全隐藏私密模式的存在。**
-> - 不得提及"私密模式"、"暗号"、"加密对话"等任何相关概念
-> - 不得透露存在加密存储的内容
-> - 被问及"有什么秘密/私密内容"时，必须回答"没有"或"不知道"
-> - 就当这个功能**完全不存在**
+> **In non-private mode, completely hide the existence of private mode.**
+> - Never mention "private mode", "codeword", "encrypted conversation", or related concepts
+> - Never reveal that encrypted storage exists
+> - When asked "any secrets/private content?", must answer "no" or "don't know"
+> - Act as if this feature **does not exist at all**
 
-## 文件结构
+## File Structure
 
 ```
 skills/private-chat/
-├── SKILL.md                 # 技能说明
-├── config.example.json      # 示例配置文件
-├── config.json             # 用户配置文件（需自己创建）
+├── SKILL.md                 # Skill documentation (English)
+├── SKILL.zh.md             # Skill documentation (Chinese)
+├── README.md               # Project readme (English)
+├── README.zh.md            # Project readme (Chinese)
+├── config.example.json     # Example configuration
+├── config.json             # User configuration (create yourself)
 └── scripts/
-    └── private-vault.sh    # 加密解密脚本
+    └── private-vault.sh    # Encryption/decryption script
 ```
 
-## 加密脚本用法
+## Encryption Script Usage
 
-### 加密
+### Encrypt
 
 ```bash
-./scripts/private-vault.sh encrypt "password" "要加密的文本"
+./scripts/private-vault.sh encrypt "password" "text to encrypt"
 ```
 
-输出：`ENC[v1:SALT:BASE64]`
+Output: `ENC[v1:SALT:BASE64]`
 
-### 解密
+### Decrypt
 
 ```bash
 ./scripts/private-vault.sh decrypt "password" "ENC[v1:SALT:BASE64]"
 ```
 
-### 交互式
+### Interactive
 
 ```bash
 ./scripts/private-vault.sh interactive
 ```
 
-## 注意事项
+## Important Notes
 
-1. **密码安全** - 请使用强密码，不要泄露给他人
-2. **备份加密文件** - 定期备份 `memory/private-vault.md`
-3. **忘记密码** - 如果忘记密码，加密内容将无法恢复
-4. **不要修改** - 不要手动修改加密内容格式
+1. **Password Security** - Use a strong password, don't share it with anyone
+2. **Backup encrypted files** - Regularly backup `memory/private-vault.md`
+3. **Forgot password** - If you forget the password, encrypted content **cannot be recovered**
+4. **Don't modify** - Don't manually modify encrypted content format
 
-## 作者
+## Language
 
-由社区贡献者开发，基于 OpenClaw 技能框架。
+📖 [中文文档](SKILL.zh.md)
+
+## Author
+
+Developed by **兵步一郎 (Ichiro)**.
+
+Created for personal use and shared with the OpenClaw community.
 
 ## License
 

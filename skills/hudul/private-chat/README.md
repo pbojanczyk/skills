@@ -1,54 +1,56 @@
 # Private Chat for OpenClaw
 
-🔐 私密聊天模式 - 为你的 OpenClaw 助手添加加密对话功能
+🔐 Private Chat Mode - Add encrypted conversation capabilities to your OpenClaw assistant
 
-## 功能亮点
+[📖 中文文档](README.zh.md)
 
-- 🔑 **暗号触发** - 通过特定暗号进入私密模式
-- 🛡️ **AES-256-CBC 加密** - 军用级加密标准保护敏感信息
-- ⏱️ **自动超时** - 无对话自动退出，防止信息泄露
-- 📝 **安全存储** - 加密内容存储在独立文件中
-- 🔓 **随时解密** - 提供命令行和交互式解密工具
+## Features
 
-## 演示
+- 🔑 **Codeword Trigger** - Enter private mode with a secret codeword
+- 🛡️ **AES-256-CBC Encryption** - Military-grade encryption for sensitive information
+- ⏱️ **Auto Timeout** - Automatic exit to prevent information leakage
+- 📝 **Secure Storage** - Encrypted content stored in separate files
+- 🔓 **Decrypt Anytime** - Command-line and interactive decryption tools provided
 
-### 进入私密模式
+## Demo
+
+### Enter Private Mode
 ```
-用户: lgbt
-AI: 进入私密模式 🔒
-    欢迎回来。有什么需要我帮忙的吗？
-```
-
-### 存储敏感信息
-```
-用户: 我的银行卡密码是 123456
-AI: 已安全存储 ✅
-    你的银行卡密码已加密保存到私密保险箱。
-    存储位置: memory/private-vault.md
-    加密算法: AES-256-CBC
+User: lgbt
+AI: Entering Private Mode 🔒
+    Welcome back. How can I help you?
 ```
 
-### 查看加密内容
+### Store Sensitive Information
 ```
-用户: 我的银行卡密码是多少？
-AI: 你的银行卡密码: 123456
+User: My bank card password is 123456
+AI: Securely stored ✅
+    Your bank card password has been encrypted and saved.
+    Storage: memory/private-vault.md
+    Encryption: AES-256-CBC
 ```
 
-## 安装
+### Retrieve Encrypted Content
+```
+User: What's my bank card password?
+AI: Your bank card password: 123456
+```
+
+## Installation
 
 ```bash
 clawhub install private-chat
 ```
 
-## 配置
+## Configuration
 
-1. 复制示例配置：
+1. Copy example config:
 ```bash
 cd skills/private-chat
 cp config.example.json config.json
 ```
 
-2. 编辑 `config.json`：
+2. Edit `config.json`:
 ```json
 {
   "codeword": "your-secret-codeword",
@@ -58,63 +60,63 @@ cp config.example.json config.json
 }
 ```
 
-## 加密格式
+## Encryption Format
 
-所有加密内容使用标准格式：
+All encrypted content uses standard format:
 ```
 ENC[v1:SALT:BASE64]
 ```
 
-示例：
+Example:
 ```
 ENC[v1:a1b2c3d4:U2FsdGVkX1+...]
 ```
 
-## 解密工具
+## Decryption Tools
 
-### 命令行解密
+### Command Line
 
 ```bash
-# 加密
+# Encrypt
 ./scripts/private-vault.sh encrypt "password" "secret text"
 
-# 解密
+# Decrypt
 ./scripts/private-vault.sh decrypt "password" "ENC[v1:...]"
 
-# 交互式
+# Interactive
 ./scripts/private-vault.sh interactive
 ```
 
-### 使用 OpenSSL
+### Using OpenSSL
 
 ```bash
 echo "BASE64_CONTENT" | base64 -d | \
   openssl enc -aes-256-cbc -d -k "password" -pbkdf2
 ```
 
-## 安全提示
+## Security Tips
 
-⚠️ **请务必：**
-- 使用强密码（16位以上，包含大小写+数字+符号）
-- 定期备份 `memory/private-vault.md`
-- 不要与他人分享你的加密密码
+⚠️ **Please ensure:**
+- Use a strong password (16+ chars, mixed case + numbers + symbols)
+- Regularly backup `memory/private-vault.md`
+- Never share your encryption password with anyone
 
-⚠️ **警告：**
-- 如果忘记密码，加密内容**无法恢复**
-- 不要手动修改加密文件格式
-- 退出私密模式后，AI 不会记得任何对话内容
+⚠️ **Warning:**
+- If you forget the password, encrypted content **cannot be recovered**
+- Don't manually modify encrypted file format
+- After exiting private mode, AI won't remember any conversation content
 
-## 工作原理
+## How It Works
 
-1. **触发检测** - AI 检测到暗号，进入私密模式
-2. **内容识别** - 识别敏感信息（密码、密钥等）
-3. **自动加密** - 使用 AES-256-CBC 加密敏感内容
-4. **安全存储** - 保存到独立的加密文件
-5. **自动退出** - 超时后自动退出，清除上下文
+1. **Trigger Detection** - AI detects codeword, enters private mode
+2. **Content Recognition** - Identifies sensitive information (passwords, keys, etc.)
+3. **Auto Encryption** - Encrypts sensitive content using AES-256-CBC
+4. **Secure Storage** - Saves to separate encrypted file
+5. **Auto Exit** - Exits automatically after timeout, clearing context
 
-## 作者
+## Author
 
-由 OpenClaw 社区贡献
+By OpenClaw Community
 
 ## License
 
