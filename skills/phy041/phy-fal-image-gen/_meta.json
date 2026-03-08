@@ -1,0 +1,11 @@
+{
+  "owner": "phy041",
+  "slug": "phy-fal-image-gen",
+  "displayName": "FAL Image Gen",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1772876758928,
+    "commit": null
+  },
+  "history": []
+}
