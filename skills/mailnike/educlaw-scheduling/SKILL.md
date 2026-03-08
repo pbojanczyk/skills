@@ -1,7 +1,7 @@
 ---
 name: educlaw-scheduling
 display_name: EduClaw Advanced Scheduling
-version: 1.0.3
+version: 1.0.0
 description: >
   Master scheduling, schedule patterns, conflict resolution, and room assignment
   for K-12 and higher-education institutions. Sub-vertical of EduClaw SIS.
