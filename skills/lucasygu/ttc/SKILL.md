@@ -2,7 +2,7 @@
 description: Real-time Toronto transit — bus & streetcar arrivals, vehicle tracking, alerts, stop search
 allowed-tools: Bash, Read
 name: ttc
-version: 0.1.0
+version: 0.1.3
 metadata:
   openclaw:
     requires:
@@ -43,12 +43,14 @@ ttc route 504                     # Route info + active vehicles
 ttc vehicles 504                  # Live positions on a route
 ttc alerts                        # Service alerts
 ttc alerts --broad                # Include subway alerts
-ttc nearby 43.6426,-79.4002       # Nearest stops + arrivals
+ttc nearby                        # Auto-detect location (macOS)
+ttc nearby 43.6453,-79.3806       # Or provide coordinates
 ttc stops 504                     # Active stops on a route
 ttc routes                        # List all surface routes
 ttc routes --type streetcar       # Filter by type
 ttc search "broadview station"    # Fuzzy stop search
 ttc status                        # System overview
+ttc loop 3m nearby                # Live monitor (refreshes every 3m)
 ```
 
 ## Commands
@@ -65,8 +67,8 @@ Live vehicle positions. Shows fleet number, route, status, current stop, and occ
 ### `ttc alerts [route]`
 Service disruptions and alerts. Use `--broad` for subway alerts too.
 
-### `ttc nearby <lat,lng>`
-Find nearest stops and their upcoming arrivals. Default 500m radius.
+### `ttc nearby [lat,lng]`
+Find nearest stops and their upcoming arrivals. Default 500m radius. On macOS, auto-detects your location if no coordinates are provided.
 
 ### `ttc routes`
 List all surface routes. Filter with `--type bus` or `--type streetcar`.
@@ -84,6 +86,18 @@ System overview: active vehicles, active routes, alert count, static data freshn
 
 All commands support:
 - `--json` — Output as JSON for agent/script consumption
+
+### `ttc loop <interval> <command> [args...]`
+Re-run any ttc command on an interval. Clears screen and refreshes automatically. Ctrl+C to stop.
+
+Interval format: `30s`, `3m`, `1h`, or just seconds (e.g. `180`).
+
+```bash
+ttc loop 3m next "king spadina"    # Watch arrivals while getting ready
+ttc loop 5m alerts                 # Monitor disruptions during storms
+ttc loop 2m vehicles 504           # Track vehicles approaching your stop
+ttc loop 30s nearby                # Refresh nearby arrivals as you walk
+```
 
 ## Data Sources
 

@@ -6,10 +6,11 @@
  *   ~/.claude/skills/ttc -> <npm-package-location>
  */
 
-import { existsSync, mkdirSync, unlinkSync, symlinkSync, lstatSync, readlinkSync, rmSync } from 'fs';
+import { existsSync, mkdirSync, unlinkSync, symlinkSync, lstatSync, readlinkSync, rmSync, copyFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { homedir } from 'os';
+import { homedir, platform } from 'os';
+import { execSync } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -54,13 +55,51 @@ function setupClaudeSkill() {
   }
 }
 
+function buildLocationHelper() {
+  if (platform() !== 'darwin') {
+    console.log('[ttc] Skipping location helper (macOS only).');
+    return false;
+  }
+
+  try {
+    execSync('which swiftc', { stdio: 'ignore' });
+  } catch {
+    console.log('[ttc] Skipping location helper (Swift compiler not found).');
+    console.log('[ttc] Install Xcode Command Line Tools for location support:');
+    console.log('[ttc]   xcode-select --install');
+    return false;
+  }
+
+  const appDir = join(PACKAGE_ROOT, 'helpers', 'TTC Location.app', 'Contents');
+  const macosDir = join(appDir, 'MacOS');
+  const swiftSrc = join(PACKAGE_ROOT, 'scripts', 'get-location.swift');
+  const plistSrc = join(PACKAGE_ROOT, 'scripts', 'Info.plist');
+  const binary = join(macosDir, 'ttc-location');
+
+  try {
+    mkdirSync(macosDir, { recursive: true });
+    copyFileSync(plistSrc, join(appDir, 'Info.plist'));
+    // All paths are hardcoded constants, not user input — safe to use execSync
+    execSync(`swiftc -O -o "${binary}" "${swiftSrc}"`, { stdio: 'pipe' });
+    console.log('[ttc] Location helper compiled (macOS CoreLocation).');
+    return true;
+  } catch (err) {
+    console.log(`[ttc] Warning: Could not compile location helper: ${err.message}`);
+    return false;
+  }
+}
+
 function main() {
   console.log('[ttc] Running post-install...');
   const success = setupClaudeSkill();
+  const location = buildLocationHelper();
   console.log('');
   console.log('[ttc] Installation complete!');
   if (success) {
     console.log('[ttc] Use /ttc in Claude Code, or run: ttc --help');
+  }
+  if (location) {
+    console.log('[ttc] Location support enabled. First "ttc nearby" will prompt for permission.');
   }
 }
 

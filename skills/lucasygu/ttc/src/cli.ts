@@ -7,7 +7,8 @@
  *   ttc route 504                    # Route info + active vehicles
  *   ttc vehicles 504                 # Live vehicle positions
  *   ttc alerts                       # Service disruptions
- *   ttc nearby 43.6426,-79.4002      # Nearest stops
+ *   ttc nearby                       # Auto-detect location (macOS)
+ *   ttc nearby 43.6453,-79.3806      # Nearest stops (manual)
  *   ttc stops 504                    # All stops on a route
  *   ttc routes                       # List all routes
  *   ttc search "broadview"           # Fuzzy search stops
@@ -17,6 +18,7 @@
 import { Command } from "commander";
 import kleur from "kleur";
 import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { TtcClient, TtcApiError } from "./lib/client.js";
@@ -32,6 +34,7 @@ import {
   getTripsForRoute,
   loadStops,
 } from "./lib/gtfs.js";
+import { getDeviceLocation, isLocationAvailable } from "./lib/location.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(
@@ -46,7 +49,24 @@ program
   .description(
     "CLI for Toronto Transit Commission — real-time bus & streetcar tracking"
   )
-  .version(pkg.version);
+  .version(pkg.version)
+  .addHelpText(
+    "after",
+    `
+Examples:
+  $ ttc next "king spadina"           Next arrivals at a stop
+  $ ttc route 504                     Route info + active vehicles
+  $ ttc nearby                        Auto-detect location (macOS)
+  $ ttc nearby 43.6453,-79.3806       Nearest stops with coordinates
+  $ ttc alerts                        Service disruptions
+  $ ttc vehicles 504                  Live vehicle positions
+
+Live monitoring:
+  $ ttc loop 3m next "king spadina"   Watch arrivals while getting ready
+  $ ttc loop 5m alerts                Monitor disruptions during storms
+  $ ttc loop 2m vehicles 504          Track vehicles approaching your stop
+  $ ttc loop 30s nearby               Refresh nearby arrivals as you walk`
+  );
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -371,26 +391,53 @@ alertsCmd.action(
 // ─── nearby ──────────────────────────────────────────────────────────────────
 
 const nearbyCmd = program
-  .command("nearby <coordinates>")
-  .description("Nearest stops and upcoming arrivals (lat,lng)")
+  .command("nearby [coordinates]")
+  .description("Nearest stops and upcoming arrivals (auto-detects location on macOS)")
   .option("--radius <meters>", "Search radius in meters", "500")
   .option("--limit <n>", "Max stops to show", "5");
 addJsonOption(nearbyCmd);
 
 nearbyCmd.action(
   async (
-    coordinates: string,
+    coordinates: string | undefined,
     opts: { radius: string; limit: string; json?: boolean }
   ) => {
     try {
-      const [latStr, lngStr] = coordinates.split(",");
-      const lat = parseFloat(latStr);
-      const lng = parseFloat(lngStr);
+      let lat: number;
+      let lng: number;
 
-      if (isNaN(lat) || isNaN(lng)) {
-        console.error(kleur.red("Invalid coordinates. Use format: lat,lng"));
-        console.error(kleur.dim("Example: ttc nearby 43.6426,-79.4002"));
-        process.exit(1);
+      if (coordinates) {
+        const [latStr, lngStr] = coordinates.split(",");
+        lat = parseFloat(latStr);
+        lng = parseFloat(lngStr);
+
+        if (isNaN(lat) || isNaN(lng)) {
+          console.error(kleur.red("Invalid coordinates. Use format: lat,lng"));
+          console.error(kleur.dim("Example: ttc nearby 43.6453,-79.3806"));
+          process.exit(1);
+        }
+      } else {
+        if (!isLocationAvailable()) {
+          console.error(kleur.red("No coordinates provided and location detection unavailable."));
+          console.error(kleur.dim("Usage: ttc nearby <lat,lng>"));
+          console.error(kleur.dim("Location auto-detect requires macOS with Xcode Command Line Tools."));
+          process.exit(1);
+        }
+        if (!opts.json) {
+          process.stderr.write(kleur.dim("Detecting location..."));
+        }
+        try {
+          const loc = await getDeviceLocation();
+          lat = loc.latitude;
+          lng = loc.longitude;
+          if (!opts.json) {
+            process.stderr.write(`\r${kleur.green("✓")} Location: ${lat.toFixed(4)}, ${lng.toFixed(4)}\n`);
+          }
+        } catch (locErr: any) {
+          if (!opts.json) process.stderr.write("\n");
+          console.error(kleur.red(locErr.message));
+          process.exit(1);
+        }
       }
 
       const radius = parseInt(opts.radius) || 500;
@@ -653,5 +700,63 @@ statusCmd.action(async (opts: { json?: boolean }) => {
     handleError(err);
   }
 });
+
+// ─── loop ───────────────────────────────────────────────────────────────────
+
+function parseInterval(input: string): number {
+  const match = input.match(/^(\d+)(s|m|h)?$/);
+  if (!match) return 0;
+  const val = parseInt(match[1]);
+  switch (match[2]) {
+    case "h": return val * 3600;
+    case "m": return val * 60;
+    case "s": return val;
+    default: return val;
+  }
+}
+
+const loopCmd = program
+  .command("loop <interval> <command> [args...]")
+  .description("Re-run a ttc command on an interval (e.g. ttc loop 3m nearby)")
+  .addHelpText("after", `
+Examples:
+  $ ttc loop 3m next "king spadina"    Watch arrivals every 3 minutes
+  $ ttc loop 5m alerts                 Monitor alerts every 5 minutes
+  $ ttc loop 2m vehicles 504           Track vehicles every 2 minutes
+  $ ttc loop 30s nearby                Refresh nearby stops every 30 seconds
+
+Interval format: 30s, 3m, 1h, or just seconds (e.g. 180)`);
+
+loopCmd.action(
+  async (interval: string, command: string, args: string[]) => {
+    const seconds = parseInterval(interval);
+    if (seconds < 5) {
+      console.error(kleur.red("Interval must be at least 5 seconds."));
+      process.exit(1);
+    }
+
+    const cliPath = join(__dirname, "cli.js");
+    const cmdArgs = [cliPath, command, ...args];
+
+    const run = () => {
+      process.stdout.write("\x1B[2J\x1B[H"); // clear screen
+      const time = new Date().toLocaleTimeString();
+      console.log(kleur.dim(`[${time}] ttc ${command} ${args.join(" ")}  (every ${interval}, Ctrl+C to stop)\n`));
+      try {
+        execFileSync(process.execPath, cmdArgs, { stdio: "inherit" });
+      } catch {
+        // command failed — show error but keep looping
+      }
+    };
+
+    run();
+    const timer = setInterval(run, seconds * 1000);
+    process.on("SIGINT", () => {
+      clearInterval(timer);
+      console.log(kleur.dim("\nStopped."));
+      process.exit(0);
+    });
+  }
+);
 
 program.parse();
