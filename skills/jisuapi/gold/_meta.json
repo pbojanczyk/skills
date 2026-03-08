@@ -3,9 +3,15 @@
   "slug": "gold",
   "displayName": "黄金价格查询 - Gold Price Inquiry",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1772534311444,
-    "commit": "https://github.com/openclaw/skills/commit/66fa9f3816d233094c119236595996228849b73f"
+    "version": "1.0.2",
+    "publishedAt": 1772680060453,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1772534311444,
+      "commit": "https://github.com/openclaw/skills/commit/66fa9f3816d233094c119236595996228849b73f"
+    }
+  ]
 }
