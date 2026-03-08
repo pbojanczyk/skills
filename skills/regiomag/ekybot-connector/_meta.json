@@ -1,11 +1,17 @@
 {
   "owner": "regiomag",
   "slug": "ekybot-connector",
-  "displayName": "EkyBot Connector Manage your agents",
+  "displayName": "Ekybot Connector",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1772834567433,
-    "commit": "https://github.com/openclaw/skills/commit/0083f26235fd82a39a9bdf7489ff2e386e883388"
+    "version": "3.0.1",
+    "publishedAt": 1772965226889,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1772834567433,
+      "commit": "https://github.com/openclaw/skills/commit/0083f26235fd82a39a9bdf7489ff2e386e883388"
+    }
+  ]
 }
