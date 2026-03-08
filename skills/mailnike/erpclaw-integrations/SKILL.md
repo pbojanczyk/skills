@@ -4,11 +4,11 @@ version: 1.0.0
 description: External integrations for ERPClaw — Plaid bank sync, Stripe payments, S3 cloud backups
 author: AvanSaber / Nikhil Jathar
 homepage: https://www.erpclaw.ai
-source: https://github.com/avansaber/erpclaw-integrations
+source: https://github.com/avansaber/erpclaw/tree/main/skills/erpclaw-integrations
 tier: 6
 category: integrations
 tags: [plaid, stripe, s3, bank, payments, backup, integration]
-requires: [erpclaw-setup, erpclaw-gl, erpclaw-payments, erpclaw-selling]
+requires: [erpclaw]
 database: ~/.openclaw/erpclaw/data.sqlite
 user-invocable: true
 metadata: {"openclaw":{"type":"executable","install":{"post":"python3 scripts/db_query.py --action status"},"requires":{"bins":["python3"],"env":[],"optionalEnv":["ERPCLAW_DB_PATH"]},"os":["darwin","linux"]}}
@@ -25,7 +25,7 @@ Plaid, Stripe, or AWS requests are made. All data is stored locally in SQLite wi
 
 - **Local-only**: All data stored in `~/.openclaw/erpclaw/data.sqlite`
 - **Fully offline**: All API calls are mocked — no external HTTP requests, no telemetry
-- **No credentials required**: Uses Python standard library + erpclaw_lib shared library (installed by erpclaw-setup). The shared library is also fully offline and stdlib-only.
+- **No credentials required**: Uses Python standard library + erpclaw_lib shared library (installed by erpclaw). The shared library is also fully offline and stdlib-only.
 - **Optional env vars**: `ERPCLAW_DB_PATH` (custom DB location, defaults to `~/.openclaw/erpclaw/data.sqlite`)
 - **Credentials stored locally**: Keys in config tables, never transmitted
 - **SQL injection safe**: All queries use parameterized statements
@@ -170,7 +170,7 @@ Never confirm for: configuring, listing, status checks, creating payment intents
 | "Stripe not configured" | Run `configure-stripe` first |
 | "No S3 configuration found" | Run `configure-s3` first |
 | "Config already exists" | Each company gets one config per integration (UNIQUE constraint) |
-| "Sales invoice not found" | Check invoice ID with erpclaw-selling |
+| "Sales invoice not found" | Check invoice ID with erpclaw (selling domain) |
 | "Duplicate webhook event" | Safe to ignore -- idempotency prevents double-processing |
 | "database is locked" | Retry once after 2 seconds |
 
@@ -191,8 +191,7 @@ Never confirm for: configuring, listing, status checks, creating payment intents
 - S3 keys: `{prefix}{YYYY-MM-DDTHH-MM-SS}.sqlite`
 - S3 delete is soft-delete (status = 'deleted')
 
-**Inter-skill reads:** `gl_entry` (erpclaw-gl), `account`/`company` (erpclaw-setup),
-`sales_invoice`/`customer` (erpclaw-selling).
+**Inter-skill reads:** `gl_entry`, `account`, `company`, `sales_invoice`, `customer` (all from erpclaw base package).
 
 ### Response Formatting
 
