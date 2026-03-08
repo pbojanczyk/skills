@@ -38,6 +38,58 @@ Every AI agent faces two death spirals:
 
 **The average agent forgets everything every session.** Not because it's dumb — because context windows are temporary by design.
 
+---
+
+### 💀 Failure Gallery — What Happens Without NeuroBoost
+
+> "Every successful Agent stands on a graveyard of failed attempts. Learn from their mistakes."
+
+**10 典型失败案例**:
+
+1. **🐠 The Goldfish Agent** - 每 3 天重新学习同一课
+   - 成本: 5 小时/周浪费
+   - 原因: 无永续记忆，context 重置后教训丢失
+
+2. **🧟 The Zombie System** - 删不掉的僵尸进程
+   - 成本: 2 小时反复尝试
+   - 原因: 只删除进程，不删除配置/文件/服务
+
+3. **🔍 The Blind Optimizer** - 不知道哪里慢
+   - 成本: 10 小时盲目优化
+   - 原因: 无量化指标，无健康评分
+
+4. **📚 The Context Hoarder** - 90% tokens 浪费在输入
+   - 成本: $21/天烧钱
+   - 原因: 无 Lazy Loading，一次性加载所有内容
+
+5. **🤖 The Isolated Agent** - 3 个 Agent 重复劳动
+   - 成本: 3 倍重复成本
+   - 原因: 无共享记忆，无任务协调
+
+6. **💸 The Token Burner** - $630/月烧钱不自知
+   - 成本: $7,560/年
+   - 原因: 无成本意识，无 token 监控
+
+7. **🔄 The Restart Addict** - 每次重启都从零开始
+   - 成本: 每次 10 分钟重新配置
+   - 原因: 无跨 session 记忆
+
+8. **📉 The Degrading Agent** - 越用越慢
+   - 成本: 响应时间 +1500%
+   - 原因: Memory 无限增长，无压缩清理
+
+9. **🎭 The Schizophrenic Agent** - 多重人格
+   - 成本: 用户信任度 -80%
+   - 原因: 无 SOUL.md，无身份定义
+
+10. **⚰️ The Dead Agent Walking** - 已死但不自知
+    - 成本: 100% 时间和成本浪费
+    - 原因: 无健康监控，无自愈机制
+
+**自检清单**: 如果你的 Agent 中了 3 个以上，你需要 NeuroBoost。
+
+完整案例详见: [Failure Gallery](https://github.com/Davdong2/lobster-backup/blob/main/docs/neuroboost-failure-gallery.md)
+
 ### Solution（方案）
 
 NeuroBoost Elixir teaches your agent to think about thinking — and remember what it learned.
