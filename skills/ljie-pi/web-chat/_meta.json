@@ -1,0 +1,11 @@
+{
+  "owner": "ljie-pi",
+  "slug": "web-chat",
+  "displayName": "Ask Gemini/ChatGPT",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1772893630342,
+    "commit": null
+  },
+  "history": []
+}
