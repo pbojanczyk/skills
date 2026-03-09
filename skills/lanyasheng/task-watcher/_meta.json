@@ -1,0 +1,11 @@
+{
+  "owner": "lanyasheng",
+  "slug": "task-watcher",
+  "displayName": "Task Watcher Skill",
+  "latest": {
+    "version": "1.2.1",
+    "publishedAt": 1772894585566,
+    "commit": null
+  },
+  "history": []
+}
