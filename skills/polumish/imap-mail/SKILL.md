@@ -90,6 +90,12 @@ python3 {baseDir}/scripts/search.py --inbox agent@example.com --has-attachments 
 # Find messages from VIP senders only
 python3 {baseDir}/scripts/search.py --inbox agent@example.com --vip
 
+# Find only flagged/starred messages
+python3 {baseDir}/scripts/search.py --inbox agent@example.com --flagged
+
+# Find flagged messages from a specific sender
+python3 {baseDir}/scripts/search.py --inbox agent@example.com --from "craig@example.com" --flagged
+
 # Combined filters: unread messages from a specific sender since a date
 python3 {baseDir}/scripts/search.py --inbox agent@example.com --from "alice@example.com" --since 2026-03-01 --unseen
 
@@ -99,6 +105,36 @@ python3 {baseDir}/scripts/search.py --inbox agent@example.com --subject "invoice
 # Search in a specific folder
 python3 {baseDir}/scripts/search.py --inbox agent@example.com --q "report" --folder Archive
 ```
+
+## Sorting Inbox (Personal vs Forwarded)
+
+Automatically move messages into sub-folders based on addressing:
+
+- **Personal** — inbox address is directly in `To:` or `Cc:`
+- **Forwarded** — subject starts with `Fwd:` / `FW:`, or `X-Forwarded-*` / `Resent-*` headers present
+- Forwarded takes priority over Personal when both apply
+
+```bash
+# Preview what would be moved (no changes)
+python3 {baseDir}/scripts/sort_inbox.py --inbox agent@example.com --dry-run
+
+# Sort all messages
+python3 {baseDir}/scripts/sort_inbox.py --inbox agent@example.com
+
+# Sort only unread messages
+python3 {baseDir}/scripts/sort_inbox.py --inbox agent@example.com --unseen
+
+# Custom folder names
+python3 {baseDir}/scripts/sort_inbox.py --inbox agent@example.com \
+  --personal-folder MyInbox --forwarded-folder Forwards
+
+# Sort a specific source folder
+python3 {baseDir}/scripts/sort_inbox.py --inbox agent@example.com --folder AllMail
+```
+
+Messages that match neither category (e.g. BCC, bulk mail) stay in the source folder.
+
+---
 
 ## Folder Management
 
@@ -132,6 +168,17 @@ python3 {baseDir}/scripts/manage_folders.py --inbox agent@example.com --mark-see
 
 # Mark several specific messages as read (space-separated UIDs)
 python3 {baseDir}/scripts/manage_folders.py --inbox agent@example.com --mark-seen-uid 42 55 73
+
+# Flag (star) specific messages as important
+python3 {baseDir}/scripts/manage_folders.py --inbox agent@example.com --flag-uid 42 55 73
+
+# Flag ALL messages from a specific sender
+python3 {baseDir}/scripts/manage_folders.py --inbox agent@example.com --flag-from "craig@example.com"
+python3 {baseDir}/scripts/manage_folders.py --inbox agent@example.com --flag-from "igor@example.com"
+
+# Remove flag from messages
+python3 {baseDir}/scripts/manage_folders.py --inbox agent@example.com --unflag-uid 42
+python3 {baseDir}/scripts/manage_folders.py --inbox agent@example.com --unflag-from "craig@example.com"
 ```
 
 ## Sending Email
@@ -156,6 +203,63 @@ python3 {baseDir}/scripts/send_email.py \
   --subject "Re: Original Subject" \
   --text "My reply" \
   --reply-to "<original-message-id>"
+```
+
+## Contact Memory (CRM)
+
+Persistent notes and history per contact. Flagged senders are automatically tracked — when their message arrives, the agent pulls full context and reports in detail.
+
+```bash
+# Look up everything about a contact
+python3 {baseDir}/scripts/manage_contacts.py --get craig@example.com
+
+# List all contacts
+python3 {baseDir}/scripts/manage_contacts.py --list
+
+# Save a contact with name and tags
+python3 {baseDir}/scripts/manage_contacts.py --save craig@example.com --name "Craig Smith" --tags "client,priority"
+
+# Append a timestamped note (agent does this automatically after each flagged message)
+python3 {baseDir}/scripts/manage_contacts.py --note craig@example.com "Wants proposal by Friday. Budget ~$5k."
+
+# Delete a contact
+python3 {baseDir}/scripts/manage_contacts.py --delete craig@example.com
+```
+
+**How it works with flagged mail:**
+1. Flagged (starred) UNSEEN messages are processed separately from regular mail
+2. For each flagged message, the agent fetches the sender's full contact history
+3. Reports to user with: who wrote, what they want, full context from previous interactions
+4. Automatically saves a note summarizing the new message
+
+## Auto-Rules (persistent flag/action on incoming mail)
+
+Rules are defined once and applied automatically to every new (UNSEEN) message on each mail check — until you remove them.
+
+```bash
+# Flag ALL future messages from Craig as important (persists forever)
+python3 {baseDir}/scripts/manage_rules.py --inbox agent@example.com --add --from "craig@example.com"
+
+# Flag messages with "URGENT" in subject
+python3 {baseDir}/scripts/manage_rules.py --inbox agent@example.com --add --subject "URGENT"
+
+# Auto-mark-as-read messages from a newsletter
+python3 {baseDir}/scripts/manage_rules.py --inbox agent@example.com --add --from "news@newsletter.com" --action mark-seen
+
+# List all active rules
+python3 {baseDir}/scripts/manage_rules.py --inbox agent@example.com --list
+
+# Apply all rules right now (without waiting for next cron)
+python3 {baseDir}/scripts/manage_rules.py --inbox agent@example.com --apply
+
+# Temporarily disable a rule (ID from --list)
+python3 {baseDir}/scripts/manage_rules.py --inbox agent@example.com --disable 1
+
+# Re-enable
+python3 {baseDir}/scripts/manage_rules.py --inbox agent@example.com --enable 1
+
+# Remove permanently
+python3 {baseDir}/scripts/manage_rules.py --inbox agent@example.com --remove 1
 ```
 
 ## Scheduled Send
@@ -239,6 +343,7 @@ The local REST API at `http://127.0.0.1:8025` exposes:
 | POST | `/inboxes/{inbox}/messages` | Send email |
 | POST | `/inboxes/{inbox}/messages/{uid}/move` | Move message (`?folder=src`) |
 | DELETE | `/inboxes/{inbox}/messages/{uid}` | Delete message |
+| POST | `/inboxes/{inbox}/sort` | Sort into Personal/Forwarded folders (`?dry_run=true`) |
 | GET | `/inboxes/{inbox}/search` | Search (`?q=&from=&subject=&since=&vip_only=true`) |
 | GET | `/inboxes/{inbox}/threads` | List threads |
 | POST | `/inboxes/{inbox}/scheduled` | Schedule email for future delivery |
@@ -260,9 +365,17 @@ The local REST API at `http://127.0.0.1:8025` exposes:
 | `MAIL_IDLE_FOLDER` | `INBOX` | Folder to watch with IDLE |
 | `MAIL_VIP_SENDERS` | — | Comma-separated VIP email addresses |
 | `MAIL_SCHEDULED_DB` | `/tmp/imap-mail-scheduled.db` | SQLite path for scheduled sends |
+| `MAIL_ALLOW_SELF_SIGNED` | `false` | Set `true` to skip TLS cert verification (self-signed certs) |
 | `IMAP_MAIL_API` | `http://127.0.0.1:8025` | API base URL (for scripts) |
 | `IMAP_MAIL_ENV` | `/etc/imap-mail.env` | Path to env file |
 | `IMAP_MAIL_PORT` | `8025` | API listen port |
+
+## Security Notes
+
+- **Credentials** — mail login and password are stored in a local env file (e.g. `/etc/imap-mail.env`), readable only by the service user. Never hardcode credentials in scripts.
+- **SSL/TLS** — all IMAP and SMTP connections use TLS by default. Certificate verification is **enabled** by default (`ssl.create_default_context()`). Set `MAIL_ALLOW_SELF_SIGNED=true` only if your mail server uses a self-signed certificate and you accept the risk.
+- **Local API only** — the REST bridge listens on `127.0.0.1` (loopback) only and is not exposed to the network.
+- **Webhook (IDLE)** — if `MAIL_IDLE_WEBHOOK` is set, full message contents (including body) are POSTed to that URL on new mail. Ensure the webhook URL is a trusted local endpoint.
 
 ## Compatibility
 
