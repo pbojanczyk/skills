@@ -2,16 +2,24 @@
 /**
  * NoteX Skills 通用测试脚本
  * 
- * 支持所有 7 种技能：slide / mindmap / report / flashcards / quiz / infographic / audio
+ * 支持 9 种能力：slide / mindmap / report / flashcards / quiz / infographic / audio / video / ops-chat
  * 
  * 使用方式：
  *   node skills-run.js --skill <技能> --key <CWork Key> --title "标题" --content "内容"
+ *   # 内部调试：node skills-run.js --skill <技能> --access-token <token> --user-id <uid> [--person-id <pid>] --title "标题" --content "内容"
  * 
  * 示例：
  *   node skills-run.js --skill mindmap --key YOUR_KEY --title "口腔AI趋势" --content "主要数据..."
+ *   # 内部调试：node skills-run.js --skill mindmap --access-token YOUR_TOKEN --user-id u_001 --title "口腔AI趋势" --content "主要数据..."
  *   node skills-run.js --skill slide   --key YOUR_KEY --title "年度汇报"   --content "销售数据..."
  *   node skills-run.js --skill quiz    --key YOUR_KEY --title "护理测验"   --content "护理规范..."
  *   node skills-run.js --skill ops-chat --key YOUR_KEY --content "查询活跃用户排名"
+ *
+ * 说明：
+ *   Notebook/Source 索引树与最小详情检索请使用：
+ *   docs/skills/scripts/source-index-sync.js
+ *   NoteX 链接带 Token 打开请使用：
+ *   docs/skills/scripts/notex-open-link.js
  */
 
 const https = require('https');
@@ -42,6 +50,32 @@ const SKILL_INFO = {
 
 const ALLOWED_SKILLS = Object.keys(SKILL_INFO);
 // ================================================
+
+function ensureProdUrl(rawUrl, expectedHost, label) {
+    let parsed;
+    try {
+        parsed = new URL(rawUrl);
+    } catch {
+        throw new Error(`${label} 非法: ${rawUrl}`);
+    }
+
+    if (parsed.protocol !== 'https:') {
+        throw new Error(`${label} 必须使用 https 协议`);
+    }
+    if (parsed.hostname !== expectedHost) {
+        throw new Error(`${label} 必须使用生产域名 ${expectedHost}`);
+    }
+    return `${parsed.origin}${parsed.pathname.replace(/\/$/, '')}`;
+}
+
+function validateConfig() {
+    CONFIG.cworkBaseUrl = ensureProdUrl(CONFIG.cworkBaseUrl, 'cwork-web.mediportal.com.cn', 'cworkBaseUrl');
+    const notexUrl = ensureProdUrl(CONFIG.notexBaseUrl, 'notex.aishuo.co', 'notexBaseUrl');
+    if (!/\/noteX(\/api)?$/i.test(notexUrl)) {
+        throw new Error('notexBaseUrl 路径必须是 /noteX 或 /noteX/api');
+    }
+    CONFIG.notexBaseUrl = notexUrl;
+}
 
 function parseArgs() {
     const args = process.argv.slice(2);
@@ -93,6 +127,28 @@ async function getXgToken(cwKey) {
     console.log(`   userId:   ${data.data.userId}`);
     console.log(`   personId: ${data.data.personId}`);
     return data.data; // { xgToken, userId, personId }
+}
+
+/**
+ * 统一鉴权预检：
+ * 1) 默认使用 CWork Key 自动换取授权
+ * 2) 内部调试时可复用传入 token（--access-token + --user-id）
+ */
+async function resolveAuthContext(args) {
+    if (args['access-token'] && args['user-id']) {
+        console.log('\n[Auth] 检测到已提供 token，直接复用...');
+        return {
+            xgToken: args['access-token'],
+            userId: args['user-id'],
+            personId: args['person-id'] || args['user-id']
+        };
+    }
+
+    if (args.key) {
+        return await getXgToken(args.key);
+    }
+
+    throw new Error('缺少鉴权参数：请提供 --key（推荐），或内部调试时同时提供 --access-token 与 --user-id');
 }
 
 // Step 2: 提交技能生成任务
@@ -173,8 +229,8 @@ async function callOpsChat(userData, message, timeoutMs = 300000) {
     if (!message) throw new Error('ops-chat 需要提供提问内容 (--content)');
     console.log(`\n[Step 2] 请求 OPS 智能聊天 (自动最长等待 ${timeoutMs / 60000} 分钟)...`);
 
-    // 支持环境变量切换基础地址，默认本地3000端口
-    const baseUrl = process.env.OPS_API_BASE_URL || 'http://localhost:3000';
+    // 固定走生产 NoteX 地址
+    const baseUrl = CONFIG.notexBaseUrl.replace(/\/$/, '');
     const url = `${baseUrl}/api/ops/ai-chat`;
 
     const body = JSON.stringify({ message });
@@ -206,6 +262,7 @@ async function callOpsChat(userData, message, timeoutMs = 300000) {
 
 // 主流程
 async function main() {
+    validateConfig();
     const args = parseArgs();
 
     // 参数校验
@@ -214,17 +271,28 @@ async function main() {
         console.error(`   支持：${ALLOWED_SKILLS.join(' | ')}`);
         process.exit(1);
     }
-    if (!args.key) {
-        console.error('❌ 请提供 CWork Key：--key <your-key>');
+    // 鉴权参数校验：必须满足其一
+    const hasReusableToken = !!(args['access-token'] && args['user-id']);
+    if (!hasReusableToken && !args.key) {
+        console.error('❌ 请提供鉴权信息：--key <CWork Key>（推荐），或内部调试参数 (--access-token <token> + --user-id <uid>)');
         process.exit(1);
     }
-    if (!args.title) {
-        console.error('❌ 请提供标题：--title "标题"');
-        process.exit(1);
-    }
-    if (!args.content) {
-        console.error('❌ 请提供素材内容：--content "内容"');
-        process.exit(1);
+
+    // 业务参数校验：ops-chat 与创作类略有差异
+    if (args.skill === 'ops-chat') {
+        if (!args.content && !args.title) {
+            console.error('❌ ops-chat 请提供问题内容：--content "问题"（或使用 --title）');
+            process.exit(1);
+        }
+    } else {
+        if (!args.title) {
+            console.error('❌ 请提供标题：--title "标题"');
+            process.exit(1);
+        }
+        if (!args.content) {
+            console.error('❌ 请提供素材内容：--content "内容"');
+            process.exit(1);
+        }
     }
 
     const info = SKILL_INFO[args.skill];
@@ -233,7 +301,7 @@ async function main() {
     console.log(`   标题：${args.title}`);
 
     try {
-        const userData = await getXgToken(args.key);
+        const userData = await resolveAuthContext(args);
 
         if (args.skill === 'ops-chat') {
             await callOpsChat(userData, args.content || args.title);

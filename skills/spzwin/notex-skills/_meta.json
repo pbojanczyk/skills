@@ -3,11 +3,16 @@
   "slug": "notex-skills",
   "displayName": "note skills",
   "latest": {
-    "version": "1.0.5",
-    "publishedAt": 1772631218262,
-    "commit": "https://github.com/openclaw/skills/commit/5ba7c39449362cb349192a5f73b0ee4644f4001f"
+    "version": "1.0.6",
+    "publishedAt": 1773139746666,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.5",
+      "publishedAt": 1772631218262,
+      "commit": "https://github.com/openclaw/skills/commit/5ba7c39449362cb349192a5f73b0ee4644f4001f"
+    },
     {
       "version": "1.0.3",
       "publishedAt": 1772349439662,
