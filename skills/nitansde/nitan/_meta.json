@@ -3,9 +3,15 @@
   "slug": "nitan",
   "displayName": "US Card Forum",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773111130220,
-    "commit": "https://github.com/openclaw/skills/commit/8fdb4cdadb77b7b9a617c9b6fe9bfe8d816461ab"
+    "version": "1.0.5",
+    "publishedAt": 1773112340654,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773111130220,
+      "commit": "https://github.com/openclaw/skills/commit/8fdb4cdadb77b7b9a617c9b6fe9bfe8d816461ab"
+    }
+  ]
 }
