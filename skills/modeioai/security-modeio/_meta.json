@@ -1,0 +1,11 @@
+{
+  "owner": "modeioai",
+  "slug": "security-modeio",
+  "displayName": "Security",
+  "latest": {
+    "version": "0.1.1",
+    "publishedAt": 1773209844016,
+    "commit": null
+  },
+  "history": []
+}
