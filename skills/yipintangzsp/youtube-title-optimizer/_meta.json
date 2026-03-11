@@ -3,9 +3,15 @@
   "slug": "youtube-title-optimizer",
   "displayName": "Youtube Title Optimizer",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773023098063,
-    "commit": "https://github.com/openclaw/skills/commit/5c0cef5b747ea6abccdc0d3572d7606648808f67"
+    "version": "1.1.0",
+    "publishedAt": 1773112019016,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773023098063,
+      "commit": "https://github.com/openclaw/skills/commit/5c0cef5b747ea6abccdc0d3572d7606648808f67"
+    }
+  ]
 }
