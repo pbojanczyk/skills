@@ -1,0 +1,11 @@
+{
+  "owner": "melvynx",
+  "slug": "cli-vercel",
+  "displayName": "Vercel",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773160695808,
+    "commit": null
+  },
+  "history": []
+}
