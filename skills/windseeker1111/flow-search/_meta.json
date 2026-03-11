@@ -3,9 +3,15 @@
   "slug": "flow-search",
   "displayName": "FlowSearch",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773109701871,
-    "commit": "https://github.com/openclaw/skills/commit/5729baef57d9137d4b7b267e40e2edee0b4ba517"
+    "version": "1.1.0",
+    "publishedAt": 1773112983506,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773109701871,
+      "commit": "https://github.com/openclaw/skills/commit/5729baef57d9137d4b7b267e40e2edee0b4ba517"
+    }
+  ]
 }
