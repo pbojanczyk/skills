@@ -1,6 +1,7 @@
 ---
 name: alicloud-platform-docs-api-review
 description: Automatically review latest Alibaba Cloud product docs and OpenAPI docs by product name, then output detailed prioritized improvement suggestions with evidence and scoring. Use when user asks to audit product documentation quality, API documentation quality, or wants actionable doc/API optimization recommendations.
+version: 1.0.0
 ---
 
 # Alibaba Cloud Product Docs + API Docs Reviewer
@@ -22,7 +23,7 @@ Use this skill when the user gives a product name and asks for an end-to-end doc
 Run the bundled script:
 
 ```bash
-python skills/platform/docs/alicloud-platform-docs-api-review/scripts/review_product_docs_and_api.py --product "<产品名或产品代码>"
+python skills/platform/docs/alicloud-platform-docs-api-review/scripts/review_product_docs_and_api.py --product "<product name or product code>"
 ```
 
 Example:
@@ -50,6 +51,29 @@ When answering the user:
 2) Summarize the score and the top 3 issues.
 3) List P0/P1/P2 recommendations with concrete actions.
 4) Provide source links used in the report.
+
+## Validation
+
+```bash
+mkdir -p output/alicloud-platform-docs-api-review
+for f in skills/platform/docs/alicloud-platform-docs-api-review/scripts/*.py; do
+  python3 -m py_compile "$f"
+done
+echo "py_compile_ok" > output/alicloud-platform-docs-api-review/validate.txt
+```
+
+Pass criteria: command exits 0 and `output/alicloud-platform-docs-api-review/validate.txt` is generated.
+
+## Output And Evidence
+
+- Save artifacts, command outputs, and API response summaries under `output/alicloud-platform-docs-api-review/`.
+- Include key parameters (region/resource id/time range) in evidence files for reproducibility.
+
+## Prerequisites
+
+- Configure least-privilege Alibaba Cloud credentials before execution.
+- Prefer environment variables: `ALICLOUD_ACCESS_KEY_ID`, `ALICLOUD_ACCESS_KEY_SECRET`, optional `ALICLOUD_REGION_ID`.
+- If region is unclear, ask the user before running mutating operations.
 
 ## References
 
