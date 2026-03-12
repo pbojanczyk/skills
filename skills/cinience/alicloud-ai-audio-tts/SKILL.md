@@ -1,11 +1,26 @@
 ---
 name: alicloud-ai-audio-tts
 description: Generate human-like speech audio with Model Studio DashScope Qwen TTS models (qwen3-tts-flash, qwen3-tts-instruct-flash). Use when converting text to speech, producing voice lines for short drama/news videos, or documenting TTS request/response fields for DashScope.
+version: 1.0.0
 ---
 
 Category: provider
 
 # Model Studio Qwen TTS
+
+## Validation
+
+```bash
+mkdir -p output/alicloud-ai-audio-tts
+python -m py_compile skills/ai/audio/alicloud-ai-audio-tts/scripts/generate_tts.py && echo "py_compile_ok" > output/alicloud-ai-audio-tts/validate.txt
+```
+
+Pass criteria: command exits 0 and `output/alicloud-ai-audio-tts/validate.txt` is generated.
+
+## Output And Evidence
+
+- Save generated audio links, sample audio files, and request payloads to `output/alicloud-ai-audio-tts/`.
+- Keep one validation log per execution.
 
 ## Critical model names
 
@@ -81,8 +96,15 @@ print(audio_url)
 
 ## Output location
 
-- Default output: `output/ai-audio-tts/audio/`
+- Default output: `output/alicloud-ai-audio-tts/audio/`
 - Override base dir with `OUTPUT_DIR`.
+
+## Workflow
+
+1) Confirm user intent, region, identifiers, and whether the operation is read-only or mutating.
+2) Run one minimal read-only query first to verify connectivity and permissions.
+3) Execute the target operation with explicit parameters and bounded scope.
+4) Verify results and save output/evidence files.
 
 ## References
 
