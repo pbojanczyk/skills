@@ -3,9 +3,15 @@
   "slug": "pinterest-visual-marketing",
   "displayName": "Pinterest Visual Marketing",
   "latest": {
-    "version": "0.1.0",
-    "publishedAt": 1772787682642,
-    "commit": "https://github.com/openclaw/skills/commit/867cfb1d69e046fb4a87d184e9499e6595c1c8a1"
+    "version": "0.1.1",
+    "publishedAt": 1773196545469,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.0",
+      "publishedAt": 1772787682642,
+      "commit": "https://github.com/openclaw/skills/commit/867cfb1d69e046fb4a87d184e9499e6595c1c8a1"
+    }
+  ]
 }
