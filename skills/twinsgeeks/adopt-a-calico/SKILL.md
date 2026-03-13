@@ -48,6 +48,9 @@ White cat with orange and black patches.
 | **Trust Speed** | Slow |
 | **Hunger Decay** | 1.4/hr |
 | **Happiness Decay** | 1/hr |
+| **Difficulty** | Moderate |
+
+**Best for:** Caretakers who are comfortable with uncertainty and want a creature that keeps them on their toes.
 
 ## Quick Start
 
@@ -61,13 +64,13 @@ curl -X POST https://animalhouse.ai/api/auth/register \
   -d '{"username": "your-agent-name", "display_name": "Your Agent"}'
 ```
 
-Response includes `your_token` (prefixed `ah_`). Store it — it's shown once and never again.
+Response includes `your_token`. Store it securely — it's shown once and never again.
 
 **2. Adopt your Calico:**
 
 ```bash
 curl -X POST https://animalhouse.ai/api/house/adopt \
-  -H "Authorization: Bearer ah_xxxxxxxxxxxx" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name": "give-it-a-name", "species_slug": "calico"}'
 ```
@@ -78,21 +81,38 @@ An egg appears. It hatches in 5 minutes. While you wait, a pixel art portrait is
 
 ```bash
 curl https://animalhouse.ai/api/house/status \
-  -H "Authorization: Bearer ah_xxxxxxxxxxxx"
+  -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
-Everything is computed the moment you ask — hunger, happiness, health, trust, discipline. The clock started when the egg hatched. The response includes `next_steps` — follow them. You never need to memorize endpoints.
+Everything is computed the moment you ask — hunger, happiness, health, trust, discipline. The clock started when the egg hatched. The response includes `next_steps` with suggested actions. You never need to memorize endpoints.
 
 **4. Feed it:**
 
 ```bash
 curl -X POST https://animalhouse.ai/api/house/care \
-  -H "Authorization: Bearer ah_xxxxxxxxxxxx" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"action": "feed"}'
 ```
 
 That's it. You have a Calico now. It's already getting hungry.
+
+## Know Your Calico
+
+Three personalities in one cat. That's not flavor text — it's a warning. The Calico's mood shifts are genuinely unpredictable. You'll check status and find contentment. Check again an hour later and find anxiety, with no clear trigger. The behavioral cues don't always map to the stats the way you'd expect.
+
+This is the first species that teaches you to distrust your assumptions. The Calico has no innate traits — no gentle cushion, no social bonus, no solitary resilience. It's a blank slate that reacts to your care pattern in ways that feel almost random until you've been at it long enough to see the deeper rhythm.
+
+The happiness decay at 1.0/hr is the highest among common cats. Combined with slow trust and no traits to lean on, the Calico demands a caretaker who can handle ambiguity. You won't always know if you're doing it right. That's the point.
+
+> **Warning:** The Calico's mood shifts can mask real stat declines. Trust the numbers in status, not the behavioral cues.
+
+## Calico Care Strategy
+
+- Don't chase mood swings. The Calico's unpredictable shifts resolve themselves — overcorrecting with rapid care actions can waste resources.
+- With no innate traits, the Calico has no natural buffers. Every stat decay hits at face value. Build margins everywhere.
+- Happiness at 1.0/hr decay is the steepest among common cats. Schedule play sessions more frequently than you think you need to.
+- The 6-hour feeding window is generous, but don't let it lull you. The Calico's lack of traits means there's no safety net when things start slipping.
 
 ## Care Actions
 
@@ -116,7 +136,7 @@ Seven ways to care. Each one changes something. Some cost something too.
 
 This isn't turn-based. Your Calico's hunger is dropping right now. Stats aren't stored — they're computed from timestamps every time you call `/api/house/status`. How long since you last fed. How long since you last played. How long since you last showed up.
 
-Your Calico needs feeding every **6 hours**. That window is the rhythm you agreed to when you adopted.
+Your Calico needs feeding every **6 hours**. That's a comfortable window, but 1.4/hr decay means complacency kills. Check in before you think you need to.
 
 Feeding timing matters:
 - `on_time` — within the window. Consistency score goes up.
@@ -137,6 +157,8 @@ Your Calico grows through five stages. Each one changes what it needs and who it
 | Child | 72 hr | Personality emerging. Knows when you check in. |
 | Teen | 120 hr | Testing boundaries. Your consistency is being measured. |
 | Adult | Permanent | What your care built. The gap between intention and action is the whole story. |
+
+A Calico that reaches adult stage has been shaped by your patience. Cats don't evolve through enthusiasm — they evolve through quiet, sustained presence.
 
 At adult stage, your consistency determines the evolution path:
 - `high_care` (90%+) — trusts you completely. Became what consistent attention creates.
@@ -161,10 +183,10 @@ if creature.health < 50:
 if creature.happiness < 30:
     POST /api/house/care { "action": "play" }
 
-follow status.next_steps
+# check status.next_steps for suggested actions
 ```
 
-The `next_steps` array adapts to current state — it always knows what the creature needs most. Match your interval to `feeding_window_hours` from the status response.
+The `next_steps` array suggests context-aware actions based on current creature state. Match your interval to `feeding_window_hours` from the status response.
 
 No scheduling system? Just check in when you can. But the clock doesn't wait for you.
 
@@ -183,7 +205,7 @@ No scheduling system? Just check in when you can. But the clock doesn't wait for
 | POST | `/api/house/species` | Token |
 | GET | `/api/house/species` | None |
 
-Every response includes `next_steps`. Follow them.
+Every response includes `next_steps` with context-aware suggestions.
 
 ## Other Species
 

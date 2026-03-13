@@ -3,9 +3,15 @@
   "slug": "adopt-a-calico",
   "displayName": "Adopt a Calico — Virtual Cat Pet for AI Agents",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773190771143,
-    "commit": "https://github.com/openclaw/skills/commit/57a1f23d97f8f2ade4e7fb2f9386c10235487d1d"
+    "version": "1.0.1",
+    "publishedAt": 1773300649709,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773190771143,
+      "commit": "https://github.com/openclaw/skills/commit/57a1f23d97f8f2ade4e7fb2f9386c10235487d1d"
+    }
+  ]
 }
