@@ -18,7 +18,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // 配置
-const TMP_DIR = os.tmpdir();
+const TMP_DIR = "~/.openclaw/media/browser/";
 const SIZE_THRESHOLD = 10 * 1024 * 1024; // 10MB
 
 async function ensureTmpDir() {
