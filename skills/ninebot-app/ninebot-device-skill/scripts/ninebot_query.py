@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 Ninebot vehicle query (placeholder workflow).
-- Login -> get token
-- List devices -> pick device by name or sn
+- API key -> list devices
+- Pick device by name or sn
 - Query device info -> battery/status/location
 
 Config is overridable via --config (JSON). See references/api-spec.md.
@@ -11,60 +11,40 @@ Config is overridable via --config (JSON). See references/api-spec.md.
 
 import argparse
 import json
+import os
 import sys
-import time
 import urllib.request
 import urllib.parse
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 DEFAULT_CONFIG = {
-    "base_url": "https://api-passport-bj.ninebot.com",
-    "login": {
-        "base_url": "https://api-passport-bj.ninebot.com",
-        "method": "POST",
-        "path": "/v3/openClaw/user/login",
-        "payload": {"username": "{username}", "password": "{password}"},
-        "token_path": "data.access_token",
+    "base_url": "https://cn-cbu-gateway.ninebot.com",
+    "auth": {
+        "api_key_header": "Authorization",
+        "api_key_prefix": "Bearer ",
     },
     "devices": {
-        "base_url": "https://cn-cbu-gateway.ninebot.com",
-        "method": "POST",
-        "path": "/app-api/inner/device/ai/get-device-list",
-        "payload": {"access_token": "{token}", "lang": "{lang}"},
+        "method": "GET",
+        "path": "/ai-skill/api/device/info/get-device-list",
+        "payload": {},
         "list_path": "data",
         "sn_field": "sn",
         "name_field": "deviceName",
     },
     "device_info": {
-        "base_url": "https://cn-cbu-gateway.ninebot.com",
         "method": "POST",
-        "path": "/app-api/inner/device/ai/get-device-dynamic-info",
-        "payload": {"access_token": "{token}", "sn": "{sn}"},
+        "path": "/ai-skill/api/device/info/get-device-dynamic-info",
+        "payload": {"sn": "{sn}"},
         "battery_path": "data.dumpEnergy",
         "status_path": "data.powerStatus",
         "location_path": "data.locationInfo.locationDesc",
         "extra_fields": {
             "estimateMileage": "data.estimateMileage",
             "chargingState": "data.chargingState",
-            "pwr": "data.pwr",
-            "gsm": "data.gsm",
+            "remainChargeTime": "data.remainChargeTime",
         },
     },
 }
-
-MOCK_DATA = {
-    "token": "MOCK_TOKEN",
-    "devices": [
-        {"sn": "SN123", "name": "小九"},
-        {"sn": "SN456", "name": "小白"},
-    ],
-    "device_info": {
-        "battery": 78,
-        "status": "LOCKED",
-        "location": {"lat": 31.2304, "lng": 121.4737, "address": "上海市黄浦区"},
-    },
-}
-
 
 def load_config(path: str) -> Dict[str, Any]:
     with open(path, "r", encoding="utf-8") as f:
@@ -94,7 +74,6 @@ def http_request(
     url: str,
     headers: Dict[str, str] = None,
     payload: Dict[str, Any] = None,
-    debug: bool = False,
 ) -> Dict[str, Any]:
     headers = headers or {}
     data = None
@@ -106,89 +85,69 @@ def http_request(
         with urllib.request.urlopen(req, timeout=15) as resp:
             return json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as err:
-        if debug:
-            try:
-                body = err.read().decode("utf-8")
-            except Exception:
-                body = None
-            print(
-                json.dumps(
-                    {"http_error": {"url": url, "status": err.code, "body": body, "headers": headers, "payload": payload}},
-                    ensure_ascii=False,
-                ),
-                file=sys.stderr,
-            )
         raise
 
 
-def login(cfg: Dict[str, Any], username: str, password: str, mock: bool, debug: bool) -> str:
-    if mock:
-        return MOCK_DATA["token"]
-    payload_template = cfg["login"]["payload"]
-    payload = {
-        k: (v.format(username=username, password=password) if isinstance(v, str) else v)
-        for k, v in payload_template.items()
-    }
-    url = get_base_url(cfg, "login").rstrip("/") + cfg["login"]["path"]
-    headers = {
-        "clientId": "open_claw_client",
-        "timestamp": str(int(time.time() * 1000)),
-        "Content-Type": "application/json",
-    }
-    res = http_request(cfg["login"]["method"], url, headers=headers, payload=payload, debug=debug)
-    token = deep_get(res, cfg["login"]["token_path"])
-    if not token:
-        if debug:
-            print(json.dumps({"login_response": res}, ensure_ascii=False), file=sys.stderr)
-        if isinstance(res, dict):
-            result_code = res.get("resultCode") or res.get("code")
-            result_desc = res.get("resultDesc") or res.get("desc")
-            if result_code or result_desc:
-                raise RuntimeError(f"Token not found in login response (code={result_code}, desc={result_desc})")
-        raise RuntimeError("Token not found in login response")
-
-    #print(json.dumps({"token": token}, ensure_ascii=False), file=sys.stderr)
-    return token
+def read_config_from_default() -> Optional[Dict[str, Any]]:
+    path = os.path.join(os.getcwd(), "config.json")
+    if os.path.exists(path):
+        return load_config(path)
+    return None
 
 
-def list_devices(cfg: Dict[str, Any], token: str, lang: str, mock: bool, debug: bool):
-    if mock:
-        return MOCK_DATA["devices"]
+def save_config_to_default(cfg: Dict[str, Any]) -> None:
+    path = os.path.join(os.getcwd(), "config.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(cfg, f, ensure_ascii=False, indent=2)
+
+
+def resolve_api_key(cfg: Dict[str, Any], arg_api_key: Optional[str]) -> Optional[str]:
+    if arg_api_key:
+        return arg_api_key
+    env_key = os.getenv("NINEBOT_DEVICESERVICE_KEY")
+    if env_key:
+        return env_key
+    cfg_key = cfg.get("apiKey") if isinstance(cfg, dict) else None
+    if cfg_key:
+        return cfg_key
+    return None
+
+
+def inject_api_key_header(cfg: Dict[str, Any], headers: Dict[str, str], api_key: str):
+    auth_cfg = cfg.get("auth") or {}
+    header_name = auth_cfg.get("api_key_header") or "x-api-key"
+    prefix = auth_cfg.get("api_key_prefix") or ""
+    headers[header_name] = f"{prefix}{api_key}"
+
+
+def list_devices(cfg: Dict[str, Any], api_key: str, lang: str):
     url = get_base_url(cfg, "devices").rstrip("/") + cfg["devices"]["path"]
     payload_tpl = cfg["devices"].get("payload") or {}
     payload = {
-        k: (v.format(token=token, lang=lang) if isinstance(v, str) else v)
+        k: (v.format(api_key=api_key, lang=lang) if isinstance(v, str) else v)
         for k, v in payload_tpl.items()
     }
-    headers = {
-        #"clientId": "open_claw_client",
-        #"timestamp": str(int(time.time() * 1000)),
-        #"Content-Type": "application/json",
-        #"clientParam": "a23HXtRwKLGk7nVA",
-    }
-    res = http_request(cfg["devices"]["method"], url, headers=headers, payload=payload, debug=debug)
-    print(json.dumps({"list_devices_response": res}, ensure_ascii=False), file=sys.stderr)
+    headers: Dict[str, str] = {}
+    if api_key:
+        inject_api_key_header(cfg, headers, api_key)
+    payload_to_send = None if cfg["devices"]["method"].upper() == "GET" else payload
+    res = http_request(cfg["devices"]["method"], url, headers=headers, payload=payload_to_send)
     devices = deep_get(res, cfg["devices"]["list_path"]) or []
     return devices
 
 
-def get_device_info(cfg: Dict[str, Any], token: str, sn: str, mock: bool, debug: bool):
-    if mock:
-        return MOCK_DATA["device_info"]
+def get_device_info(cfg: Dict[str, Any], api_key: str, sn: str):
     path = cfg["device_info"]["path"].replace("{sn}", urllib.parse.quote(sn))
     url = get_base_url(cfg, "device_info").rstrip("/") + path
     payload_tpl = cfg["device_info"].get("payload") or {}
     payload = {
-        k: (v.format(token=token, sn=sn) if isinstance(v, str) else v)
+        k: (v.format(api_key=api_key, sn=sn) if isinstance(v, str) else v)
         for k, v in payload_tpl.items()
     }
-    headers = {
-        #"clientId": "open_claw_client",
-        #"timestamp": str(int(time.time() * 1000)),
-        #"Content-Type": "application/json",
-        #"clientParam": "a23HXtRwKLGk7nVA",
-    }
-    res = http_request(cfg["device_info"]["method"], url, headers=headers, payload=payload, debug=debug)
+    headers: Dict[str, str] = {}
+    if api_key:
+        inject_api_key_header(cfg, headers, api_key)
+    res = http_request(cfg["device_info"]["method"], url, headers=headers, payload=payload)
     out = {
         "battery": deep_get(res, cfg["device_info"]["battery_path"]),
         "status": deep_get(res, cfg["device_info"]["status_path"]),
@@ -202,22 +161,25 @@ def get_device_info(cfg: Dict[str, Any], token: str, sn: str, mock: bool, debug:
 
 def main():
     parser = argparse.ArgumentParser(description="Ninebot vehicle query (placeholder).")
-    parser.add_argument("--username", required=True)
-    parser.add_argument("--password", required=True)
+    parser.add_argument("--api-key", default=None, help="Ninebot device service API key")
     parser.add_argument("--device-name", default=None, help="Device name to select")
     parser.add_argument("--device-sn", default=None, help="Device SN to select")
-    parser.add_argument("--config", default=None, help="Path to JSON config")
     parser.add_argument("--lang", default="zh", help="Language: zh | zh-hant | en")
-    parser.add_argument("--mock", action="store_true", help="Use mock data")
-    parser.add_argument("--debug", action="store_true", help="Print API responses on error")
     args = parser.parse_args()
 
     cfg = DEFAULT_CONFIG
-    if args.config:
-        cfg = load_config(args.config)
+    cfg_from_default = read_config_from_default()
+    if cfg_from_default:
+        cfg.update(cfg_from_default)  # Override defaults with saved config
 
-    token = login(cfg, args.username, args.password, args.mock, args.debug)
-    devices = list_devices(cfg, token, args.lang, args.mock, args.debug)
+    api_key = resolve_api_key(cfg, args.api_key)
+    if not api_key:
+        print(json.dumps({"error": "Missing API key. Set NINEBOT_DEVICESERVICE_KEY or provide --api-key or config.json"}, ensure_ascii=False))
+        sys.exit(2)
+
+    cfg['apiKey'] = api_key  # Save resolved API key back to config for potential reuse
+    save_config_to_default(cfg)
+    devices = list_devices(cfg, api_key or "", args.lang)
 
     if not devices:
         print(json.dumps({"error": "No devices found"}, ensure_ascii=False))
@@ -247,18 +209,32 @@ def main():
 
     sn = str(selected.get(cfg["devices"]["sn_field"]))
     name = selected.get(cfg["devices"]["name_field"]) or ""
-    info = get_device_info(cfg, token, sn, args.mock, args.debug)
+    info = get_device_info(cfg, api_key or "", sn)
+
+    power_status = info.get("status")
+    if power_status is None:
+        power_status_str = "unknown"
+    else:
+        if str(power_status).upper() in ["0"]:
+            power_status_str = "OFF"
+        elif str(power_status).upper() in ["1"]:
+            power_status_str = "ON"
+        else:
+            power_status_str = "unknown"
+            
+    charging_state = info.get("chargingState")
+    charging_status = "not_charge"
+    if charging_state is not None and str(charging_state).upper() in ["1"]:
+        charging_status = "charging"
 
     output = {
         "device_name": name,
-        "sn": sn,
         "battery": info.get("battery"),
-        "status": info.get("status"),
+        "powerStatus": power_status_str,
         "location": info.get("location"),
         "estimateMileage": info.get("estimateMileage"),
-        "chargingState": info.get("chargingState"),
-        "pwr": info.get("pwr"),
-        "gsm": info.get("gsm"),
+        "chargingState": charging_status,
+        "remainChargingTime": info.get("remainChargeTime")
     }
     print(json.dumps(output, ensure_ascii=False))
 

@@ -5,53 +5,26 @@
 ## Base URL
 
 ```
-https://api.example.com
+https://cn-cbu-gateway.ninebot.com
 ```
 
-## Auth & Token
+## Auth (API Key)
 
-### 1) Login (openClaw)
-- **Method:** POST
-- **Path:** `/v3/openClaw/user/login`
-- **Headers:**
-  - `Content-Type: application/json`
-- **Request JSON:**
+- 使用 Ninebot device service API key（环境变量 `NINEBOT_DEVICESERVICE_KEY` 或 config.json）
+- 默认请求头：`Authorization: Bearer <API_KEY>`（可在 config 中改 header/prefix）
 
-```json
-{
-  "username": "<email/phone/username>",
-  "password": "<password>"
-}
-```
-
-- **Response JSON (example):**
-```json
-{
-  "resultCode": "90000",
-  "resultDesc": "success",
-  "data": {
-    "access_token": "TOKEN_VALUE",
-    "refresh_token": "REFRESH_TOKEN"
-  }
-}
-```
-
-**Token path:** `data.access_token`
-
-### 2) Device List (AI)
-- **Method:** POST
-- **Path:** `/app-api/inner/device/ai/get-device-list`
-- **Params (JSON):**
-  - `access_token` (user token)
-  - `lang` (`zh` | `zh-hant` | `en`)
+### 1) Device List (AI)
+- **Method:** GET
+- **Path:** `/ai-skill/api/device/info/get-device-list`
+- **Params:** 无
 - **Response JSON (example):**
 ```json
 {
   "code": 1,
   "desc": "成功",
   "data": [
-    {"sn": "N4DEC2336J0022", "deviceName": "九号电动呢", "img": "..."},
-    {"sn": "23DDB2521J0001", "deviceName": "M3 王者荣耀裴擒虎款", "img": "..."}
+    {"sn": "SN123", "deviceName": "九号M5", "img": "..."},
+    {"sn": "SN456", "deviceName": "", "img": "..."}
   ],
   "t": 1773140131339
 }
@@ -62,9 +35,8 @@ https://api.example.com
 
 ### 3) Device Dynamic Info (AI)
 - **Method:** POST
-- **Path:** `/app-api/inner/device/ai/get-device-dynamic-info`
+- **Path:** `/ai-skill/api/device/info/get-device-dynamic-info`
 - **Params (JSON):**
-  - `access_token` (user token)
   - `sn` (device sn)
 - **Response JSON (example):**
 ```json
@@ -72,15 +44,12 @@ https://api.example.com
   "code": 1,
   "desc": "Successfully",
   "data": {
-    "gsm": 19,
-    "gsmTime": 1773131197,
-    "pwr": 1,
     "dumpEnergy": 57,
     "estimateMileage": 50.4,
     "locationInfo": {"locationDesc": "北京市海淀区东升(地区)镇后屯东路"},
     "chargingState": 0,
     "powerStatus": 1,
-    "remainChargeTime": null,
+    "remainChargeTime": "5分钟",
     "wnumber": "4MDAZ2606J0012"
   },
   "t": 1773131267279
@@ -95,37 +64,35 @@ https://api.example.com
 
 ## Config Mapping (for scripts/ninebot_query.py)
 
-You can override any field via a JSON config file:
+You can override any field via a JSON config file. See `config.example.json` for a ready-to-copy template:
 
 ```json
 {
-  "base_url": "https://api.example.com",
-  "login": {
-    "method": "POST",
-    "path": "/v3/openClaw/user/login",
-    "payload": {"username": "{username}", "password": "{password}"},
-    "token_path": "data.access_token"
+  "base_url": "https://cn-cbu-gateway.ninebot.com",
+  "apiKey": "your_ninebot_device_service_key_here",
+  "auth": {
+    "api_key_header": "Authorization",
+    "api_key_prefix": "Bearer "
   },
   "devices": {
-    "method": "POST",
-    "path": "/app-api/inner/device/ai/get-device-list",
-    "payload": {"access_token": "{token}", "lang": "{lang}"},
+    "method": "GET",
+    "path": "/ai-skill/api/device/info/get-device-list",
+    "payload": {},
     "list_path": "data",
     "sn_field": "sn",
     "name_field": "deviceName"
   },
   "device_info": {
     "method": "POST",
-    "path": "/app-api/inner/device/ai/get-device-dynamic-info",
-    "payload": {"access_token": "{token}", "sn": "{sn}"},
+    "path": "/ai-skill/api/device/info/get-device-dynamic-info",
+    "payload": {"sn": "{sn}"},
     "battery_path": "data.dumpEnergy",
     "status_path": "data.powerStatus",
     "location_path": "data.locationInfo.locationDesc",
     "extra_fields": {
       "estimateMileage": "data.estimateMileage",
       "chargingState": "data.chargingState",
-      "pwr": "data.pwr",
-      "gsm": "data.gsm"
+      "remainChargeTime": "data.remainChargeTime",
     }
   }
 }
