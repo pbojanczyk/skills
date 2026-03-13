@@ -1,0 +1,11 @@
+{
+  "owner": "tekkaadan",
+  "slug": "litcoin",
+  "displayName": "Litcoin",
+  "latest": {
+    "version": "1.0.4",
+    "publishedAt": 1773273511741,
+    "commit": null
+  },
+  "history": []
+}
