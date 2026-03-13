@@ -196,13 +196,13 @@ if [ "$INIT_SPECKIT" = true ]; then
         # 使用 --no-git 避免重复初始化 Git
         log_info "下载 Speckit 模板（从 GitHub，可能需要几秒）..."
         
-        # 使用 timeout 命令限制等待时间（60秒）
-        if timeout 60 specify init . --here --force --ai claude --no-git 2>&1; then
+        # 使用 timeout 命令限制等待时间（90秒），避免网络卡死
+        if timeout 90 specify init . --here --force --ai claude --no-git 2>&1; then
             log_info "Speckit 初始化成功"
         else
             EXIT_CODE=$?
             if [ $EXIT_CODE -eq 124 ]; then
-                log_warn "Speckit 初始化超时（60秒），可能网络问题"
+                log_warn "Speckit 初始化超时（90秒），可能网络问题"
             else
                 log_warn "Speckit 初始化失败（退出码: $EXIT_CODE）"
             fi

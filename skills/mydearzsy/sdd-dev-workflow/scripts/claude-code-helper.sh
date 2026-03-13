@@ -49,6 +49,13 @@ start_session() {
     tmux -S "$SOCKET" send-keys -t "$session_name" "claude --permission-mode $permission_mode" Enter
     sleep 3
 
+    # bypassPermissions 模式需要确认
+    if [ "$permission_mode" = "bypassPermissions" ]; then
+        log_info "确认 bypassPermissions 模式..."
+        tmux -S "$SOCKET" send-keys -t "$session_name" "2" Enter
+        sleep 3
+    fi
+
     # 确认信任目录
     tmux -S "$SOCKET" send-keys -t "$session_name" Enter
     sleep 2
@@ -187,7 +194,7 @@ EOF
 # 主入口
 case "$1" in
     start)
-        start_session "$2" "$3"
+        start_session "$2" "$3" "$4"
         ;;
     send)
         send_command "$2" "$3"

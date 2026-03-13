@@ -1,11 +1,17 @@
 {
   "owner": "mydearzsy",
   "slug": "sdd-dev-workflow",
-  "displayName": "SDD Development Workflow",
+  "displayName": "Sdd Dev Workflow",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1773195995282,
-    "commit": "https://github.com/openclaw/skills/commit/8b6ae31ebc0b0a6b2ebe2d6b02f5df1d8626e023"
+    "version": "1.4.1",
+    "publishedAt": 1773385709947,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1773195995282,
+      "commit": "https://github.com/openclaw/skills/commit/8b6ae31ebc0b0a6b2ebe2d6b02f5df1d8626e023"
+    }
+  ]
 }

@@ -45,15 +45,29 @@
 - ❌ 生成空测试文件假装有测试
 - ❌ 只写代码不验证可运行性
 - ❌ 依赖未安装的服务和数据库
+- ❌ 使用已废弃的 API（如 Pydantic V1 语法）
+
+**API 最佳实践**：
+- ✅ Pydantic V2：使用 `ConfigDict` 替代 `class Config`
+  ```python
+  from pydantic import BaseModel, ConfigDict
+
+  class Settings(BaseModel):
+      model_config = ConfigDict(env_file='.env')
+  ```
+- ✅ SQLAlchemy 2.0：使用 `Mapped` 和 `mapped_column`
+- ✅ FastAPI：使用最新稳定版本的依赖注入模式
 
 **理由**：
 - 未验证的代码等于未完成的代码
 - 外部依赖增加复杂度和失败点
 - 可运行性是代码交付的最低标准
+- 使用废弃 API 会产生 warnings，降低代码质量
 
 **验证方式**：
 - 完成每个阶段后**必须**运行验证命令
 - 发现问题**必须**立即修复，不能标记为"完成"
+- 运行时**必须**无 deprecation warnings
 
 ### 三、中文优先
 
