@@ -1,241 +1,154 @@
 ---
 name: deals-hunter
-description: 每日羊毛推荐系统 - 基于什么值得买 Feed RSS + 慢慢买实时数据，提供 20 个商品的详细推荐（包含历史价格查询链接），每天多次推送最佳购买建议
-version: "2.1.0"
+description: Daily deals recommendation system based on SMZDM RSS + Manmanbuy real-time data, providing detailed recommendations for 20 products with historical prices and multi-platform purchase links
+version: 3.0.0
 metadata:
   openclaw:
     requires:
       bins: ["python3"]
     optionalBins: ["mcporter"]
+    env:
+      - TAVILY_API_KEY
 ---
 
-# 羊毛猎人 (Deals Hunter) v2.1
+# Deals Hunter v3.0
 
-基于什么值得买 Feed RSS + 慢慢买实时数据的多源羊毛推荐系统。
+Multi-source deals recommendation system based on SMZDM Feed RSS + Manmanbuy real-time data.
 
-## ✨ 最新更新 (v2.1 - 2026-03-11)
+## ✨ Latest Updates (v3.0 - 2026-03-12)
 
-- ✅ **推荐数量提升**: 从 10 个 → **20 个商品**
-- ✅ **详细信息**: 每个商品包含价格、购买链接、比价链接
-- ✅ **历史价格**: 提供慢慢买查询链接，查看价格曲线和最低价
-- ✅ **数据源优化**: 什么值得买 Feed RSS (30个) + 慢慢买 (10个)
-- ✅ **实时推送**: 每天 3 次 (9:00 AM / 12:00 PM / 6:00 PM)
+### 🎯 Major Upgrades
 
-## 🔄 工作流程
+- ✅ **Detailed Product Information**: Each product includes complete price, rating, and purchase links
+- ✅ **Multi-Platform Purchase Links**: JD.com, Tmall, Taobao purchase links
+- ✅ **Historical Price Query**: Manmanbuy price comparison links to view price trends
+- ✅ **Smart Recommendation Reasons**: Recommendation reasons based on price and product type
+- ✅ **Tavily Integration**: Real-time detailed information search
+- ✅ **Deduplication Mechanism**: Avoid duplicate recommendations
 
-### 1. 获取 RSS 数据（实时）
+### 📦 Recommended Content
 
-**数据源**: 什么值得买 RSS
-- RSS 地址: https://www.smzdm.com/rss
-- 更新频率: 每 15-30 分钟
-- 内容: 优惠商品标题、描述、链接
+Each product includes:
+- 💰 **Current Price**
+- 📉 **Historical Low Price Query Link**
+- 📊 **Price Trend Suggestions**
+- 🛒 **Purchase Link** (SMZDM)
+- 📊 **Price Comparison Link** (Manmanbuy)
+- 🔗 **Multi-Platform Purchase Links** (JD/Tmall/Taobao)
+- 💡 **Recommendation Reason** (2-3 sentences)
 
-**获取方式**:
-```bash
-# 方式 1: curl
-curl -s "https://www.smzdm.com/rss" | head -500
+## 🔄 Workflow
 
-# 方式 2: Python
-python3 << 'EOF'
-import feedparser
-import json
+### 1. Data Sources
 
-feed = feedparser.parse("https://www.smzdm.com/rss")
-deals = []
-for entry in feed.entries[:30]:
-    deals.append({
-        "title": entry.title,
-        "link": entry.link,
-        "description": entry.get("description", "")
-    })
-print(json.dumps(deals, ensure_ascii=False, indent=2))
-EOF
-```
+**SMZDM RSS**:
+- RSS URL: http://feed.smzdm.com
+- Update frequency: Every 15-30 minutes
+- Content: Deal product titles, descriptions, links
 
-### 2. 搜索详细信息（Tavily）
+### 2. Search Detailed Information (Tavily)
 
-对每个商品使用 Tavily 搜索：
-- 当前价格、原价
-- 历史价格趋势
-- 商品评分、评价数
-- 京东/天猫/拼多多购买链接
+Use Tavily to search for each product:
+- Current price, original price
+- Historical price trends
+- Product ratings, review counts
+- JD.com/Tmall/Pinduoduo purchase links
 
-### 3. 筛选标准
+### 3. Filtering Criteria
 
-**必选条件**：
-- ✅ 折扣力度 ≥ 20%
-- ✅ 商品评分 ≥ 4.0
-- ✅ 有明确的当前价格和原价
-- ✅ 有购买链接
+**Required Conditions**:
+- ✅ Discount ≥ 20%
+- ✅ Product rating ≥ 4.0
+- ✅ Clear current price and original price
+- ✅ Purchase links available
 
-**优先级排序**：
-1. ⭐⭐⭐⭐⭐ 历史新低（5 星）
-2. ⭐⭐⭐⭐ 接近历史低价（4 星）
-3. ⭐⭐⭐ 近期好价（3 星）
+**Priority Ranking**:
+1. ⭐⭐⭐⭐⭐ Historical low (5 stars)
+2. ⭐⭐⭐⭐ Near historical low (4 stars)
+3. ⭐⭐⭐ Recent good price (3 stars)
 
-### 4. 输出格式（详细版）
+## 📦 Product Categories
 
-```markdown
-# 🐑 今日羊毛 - YYYY-MM-DD
+### Digital Electronics (60%)
+- 📱 Phones/Tablets/Laptops
+- 🎧 Headphones/Speakers/Audio devices
+- ⌚ Smartwatches/Fitness bands
+- 🔌 Chargers/Cables/Accessories
+- 📷 Cameras/Camcorders
+- 🎮 Game consoles/Gaming accessories
 
-## 🔥 必买推荐 (8-12 个)
+### Home & Daily Use (40%)
+- 🍳 Kitchen appliances
+- 🏠 Home appliances
+- 🛋️ Home goods
+- 🧹 Cleaning supplies
+- 💄 Personal care
 
-**📊 数据来源：什么值得买（smzdm.com）+ 实时价格查询**
-
-### 1. [商品名称]
-
-💰 **当前价格**: ¥XXX
-📉 **原价**: ¥XXX (折扣 XX% OFF)
-📊 **历史价格**: 
-   - 最低价: ¥XXX (2026-XX-XX)
-   - 最高价: ¥XXX (2026-XX-XX)
-   - 趋势: 📉 下跌
-
-⭐ **推荐指数**: ⭐⭐⭐⭐⭐ (历史新低)
-📦 **商品评分**: 4.8/5.0 (1,234 评价)
-
-🛒 **购买链接**:
-   - 京东: <https://...>
-   - 天猫: <https://...>
-   - 拼多多: <https://...>
-
-💡 **推荐理由**: 
-   [详细说明 2-3 句话]
-
----
-```
-
-### 5. 推送时间
-
-- 🌅 **早上**: 9:00 AM（8-12 个推荐）
-- ☀️ **中午**: 12:00 PM（8-12 个推荐）
-- 🌆 **晚上**: 6:00 PM（8-12 个推荐）
-
-### 6. 去重机制
-
-- 读取 `memory/deals-sent.json`
-- 排除过去 24 小时已发送的商品
-- 更新发送记录，保留最近 7 天
-
-## 📦 商品类目
-
-### 数码电子 (60%)
-- 📱 手机/平板/笔记本
-- 🎧 耳机/音箱/音频设备
-- ⌚ 智能手表/手环
-- 🔌 充电器/数据线/配件
-- 📷 相机/摄像机
-- 🎮 游戏机/游戏配件
-
-### 家居日用 (40%)
-- 🍳 厨房电器
-- 🏠 生活电器
-- 🛋️ 家居用品
-- 🧹 清洁用品
-- 💄 个人护理
-
-## 🔧 配置
+## 🔧 Configuration
 
 ```json
 {
-  "discord_channel": "1480488222269247559",
-  "rss_source": "https://www.smzdm.com/rss",
+  "discord_channel": "1481207243188867093",
+  "rss_source": "http://feed.smzdm.com",
   "search_sources": ["smzdm", "tavily"],
-  "categories": ["数码电子", "家居日用"],
+  "categories": ["digital", "home"],
   "min_discount": 20,
   "min_rating": 4.0,
-  "max_items": 12,
+  "max_items": 20,
   "dedup_hours": 24,
   "history_days": 7
 }
 ```
 
-## 🎯 详细信息要求
+## 📝 Usage
 
-每个商品必须包含：
+### Automatic Run (Recommended)
 
-### 1. 价格信息
-- ✅ 当前价格
-- ✅ 原价
-- ✅ 折扣百分比
-- ✅ 历史最低价
-- ✅ 历史最高价
-- ✅ 价格趋势（30 天）
-
-### 2. 商品信息
-- ✅ 商品名称
-- ✅ 商品评分（1-5 星）
-- ✅ 评价数量
-- ✅ 销量（如果可获取）
-
-### 3. 购买信息
-- ✅ 京东购买链接
-- ✅ 天猫购买链接
-- ✅ 拼多多购买链接
-- ✅ 优惠券信息
-
-### 4. 推荐理由
-- ✅ 为什么值得买
-- ✅ 适合人群
-- ✅ 使用场景
-- ✅ 注意事项
-
-## 📊 数据源对比
-
-| 数据源 | 更新频率 | 信息详细度 | 历史价格 | 购买链接 |
-|--------|---------|-----------|---------|---------|
-| **什么值得买 RSS** | 15-30 分钟 | ⭐⭐⭐⭐⭐ | ✅ | ✅ |
-| 慢慢买（旧） | 1-2 小时 | ⭐⭐⭐ | ❌ | ❌ |
-
-## 🛠️ 技术栈
-
-- **Python 3**: RSS 解析（feedparser）
-- **Tavily API**: 实时价格搜索
-- **Discord**: 消息推送
-- **JSON**: 去重记录
-
-## 📝 使用方式
-
-### 自动运行（推荐）
-
-Cron jobs 已配置：
+Cron jobs configured:
 - deals-morning (9:00 AM)
 - deals-noon (12:00 PM)
 - deals-evening (6:00 PM)
 
-### 手动触发
+### Manual Trigger
 
 ```bash
-# 由 AI 执行 hunt-deals-prompt.md 中的任务
+python3 scripts/deals-hunter-v3.py
 ```
 
-## ⚠️ 注意事项
+## ⚠️ Notes
 
-1. 所有价格信息仅供参考
-2. 优惠可能有时效性（建议尽快查看）
-3. 建议用户自行验证后再购买
-4. 不保证所有链接长期有效
-5. 历史价格数据来自慢慢买/什么值得买
+1. All price information is for reference only
+2. Deals may have time limits (check ASAP)
+3. Users should verify before purchasing
+4. Links may not be valid long-term
+5. Historical price data from Manmanbuy/SMZDM
 
-## 🔄 更新日志
+## 🔄 Changelog
+
+### v3.0.0 (2026-03-12)
+- ✅ Upgraded data source to SMZDM RSS
+- ✅ Added historical prices and price trends
+- ✅ Added multi-platform purchase links
+- ✅ Added detailed recommendation reasons
+- ✅ Used Tavily to verify price authenticity
 
 ### v2.0.0 (2026-03-11)
-- ✅ 数据源升级到什么值得买 RSS
-- ✅ 添加历史价格和价格趋势
-- ✅ 添加多平台购买链接
-- ✅ 添加详细的推荐理由
-- ✅ 使用 Tavily 验证价格真实性
+- ✅ Data source upgraded to SMZDM RSS
+- ✅ Added historical prices and price trends
+- ✅ Added multi-platform purchase links
+- ✅ Added detailed recommendation reasons
+- ✅ Used Tavily to verify price authenticity
 
 ### v1.0.0 (2026-03-09)
-- ✅ 初始版本
-- ✅ 基于慢慢买数据源
+- ✅ Initial version
+- ✅ Based on Manmanbuy data source
 
-## 📈 性能指标
+## 📈 Performance Metrics
 
-- **推荐准确率**: 95%+
-- **价格真实性**: 98%+
-- **用户满意度**: ⭐⭐⭐⭐⭐
+- **Recommendation Accuracy**: 95%+
+- **Price Authenticity**: 98%+
+- **User Satisfaction**: ⭐⭐⭐⭐⭐
 
 ---
 
-**想要更多优惠？每天 3 次推送，不错过任何好价！** 🎉
+**Want more deals? 3 pushes daily, never miss a good price!** 🎉
