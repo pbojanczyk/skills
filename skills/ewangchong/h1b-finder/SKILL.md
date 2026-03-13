@@ -1,93 +1,130 @@
 ---
 name: h1b-finder
-description: H1B employer and salary intelligence based on official h1bfinder.com data (4M+ DOL records, incl. FY2025)｜基于 h1bfinder.com 官方数据的 H1B 雇主与薪资情报工具（400万+ DOL 记录，含 FY2025）
+description: Find H1B / H-1B sponsor companies, visa sponsorship employers, and sponsor history for US jobs.
+version: 1.1.1
 acceptLicenseTerms: true
 metadata:
-  {
-    "openclaw": {
-      "requires": { "apis": ["h1bfinder.com"] },
-      "recommend": { "agents": ["engineering", "marketing", "legal", "finance"] },
-      "version": "1.1.0",
-      "author": "h1bfinder.com",
-      "homepage": "https://h1bfinder.com"
-    }
-  }
+  openclaw:
+    emoji: "💼"
+    requires:
+      apis:
+        - h1bfinder.com
+    recommend:
+      agents:
+        - engineering
+        - marketing
+        - legal
+        - finance
+    version: 1.1.1
+    author: h1bfinder.com
+    homepage: https://h1bfinder.com
 ---
 
-# H1B Finder / H1B 智能检索
+# H1B Sponsor Finder / H1B Sponsor 查询
 
-## What it is / 这是什么
-**H1B Finder** is the official skill from [h1bfinder.com](https://h1bfinder.com) for AI-assisted H1B sponsor research.  
-**H1B Finder** 是 [h1bfinder.com](https://h1bfinder.com) 官方技能，用于 AI 驱动的 H1B 雇主与薪资分析。
+Find H1B sponsor companies and visa-friendly jobs faster.
 
-It grounds answers in **4M+ real DOL disclosure records** (including FY2025 updates), so your agent can produce data-backed insights instead of generic advice.  
-它基于 **400万+ 真实 DOL 披露记录**（含 FY2025 更新），让 Agent 给出“有数据依据”的结论，而不是泛泛建议。
+快速查找 H1B sponsor 公司和支持工签的岗位。
 
-## Core capabilities / 核心能力
-- Sponsor ranking and filtering by role, city/state, and year  
-  按职位、地区、年份筛选雇主并生成赞助商排名
-- Salary intelligence (median/top ranges, trend snapshots)  
-  薪资情报（中位数/高位区间、趋势快照）
-- Approval signal analysis using case status dimensions  
-  基于 Case Status 的获批信号分析
-- Side-by-side company comparison for practical decision-making  
-  企业横向对比，支持真实求职决策
+## English capability bullets
 
-## Example prompts / 示例提问
-1. “Find the top 10 NYC companies with the highest starting salary for Product Managers.”  
-   “帮我找纽约给 Product Manager 起薪最高的前 10 家公司。”
-2. “Compare Amazon vs Google H1B approval signals in Seattle for entry-level software roles.”  
-   “对比 Amazon 和 Google 在西雅图针对初级软件岗位的 H1B 获批信号。”
-3. “Which Austin companies pay over $150k for Data Scientist and show stable sponsor history?”  
-   “奥斯汀哪些公司给 Data Scientist 薪资超过 15 万美元且赞助记录稳定？”
-4. “Show me 2025 trend changes for PM salary in California.”  
-   “给我看 2025 年加州 PM 薪资趋势变化。”
+- Find H1B / H-1B sponsor companies by role, employer, city, state, or year.
+- Compare sponsor history across companies such as Amazon, Google, and Microsoft.
+- Surface filing-based role, location, and salary signals when records support it.
+- Narrow a US job search toward employers with historical visa sponsorship activity.
 
-## Classic use case / 经典用例（实战）
-**Prompt / 提问：**  
-“Which Austin companies pay Data Scientists over $150k and have stable sponsorship records?”  
-“奥斯汀哪些公司给 Data Scientist 薪资超过 15 万美元且赞助记录稳定？”
+## 中文功能要点
 
-**Expected output style / 预期输出风格：**
-- Top matches: **META PLATFORMS INC**, **IBM CORPORATION**
-- Example salary signal: around **$181k–$184k** average in qualified records
-- Stability signal: multi-year sponsor activity with consistent high-salary filings
-- Actionable next step: shortlist + city/role/year drill-down
+- 按岗位、公司、城市、州或年份查找 H1B sponsor 公司。
+- 对比 Amazon、Google、Microsoft 等公司的 sponsor 历史和活跃度。
+- 在有记录时给出岗位、地区和薪资相关的提交信号。
+- 帮你先筛出更可能支持工签的美国雇主，再决定投递方向。
 
-> Note: final numbers depend on live query window and filtering dimensions.
-> 说明：最终数值会随实时查询时间窗和筛选条件变化。
+## Best for / 适合谁
 
-## Data & API notes / 数据与接口说明
-This skill queries H1B Finder’s structured API layer in real time and returns normalized fields for analysis-friendly outputs.  
-本技能实时查询 H1B Finder 的结构化 API，并返回标准化字段，便于 AI 做统计、对比与总结。
+- International students, OPT candidates, early-career job seekers, and experienced candidates targeting US employers with work visa support.
+- People researching H1B sponsor companies, visa sponsorship jobs, H1B-friendly employers, or filing history before applying.
+- 想找 H1B 雇主、工签支持岗位、Sponsor 公司，或先看 sponsor 记录再投递的中英文用户。
+- 想按岗位、城市、州、年份或公司名缩小美国求职范围的用户。
 
-Typical query dimensions include: `employer`, `job_title`, `city/state`, `fiscal_year`, `case_status`.  
-常用查询维度包括：`employer`、`job_title`、`city/state`、`fiscal_year`、`case_status`。
+## Example queries / 示例问题
 
-## Setup / 使用方式
-Install (registry):  
-安装（仓库方式）：
+### English
 
-```bash
-openclaw skill install h1b-finder
-```
+- Find H1B sponsor companies for data engineer roles in Seattle.
+- Find H1B sponsoring employers for software engineer in Virginia.
+- Compare H1B sponsor activity for Amazon, Google, and Microsoft.
+- Find entry-level H1B-friendly jobs for new grads in New York.
+- Find companies sponsoring product manager roles in California.
+- Find H1B jobs near Washington DC for backend engineers.
+- Show employers that filed for data analyst roles in Texas.
 
-If your runtime uses ClawHub CLI directly:  
-如果你的环境直接使用 ClawHub CLI：
+### 中文
 
-```bash
-npx clawhub install h1b-finder
-```
+- 帮我找 Seattle 的 Data Engineer H1B sponsor 公司。
+- 查 Virginia 的 Software Engineer sponsor 雇主。
+- 对比 Amazon、Google、Microsoft 的 H1B sponsor 活跃度。
+- 找适合应届生的 H1B 友好公司，最好在 New York。
+- 找支持 Product Manager 的 sponsor 公司，范围看 California。
+- 找华盛顿 DC 附近适合 Backend Engineer 的 H1B 工作。
+- 查哪些公司给 Data Analyst 岗位提交过 H1B，最好看 Texas。
 
-## Security & Privacy / 安全与隐私
-- **Not legal advice / 非法律建议**: Outputs are informational and do not constitute immigration legal advice.  
-  结果仅供信息参考，不构成移民法律意见。
-- **Data source / 数据来源**: Public U.S. Department of Labor disclosure records (with possible release lag).  
-  数据来自美国劳工部公开披露文件（可能存在发布时滞）。
-- **Privacy / 隐私**: This skill is designed for public labor data analysis and should not be used to process private personal data.  
-  本技能用于公开劳工数据分析，不应用于处理个人敏感隐私数据。
+## What you'll get / 输出内容
 
-## Official links / 官方链接
-- Website: https://h1bfinder.com
-- Terms: https://h1bfinder.com/legal/tos.md
-- Privacy: https://h1bfinder.com/legal/privacy.md
+- A short answer first, then a ranked shortlist or compact comparison.
+- Employer names with role, location, year, or filing-history context.
+- Salary or trend notes when the underlying filing records support them.
+- Caveats when coverage is thin, delayed, or not directly comparable.
+- A useful next step, such as narrowing by city, role, employer, or fiscal year.
+
+- 先给一句结论，再给简明 shortlist 或公司对比。
+- 展示雇主名称，以及岗位、地区、年份或提交历史的上下文。
+- 如果底层记录支持，会补充薪资或趋势提示。
+- 当覆盖不足、数据滞后或口径不完全可比时，会明确提醒。
+- 最后给出下一步建议，比如继续按城市、岗位、公司或财年细化。
+
+## When to use this skill / 何时使用这个技能
+
+Use this skill when the user is asking about H1B sponsor companies, visa sponsorship jobs, companies that filed H1B, H1B-friendly employers, US jobs with work visa support, or sponsor history by company, role, city, state, or year.
+
+当用户在问 H1B sponsor 公司、支持工签的美国岗位、哪些公司提交过 H1B、H1B 友好雇主、某公司或某岗位的 sponsor 历史时，应优先使用这个技能。
+
+It is especially useful for queries that sound like sponsor lookup, employer comparison, filing-history research, or "which companies are more likely to support work visas for this role?"
+
+尤其适合这类问题：查 sponsor 公司、比较雇主 sponsor 活跃度、看历史提交记录，或者问“这个岗位哪些公司更可能支持工签？”
+
+## Search basis / 检索依据
+
+- Uses historical public labor disclosure data surfaced through h1bfinder.com.
+- Best for sponsor lookup, filing-history research, employer comparison, and role/location exploration.
+- Helpful for finding sponsor leads, but it is not a live job board and not an official government source.
+
+- 基于 h1bfinder.com 提供的历史公开劳工披露数据进行检索和整理。
+- 适合做 sponsor 查询、提交记录研究、雇主对比，以及岗位和地区探索。
+- 适合找 sponsor 线索，但它不是实时职位板，也不是政府官方数据入口。
+
+## Response style / 输出方式
+
+- Prefer concise, decision-oriented answers over long background explanations.
+- Translate the request into practical filters such as employer, title, city, state, year, or comparison scope.
+- If the request is underspecified, make one reasonable assumption and state it briefly.
+- Ask a follow-up only when the missing detail would materially change the result.
+
+- 先给实用结论，再补充必要说明，不要先讲长背景。
+- 尽量把问题转成公司、岗位、城市、州、年份或对比范围等筛选条件。
+- 如果信息不完整，可以做一个合理默认假设，并简短说明。
+- 只有在缺少关键信息会明显影响结果时，才继续追问。
+
+## Notes / 注意事项
+
+- Data may be incomplete, delayed, or uneven across employers, roles, locations, and years.
+- Historical filing results do not guarantee that a company is hiring now or still offering sponsorship.
+- This skill is informational only. It is not legal advice, immigration advice, or a guarantee of job outcomes.
+- Verify important details yourself before making job-search, visa, or legal decisions.
+- Homepage: https://h1bfinder.com
+
+- 数据可能不完整，也可能存在滞后，不同公司、岗位、地区和年份的覆盖度会不同。
+- 历史提交记录不代表公司当前一定在招聘，也不代表现在仍然提供 sponsor。
+- 本技能仅提供信息参考，不构成法律建议、移民建议或求职结果保证。
+- 在做求职、签证或法律相关决定前，请自行进一步核实。
+- 主页：https://h1bfinder.com
