@@ -1,0 +1,11 @@
+{
+  "owner": "googleworkspace-bot",
+  "slug": "recipe-save-email-attachments",
+  "displayName": "Recipe Save Email Attachments",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773490247239,
+    "commit": null
+  },
+  "history": []
+}
