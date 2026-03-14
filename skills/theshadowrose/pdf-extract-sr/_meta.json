@@ -1,0 +1,11 @@
+{
+  "owner": "theshadowrose",
+  "slug": "pdf-extract-sr",
+  "displayName": "PDFExtract Pull Text from PDFs",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773262815011,
+    "commit": null
+  },
+  "history": []
+}
