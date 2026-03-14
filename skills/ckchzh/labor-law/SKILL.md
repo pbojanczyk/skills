@@ -1,11 +1,6 @@
 ---
 name: labor-law
-version: 1.0.0
-description: "劳动法速查工具。劳动者权益、加班规定、休假制度、劳动合同、劳动争议、经济补偿。Labor law quick reference with rights, overtime, leave, contracts, disputes, severance. 劳动法、劳动权益、加班、年假、劳动仲裁。Use when checking labor law regulations."
-author: BytesAgain <hello@bytesagain.com>
-homepage: https://bytesagain.com
-tags: [labor-law, rights, overtime, leave, contract, dispute, severance, 劳动法, 劳动权益, 仲裁]
-category: hr-management
+description: "劳动法速查工具。劳动者权益、加班规定、休假制度、劳动合同、劳动争议、经济补偿。Labor law quick reference with rights, overtime, leave, contracts, disputes, severance. 劳动法、劳动权益、加班、年假、劳动仲裁。Use when checking labor law regulations. Triggers on: labor law."
 ---
 # labor-law
 
@@ -38,3 +33,6 @@ category: hr-management
 
 ---
 *labor-law by BytesAgain*
+---
+💬 Feedback & Feature Requests: https://bytesagain.com/feedback
+Powered by BytesAgain | bytesagain.com
