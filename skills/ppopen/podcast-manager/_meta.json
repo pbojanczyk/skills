@@ -1,0 +1,11 @@
+{
+  "owner": "ppopen",
+  "slug": "podcast-manager",
+  "displayName": "Podcast Manager",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773366760419,
+    "commit": null
+  },
+  "history": []
+}
