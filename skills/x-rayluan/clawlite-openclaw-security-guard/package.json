@@ -1,0 +1,10 @@
+{
+  "name": "openclaw-security-guard",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "openclaw-security-check": "./scripts/security-check.mjs",
+    "openclaw-security-audit": "./scripts/audit-skill-dir.mjs"
+  }
+}
