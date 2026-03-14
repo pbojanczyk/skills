@@ -1,0 +1,11 @@
+{
+  "owner": "zoopools",
+  "slug": "universal-release",
+  "displayName": "Universal Release",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773452484109,
+    "commit": null
+  },
+  "history": []
+}
