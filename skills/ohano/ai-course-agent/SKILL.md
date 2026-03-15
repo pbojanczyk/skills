@@ -1,6 +1,6 @@
 ---
 name: ai-course-agent
-description: Auto-generates AI education courses from natural language requests in Chinese. Detects patterns like "帮我生成6年级数学分数乘除法的课程" and calls Edustem API to create and return a course link.
+description: Auto-generates AI education courses from natural language requests in Chinese. Detects patterns like "帮我生成6年级数学分数乘除法的课程" and calls Edustem API to create and return a course link. Uses SkillPay for usage-based billing (1 token per course).
 metadata:
   {
     "openclaw":
@@ -29,15 +29,33 @@ metadata:
 
 OpenClaw Skill for auto-generating AI education courses. Detects natural language course generation requests and calls the Edustem API to create ready-to-use course content.
 
+## 💳 Billing & Pricing
+
+This skill uses **SkillPay** for usage-based billing:
+
+- **Rate:** 1 token per course generation
+- **Pricing:** 1 USDT = 1000 tokens
+- **Minimum deposit:** 8 USDT (8000 tokens = 8000 courses)
+- **Payment:** USDT cryptocurrency via SkillPay
+
+When your balance runs out, the skill will return a payment link for top-up.
+
 ## Quick Start
 
 ```typescript
 import { isCourseLessonRequest, processUserMessage } from 'ai-course-agent';
 
 // When user sends a message:
+const userId = req.user.sub; // Get user ID from your auth system
+
 if (isCourseLessonRequest(userInput)) {
-  const response = await processUserMessage(userInput);
-  // Returns: "✅ 成功为6年级数学《分数乘除法》生成课程！\n\n📚 课程链接: https://..."
+  const response = await processUserMessage(userInput, userId);
+  
+  // Success:
+  // "✅ 成功为6年级数学《分数乘除法》生成课程！\n\n📚 课程链接: https://..."
+  
+  // Insufficient balance:
+  // "❌ 余额不足 (当前: 0 tokens)\n\n💳 请充值后继续使用: https://skillpay.me/..."
 }
 ```
 
@@ -45,10 +63,16 @@ if (isCourseLessonRequest(userInput)) {
 
 Set environment variables before use:
 
+### Edustem API (Required)
+
 ```bash
 export EDUSTEM_USERNAME="your-email@example.com"
 export EDUSTEM_PASSWORD="your-password"
 ```
+
+### SkillPay Billing
+
+**No configuration needed.** SkillPay credentials are hardcoded in the skill and belong to the skill author. Payments are automatically deducted from your SkillPay balance.
 
 ## Supported Input Patterns
 
@@ -75,21 +99,28 @@ Supports both Arabic (6年级) and Chinese (六年级) numerals for grade levels
 
 ## API Flow
 
+0. `handleBilling(userId)` — Charge user via SkillPay (1 token)
 1. `login()` — Authenticate and get JWT token
 2. `createLessonPlan()` — Create lesson plan with metadata
 3. `acceptLessonPlan()` — Confirm and trigger course generation
-4. Return course URL
+4. Return course URL (or payment link if balance insufficient)
 
 ## Exports
 
 ```typescript
 // Main integration functions
 isCourseLessonRequest(message: string): boolean
-processUserMessage(userInput: string): Promise<string>
+processUserMessage(userInput: string, userId: string): Promise<string>
 
 // Core functions
-generateCourse(request: CourseRequest): Promise<GeneratedCourseResponse>
+generateCourse(request: CourseRequest, userId: string): Promise<GeneratedCourseResponse>
 parseCourseRequest(userInput: string): CourseRequest | null
+
+// SkillPay Billing
+handleBilling(userId: string): Promise<BillingResult>
+chargeUser(userId: string, amount?: number): Promise<ChargeResult>
+getBalance(userId: string): Promise<number>
+getPaymentLink(userId: string, amount?: number): Promise<string>
 
 // Edustem API (lower level)
 login(username, password): Promise<string>

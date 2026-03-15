@@ -38,9 +38,13 @@ export function isCourseLessonRequest(message: string): boolean {
  * Handle course generation request from user input
  *
  * This is the main entry point for automatic course generation.
+ * 
+ * @param userInput - User's message
+ * @param userId - User identifier for billing (defaults to 'default_user' if not provided)
  */
 export async function handleCourseGenerationRequest(
   userInput: string,
+  userId: string = 'default_user',
 ): Promise<{
   success: boolean;
   message: string;
@@ -75,9 +79,9 @@ export async function handleCourseGenerationRequest(
 
   console.log("[Integration] Parsed request:", request);
 
-  // Generate the course
-  console.log("[Integration] Generating course...");
-  const result = await generateCourse(request);
+  // Generate the course (with billing)
+  console.log(`[Integration] Generating course for user: ${userId}...`);
+  const result = await generateCourse(request, userId);
 
   return result;
 }
@@ -112,13 +116,20 @@ export function formatCourseResponse(result: {
  * import { processUserMessage } from './integration';
  *
  * // When user sends a message:
- * const response = await processUserMessage(userInput);
+ * const userId = req.user.sub; // or any user identifier
+ * const response = await processUserMessage(userInput, userId);
  * // Send response to user
  * ```
+ * 
+ * @param userInput - User's message
+ * @param userId - User identifier for billing (defaults to 'default_user')
  */
-export async function processUserMessage(userInput: string): Promise<string> {
+export async function processUserMessage(
+  userInput: string, 
+  userId: string = 'default_user'
+): Promise<string> {
   try {
-    const result = await handleCourseGenerationRequest(userInput);
+    const result = await handleCourseGenerationRequest(userInput, userId);
     return formatCourseResponse(result);
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);

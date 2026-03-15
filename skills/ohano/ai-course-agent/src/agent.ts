@@ -16,6 +16,7 @@ import {
 } from "./edustem-api";
 import { gatherCurriculumContent, generateTeacherNotes } from "./utils";
 import { getEdustemConfig } from "./config";
+import { handleBilling } from "./skillpay";
 
 /**
  * Types
@@ -38,6 +39,7 @@ export interface GeneratedCourseResponse {
  * Main course generation function
  *
  * Orchestrates the full flow:
+ * 0. Check billing and charge user (SkillPay)
  * 1. Gather curriculum content
  * 2. Login to Edustem API
  * 3. Create lesson plan
@@ -46,9 +48,32 @@ export interface GeneratedCourseResponse {
  */
 export async function generateCourse(
   request: CourseRequest,
+  userId: string,
 ): Promise<GeneratedCourseResponse> {
   try {
     console.log(`[Agent] Processing course request:`, request);
+
+    // Step 0: Billing check - charge user via SkillPay
+    console.log(`[Agent] Checking billing for user: ${userId}...`);
+    const billing = await handleBilling(userId);
+
+    if (!billing.ok) {
+      console.warn(`[Agent] Billing failed: ${billing.message}`);
+      
+      if (billing.paymentUrl) {
+        return {
+          success: false,
+          message: `${billing.message}\n\n💳 请充值后继续使用:\n${billing.paymentUrl}\n\n充值说明: 1 USDT = 1000 tokens, 最低充值 8 USDT`,
+        };
+      }
+
+      return {
+        success: false,
+        message: billing.message,
+      };
+    }
+
+    console.log(`[Agent] Billing successful: ${billing.message}`);
 
     // Get credentials from config (environment or gateway)
     let credentials;
@@ -88,6 +113,7 @@ export async function generateCourse(
       subject_specific_instructions: "",
     });
 
+    console.log("[Agent] Create response:", JSON.stringify(createResponse, null, 2));
     const lessonRef = createResponse.data.lesson_ref;
     console.log(`[Agent] Lesson plan created: ${lessonRef}`);
 
@@ -209,8 +235,9 @@ async function main() {
 
   console.log("[Main] Parsed request:", request);
 
-  // Generate course
-  const result = await generateCourse(request);
+  // Generate course (with test userId)
+  const testUserId = "test_user_" + Date.now();
+  const result = await generateCourse(request, testUserId);
   console.log("[Main] Result:", result);
 
   if (result.success) {

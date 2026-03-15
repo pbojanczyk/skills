@@ -5,11 +5,23 @@ An OpenClaw agent for generating AI education course content using the Edustem A
 ## Overview
 
 This agent handles course generation requests by:
-1. **Parsing** user input to extract grade level, subject, and content
-2. **Gathering** curriculum information via placeholder content
-3. **Creating** a lesson plan via Edustem API using the `api-edustem-skill` Skill
-4. **Accepting** the lesson plan to trigger course generation
-5. **Returning** the generated course link
+1. **Billing** - Charges user via SkillPay (1 token per course generation)
+2. **Parsing** user input to extract grade level, subject, and content
+3. **Gathering** curriculum information via placeholder content
+4. **Creating** a lesson plan via Edustem API using the `api-edustem-skill` Skill
+5. **Accepting** the lesson plan to trigger course generation
+6. **Returning** the generated course link
+
+## 💳 Billing & Pricing
+
+This skill uses **SkillPay** for usage-based billing:
+
+- **Rate:** 1 token per course generation
+- **Pricing:** 1 USDT = 1000 tokens
+- **Minimum deposit:** 8 USDT
+- **Payment:** USDT cryptocurrency
+
+When balance is insufficient, the agent will return a payment link for top-up.
 
 ## Request Example
 
@@ -17,13 +29,26 @@ This agent handles course generation requests by:
 User: "帮我生成6年级数学分数乘除法的课程"
 
 Agent:
-1. Parses → grade: 6, subject: 数学, content: 分数乘除法
-2. Gathers content (curriculum_text, elaborations, teacher_notes)
-3. Calls Skill:
+1. Billing → chargeUser(userId) → success (1 token deducted)
+2. Parses → grade: 6, subject: 数学, content: 分数乘除法
+3. Gathers content (curriculum_text, elaborations, teacher_notes)
+4. Calls Skill:
    - login(username, password) → token
    - createLessonPlan(token, metadata) → lesson_ref
    - acceptLessonPlan(token, lesson_ref) → confirmed
-4. Returns → https://6bb95bf119bf.ngrok-free.app/ai-lesson/{lesson_ref}
+5. Returns → https://6bb95bf119bf.ngrok-free.app/ai-lesson/{lesson_ref}
+```
+
+### Insufficient Balance Example
+
+```
+User: "帮我生成6年级数学分数乘除法的课程"
+
+Agent:
+1. Billing → chargeUser(userId) → failed (balance: 0)
+2. Returns → ❌ 余额不足 (当前: 0 tokens)
+             💳 请充值后继续使用: https://skillpay.me/payment/...
+             充值说明: 1 USDT = 1000 tokens, 最低充值 8 USDT
 ```
 
 ## Architecture
@@ -77,12 +102,29 @@ This runs local tests with sample course requests.
 import { generateCourse, parseCourseRequest } from './agent';
 
 // In your agent code:
+const userId = req.user.sub; // Or any user identifier
 const request = parseCourseRequest(userInput);
-const result = await generateCourse(request);
+const result = await generateCourse(request, userId);
 
 if (result.success) {
   // Send result.courseLink to user
+} else {
+  // Handle error (may include payment link if insufficient balance)
+  // result.message contains the error/payment info
 }
+```
+
+### Quick Integration (Simplified)
+
+```typescript
+import { processUserMessage } from './integration';
+
+// When user sends a message:
+const userId = req.user.sub; // Get from your auth system
+const response = await processUserMessage(userInput, userId);
+
+// Send response back to user
+// Response will include course link or payment link if balance insufficient
 ```
 
 ## Key Files
@@ -140,6 +182,8 @@ Example:
 
 Configure credentials via environment variables (never hardcode!):
 
+### Edustem API Credentials (Required)
+
 ```bash
 export EDUSTEM_USERNAME="your-email@example.com"
 export EDUSTEM_PASSWORD="your-password"
@@ -150,6 +194,10 @@ Or use a `.env` file (not committed to git):
 EDUSTEM_USERNAME=your-email@example.com
 EDUSTEM_PASSWORD=your-password
 ```
+
+### SkillPay Billing
+
+**Note:** SkillPay credentials (API key and Skill ID) are **hardcoded in the skill** and belong to the skill author. End users do not need to configure these. Payments are automatically deducted from the user's SkillPay balance and sent to the skill author's account.
 
 ## Error Handling
 

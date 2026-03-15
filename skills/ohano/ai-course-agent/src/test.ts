@@ -30,9 +30,10 @@ async function runTests() {
 
     console.log(`✓ Parsed: ${JSON.stringify(request)}`);
 
-    // Generate course
-    console.log("⏳ Generating course...");
-    const result = await generateCourse(request);
+    // Generate course (with test userId)
+    const testUserId = `test_user_${Date.now()}`;
+    console.log(`⏳ Generating course for user: ${testUserId}...`);
+    const result = await generateCourse(request, testUserId);
 
     if (result.success) {
       console.log(`✅ Success!`);

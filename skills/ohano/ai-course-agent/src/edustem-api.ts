@@ -148,8 +148,11 @@ export async function createLessonPlan(
       },
     );
 
+    console.log("[API] Create lesson plan response:", JSON.stringify(response.data, null, 2));
+
     if (!response.data.success) {
-      throw new Error(`Lesson plan creation failed: ${response.data.message}`);
+      const errorMsg = (response.data as any).error || response.data.message || "Unknown error";
+      throw new Error(`Lesson plan creation failed: ${errorMsg}`);
     }
 
     return response.data;

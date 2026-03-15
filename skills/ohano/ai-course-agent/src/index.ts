@@ -25,6 +25,12 @@ export {
   acceptLessonPlan,
   generateLessonUrl,
 } from "./edustem-api";
+export {
+  chargeUser,
+  getBalance,
+  getPaymentLink,
+  handleBilling,
+} from "./skillpay";
 export type { CourseRequest, GeneratedCourseResponse } from "./agent";
 export type {
   LoginResponse,

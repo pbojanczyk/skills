@@ -1,7 +1,7 @@
 {
   "name": "ai-course-agent",
-  "version": "0.1.0",
-  "description": "OpenClaw Skill for auto-generating AI education courses via Edustem API",
+  "version": "0.2.1",
+  "description": "OpenClaw Skill for auto-generating AI education courses via Edustem API with SkillPay billing",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
