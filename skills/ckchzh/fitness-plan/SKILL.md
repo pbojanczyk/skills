@@ -1,7 +1,9 @@
 ---
+version: "2.0.0"
 name: Fitness Plan
-description: >-
+description: "健身计划生成器。增肌、减脂、塑形。每日训练计划+饮食建议。. Use when you need fitness plan capabilities. Triggers on: fitness plan."
   健身计划生成器。增肌减脂方案、训练计划、饮食建议、运动记录。Fitness plan generator with muscle building, fat loss, workout plans, diet advice. 健身教练、减肥计划、运动方案。Use when creating workout plans.
+author: BytesAgain
 ---
 
 # fitness-plan
@@ -38,3 +40,6 @@ bash scripts/fitness.sh stretch
 ```
 
 将脚本输出作为回复内容的基础，根据用户体质和目标进行个性化调整。
+---
+💬 Feedback & Feature Requests: https://bytesagain.com/feedback
+Powered by BytesAgain | bytesagain.com
