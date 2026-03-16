@@ -1,195 +1,195 @@
 ---
 name: pywencai
-description: Tonghuashun WenCai natural language data query tool — query A-share, index, fund, HK/US stock, convertible bond, and other market data using Chinese natural language.
-version: 1.1.0
+description: 同花顺问财自然语言数据查询工具 - 使用中文自然语言查询A股、指数、基金、港美股、可转债等市场数据。
+version: 1.2.0
 homepage: https://github.com/zsrl/pywencai
 metadata: {"clawdbot":{"emoji":"📈","requires":{"bins":["python3","node"]}}}
 ---
 
-# PyWenCai (Tonghuashun WenCai Data Query)
+# PyWenCai（同花顺问财数据查询）
 
-Query A-share and other market data from [Tonghuashun WenCai](https://www.iwencai.com/) using Chinese natural language via Python.
+通过Python使用中文自然语言从[同花顺问财](https://www.iwencai.com/)查询A股及其他市场数据。
 
-> ⚠️ **Cookie Required**: You must provide a valid cookie from the WenCai website. See how to obtain a cookie below.
+> ⚠️ **需要Cookie**：必须提供问财网站的有效Cookie。获取方法见下文。
 
-## Requirements
+## 环境要求
 
 - **Python 3.7+**
 - **Node.js v16+** (pywencai internally executes JS code)
 - **pip** package manager
 
-## Installation
+## 安装
 
 ```bash
 pip install pywencai --upgrade
 ```
 
-## How to Obtain a Cookie
+## 如何获取Cookie
 
-1. Open https://www.iwencai.com/ in your browser and log in.
-2. Press F12 to open Developer Tools → switch to the Network tab.
-3. Perform any query on the WenCai page.
-4. Find a request to `iwencai.com` and copy the `Cookie` value from the request headers.
-5. Use that string as the `cookie` parameter.
+1. 在浏览器中打开 https://www.iwencai.com/ 并登录。
+2. 按F12打开开发者工具 → 切换到Network标签。
+3. 在问财页面执行任意查询。
+4. 找到发往`iwencai.com`的请求，从请求头中复制`Cookie`值。
+5. 将该字符串作为`cookie`参数使用。
 
-## Basic Usage
+## 基本用法
 
 ```python
 import pywencai
 
-# Query the top 10 stocks by today's gain; a valid cookie is required
+# 查询今日涨幅前10的股票，需要有效cookie
 res = pywencai.get(query='今日涨幅前10', cookie='your_cookie_here')
 print(res)
 ```
 
-## API Reference: `pywencai.get(**kwargs)`
+## API参考：`pywencai.get(**kwargs)`
 
-### Required Parameters
+### 必选参数
 
-- **query** — Chinese natural language query string, e.g. `'今日涨停股票'`, `'市盈率小于20的股票'`
-- **cookie** — Cookie string obtained from the WenCai website (required)
-
-
-### Optional Parameters
-
-- **sort_key** — Sort field name, e.g. `'退市@退市日期'`
-- **sort_order** — Sort direction: `'asc'` (ascending) or `'desc'` (descending)
-- **page** — Page number (default: `1`)
-- **perpage** — Results per page (default and max: `100`)
-- **loop** — Set to `True` to fetch all pages; or set to an integer `n` to fetch the first `n` pages
-- **query_type** — Query category (default: `'stock'`), possible values:
-  - `stock` — A-share stocks
-  - `zhishu` — Indices
-  - `fund` — Funds
-  - `hkstock` — Hong Kong stocks
-  - `usstock` — US stocks
-  - `threeboard` — New Third Board (NEEQ)
-  - `conbond` — Convertible bonds
-  - `insurance` — Insurance
-  - `futures` — Futures
-  - `lccp` — Wealth management products
-- **retry** — Number of retries on failure (default: `10`)
-- **sleep** — Delay in seconds between paginated requests (default: `0`)
-- **log** — Set to `True` to print logs to the console
-- **pro** — Set to `True` to use the paid version (requires a corresponding cookie)
-- **no_detail** — Set to `True` to always return a `DataFrame` or `None` (never returns a dict)
-- **find** — List of stock codes to prioritize, e.g. `['600519', '000010']`
-- **request_params** — Extra parameters passed to `requests`, e.g. `{'proxies': proxies}`
-
-### Return Values
-
-- **List-type queries** → returns a `pandas.DataFrame`
-- **Detail-type queries** → returns a `dict` (may contain text and DataFrames)
+- **query** — 中文自然语言查询字符串，如 `'今日涨停股票'`、`'市盈率小于20的股票'`
+- **cookie** — 从问财网站获取的Cookie字符串（必需）
 
 
-## Usage Examples
+### 可选参数
 
-### Query Stocks with P/E Ratio Below 20
+- **sort_key** — 排序字段名，如 `'退市@退市日期'`
+- **sort_order** — 排序方向：`'asc'`（升序）或 `'desc'`（降序）
+- **page** — 页码（默认：`1`）
+- **perpage** — 每页结果数（默认和最大：`100`）
+- **loop** — 设为`True`获取所有页；或设为整数`n`获取前n页
+- **query_type** — 查询类别（默认：`'stock'`），可选值：
+  - `stock` — A股股票
+  - `zhishu` — 指数
+  - `fund` — 基金
+  - `hkstock` — 港股
+  - `usstock` — 美股
+  - `threeboard` — 新三板
+  - `conbond` — 可转债
+  - `insurance` — 保险
+  - `futures` — 期货
+  - `lccp` — 理财产品
+- **retry** — 失败重试次数（默认：`10`）
+- **sleep** — 分页请求间延迟秒数（默认：`0`）
+- **log** — 设为`True`在控制台打印日志
+- **pro** — 设为`True`使用付费版（需要对应的cookie）
+- **no_detail** — 设为`True`始终返回`DataFrame`或`None`（不返回dict）
+- **find** — 优先返回的股票代码列表，如 `['600519', '000010']`
+- **request_params** — 传递给`requests`的额外参数，如 `{'proxies': proxies}`
+
+### 返回值
+
+- **列表类查询** → 返回 `pandas.DataFrame`
+- **详情类查询** → 返回 `dict`（可能包含文本和DataFrame）
+
+
+## 使用示例
+
+### 查询市盈率低于20的股票
 
 ```python
 import pywencai
 
-# Use natural language to query low P/E ratio stocks
+# 使用自然语言查询低市盈率股票
 res = pywencai.get(query='市盈率小于20的股票', cookie='xxx')
 print(res)
 ```
 
-### Get Delisted Stocks Sorted by Date
+### 获取退市股票按日期排序
 
 ```python
 import pywencai
 
-# Query delisted stocks, sorted by delisting date in ascending order
+# 查询退市股票，按退市日期升序排列
 res = pywencai.get(
     query='退市股票',
-    sort_key='退市@退市日期',  # Specify the sort field
-    sort_order='asc',          # Ascending order
+    sort_key='退市@退市日期',  # 指定排序字段
+    sort_order='asc',          # 升序
     cookie='xxx'
 )
 print(res)
 ```
 
-### Paginate Through All Data with a Proxy
+### 使用代理分页获取全部数据
 
 ```python
 import pywencai
 
-# Configure HTTP proxy
+# 配置HTTP代理
 proxies = {'http': 'http://proxy:8080', 'https': 'http://proxy:8080'}
 
-# loop=True auto-paginates to fetch all data; log=True prints request logs
+# loop=True自动分页获取所有数据；log=True打印请求日志
 res = pywencai.get(
     query='昨日涨幅',
-    sort_order='asc',          # Ascending order
-    loop=True,                 # Fetch all pages automatically
-    log=True,                  # Print log messages
+    sort_order='asc',          # 升序
+    loop=True,                 # 自动获取所有页面
+    log=True,                  # 打印日志信息
     cookie='xxx',
-    request_params={'proxies': proxies}  # Pass proxy configuration
+    request_params={'proxies': proxies}  # 传入代理配置
 )
 print(res)
 ```
 
-### Query Index Data
+### 查询指数数据
 
 ```python
 import pywencai
 
-# Set query_type='zhishu' to query index data
+# 设置query_type='zhishu'查询指数数据
 res = pywencai.get(
     query='上证指数近5日涨跌幅',
-    query_type='zhishu',       # Set query type to index
+    query_type='zhishu',       # 设置查询类型为指数
     cookie='xxx'
 )
 print(res)
 ```
 
-### Query Convertible Bond Data
+### 查询可转债数据
 
 ```python
 import pywencai
 
-# Set query_type='conbond' to query convertible bond data
+# 设置query_type='conbond'查询可转债数据
 res = pywencai.get(
     query='可转债溢价率小于10%',
-    query_type='conbond',      # Set query type to convertible bond
+    query_type='conbond',      # 设置查询类型为可转债
     cookie='xxx'
 )
 print(res)
 ```
 
 
-## Tips
+## 使用技巧
 
-- **Use sparingly** — High-frequency calls may get you blocked by the WenCai server.
-- Always use the **latest version**: `pip install pywencai --upgrade`
-- Query strings use **Chinese natural language** — write queries as you would search on the WenCai website.
-- When `loop=True` and `find` is set, `loop` is ignored and only the first 100 results are returned.
-- For paid data, set `pro=True` and provide a valid `cookie`.
+- **适度使用** — 高频调用可能被问财服务器封禁。
+- 始终使用**最新版本**：`pip install pywencai --upgrade`
+- 查询字符串使用**中文自然语言** — 像在问财网站搜索一样编写查询。
+- 当`loop=True`且设置了`find`时，`loop`被忽略，仅返回前100条结果。
+- 使用付费数据时，设置`pro=True`并提供有效`cookie`。
 
 ---
 
-## Advanced Examples
+## 进阶示例
 
-### Query Limit-Up Stock Details
+### 查询涨停股详情
 
 ```python
 import pywencai
 
-# Query stocks that hit the daily limit up today, get detailed info
+# 查询今日涨停股票，获取详细信息
 res = pywencai.get(
     query='今日涨停的股票',
     cookie='xxx'
 )
-# Returns a DataFrame with: stock code, name, limit-up time, bid amount, etc.
+# 返回DataFrame：包含股票代码、名称、涨停时间、封单金额等
 print(res)
 ```
 
-### Query Consecutive Limit-Up Stocks
+### 查询连板股
 
 ```python
 import pywencai
 
-# Query stocks with more than 2 consecutive limit-up days
+# 查询连续涨停天数大于2天的股票
 res = pywencai.get(
     query='连续涨停天数大于2天的股票',
     cookie='xxx'
@@ -197,19 +197,19 @@ res = pywencai.get(
 print(res)
 ```
 
-### Query Financial Data
+### 查询财务数据
 
 ```python
 import pywencai
 
-# Query stocks with ROE > 15% and revenue growth > 20%
+# 查询ROE大于15%且营收同比增长大于20%的股票
 res = pywencai.get(
     query='ROE大于15%且营收同比增长率大于20%的股票',
     cookie='xxx'
 )
 print(res)
 
-# Query stocks with P/E < 10 and P/B < 1 (undervalued screening)
+# 查询市盈率小于10且市净率小于1的股票（低估值筛选）
 res = pywencai.get(
     query='市盈率小于10且市净率小于1的股票',
     cookie='xxx'
@@ -218,26 +218,26 @@ print(res)
 ```
 
 
-### Query Technical Indicator Data
+### 查询技术指标数据
 
 ```python
 import pywencai
 
-# Query stocks with a MACD golden cross today
+# 查询今日MACD金叉的股票
 res = pywencai.get(
     query='今日MACD金叉的股票',
     cookie='xxx'
 )
 print(res)
 
-# Query stocks with KDJ oversold signal
+# 查询KDJ超卖信号的股票
 res = pywencai.get(
     query='KDJ的J值小于0的股票',
     cookie='xxx'
 )
 print(res)
 
-# Query stocks with volume breakout
+# 查询放量突破的股票
 res = pywencai.get(
     query='今日成交量是5日均量2倍以上且涨幅大于5%的股票',
     cookie='xxx'
@@ -245,19 +245,19 @@ res = pywencai.get(
 print(res)
 ```
 
-### Query Capital Flow Data
+### 查询资金流向数据
 
 ```python
 import pywencai
 
-# Query top 20 stocks by net main capital inflow today
+# 查询今日主力资金净流入前20的股票
 res = pywencai.get(
     query='今日主力资金净流入前20的股票',
     cookie='xxx'
 )
 print(res)
 
-# Query stocks with the highest northbound capital holding ratio
+# 查询北向资金持股比例最高的股票
 res = pywencai.get(
     query='北向资金持股比例最高的前20只股票',
     cookie='xxx'
@@ -265,48 +265,48 @@ res = pywencai.get(
 print(res)
 ```
 
-### Query Fund Data
+### 查询基金数据
 
 ```python
 import pywencai
 
-# Query top 20 funds by return rate over the past year
+# 查询近一年收益率最高的前20只基金
 res = pywencai.get(
     query='近一年收益率最高的前20只基金',
-    query_type='fund',     # Set query type to fund
+    query_type='fund',     # 设置查询类型为基金
     cookie='xxx'
 )
 print(res)
 ```
 
-### Query Hong Kong Stock Data
+### 查询港股数据
 
 ```python
 import pywencai
 
-# Query the largest HK stocks by market cap
+# 查询港股市值最大的股票
 res = pywencai.get(
     query='港股市值最大的前20只股票',
-    query_type='hkstock',  # Set query type to HK stock
+    query_type='hkstock',  # 设置查询类型为港股
     cookie='xxx'
 )
 print(res)
 ```
 
 
-### Multi-Criteria Stock Screening
+### 多条件选股
 
 ```python
 import pywencai
 
-# Complex multi-criteria screening: undervalued + high growth + institutional holdings
+# 复杂多条件筛选：低估值+高成长+机构持仓
 res = pywencai.get(
     query='市盈率小于20且营收同比增长大于30%且机构持仓比例大于10%的股票',
     cookie='xxx'
 )
 print(res)
 
-# Technical + fundamental combined screening
+# 技术面+基本面综合筛选
 res = pywencai.get(
     query='今日站上20日均线且市盈率小于30且ROE大于10%的股票',
     cookie='xxx'
@@ -314,19 +314,19 @@ res = pywencai.get(
 print(res)
 ```
 
-### Retrieve Historical Data
+### 获取历史数据
 
 ```python
 import pywencai
 
-# Query data for a specific date
+# 查询指定日期的数据
 res = pywencai.get(
     query='2024年1月2日涨幅前10的股票',
     cookie='xxx'
 )
 print(res)
 
-# Query gain over a date range
+# 查询日期范围内的涨幅
 res = pywencai.get(
     query='2024年上半年涨幅最大的前20只股票',
     cookie='xxx'
@@ -334,7 +334,7 @@ res = pywencai.get(
 print(res)
 ```
 
-### Full Example: Automated Stock Screening and Export
+### 完整示例：自动化选股并导出
 
 ```python
 import pywencai
@@ -343,7 +343,7 @@ import time
 
 cookie = 'your_cookie_here'
 
-# Define multiple screening strategies
+# 定义多个筛选策略
 strategies = {
     "低估值高分红": "市盈率小于15且股息率大于3%的股票",
     "高成长": "营收同比增长大于30%且净利润同比增长大于30%的股票",
@@ -363,20 +363,103 @@ for name, query in strategies.items():
             print(f"Strategy [{name}] returned no results")
     except Exception as e:
         print(f"Strategy [{name}] query failed: {e}")
-    time.sleep(2)  # Wait 2 seconds between queries to avoid being blocked
+    time.sleep(2)  # 每次查询间隔2秒，避免被封禁
 
-# Save results to Excel (one sheet per strategy)
+# 保存结果到Excel（每个策略一个工作表）
 if results:
     with pd.ExcelWriter("选股结果.xlsx") as writer:
         for name, df in results.items():
             df.to_excel(writer, sheet_name=name, index=False)
-    print("Screening results saved to 选股结果.xlsx")
+    print("筛选结果已保存到 选股结果.xlsx")
+```
+
+## 常见错误处理
+
+| 错误 | 原因 | 解决方法 |
+|------|------|----------|
+| `Cookie expired` | Cookie过期 | 重新登录问财网站获取新Cookie |
+| 返回`None` | 查询无结果或被限流 | 检查查询语句，降低调用频率 |
+| `Node.js not found` | 未安装Node.js | 安装Node.js v16+ |
+| `JSONDecodeError` | 服务端返回异常 | 增加`retry`参数，稍后重试 |
+| 返回dict而非DataFrame | 查询为详情类 | 设置`no_detail=True`强制返回DataFrame |
+
+## Cookie管理最佳实践
+
+```python
+import os
+import pywencai
+
+# 方法1：从环境变量读取Cookie（推荐）
+cookie = os.environ.get('WENCAI_COOKIE', '')
+
+# 方法2：从文件读取Cookie
+def load_cookie(path='~/.wencai_cookie'):
+    path = os.path.expanduser(path)
+    if os.path.exists(path):
+        with open(path) as f:
+            return f.read().strip()
+    return ''
+
+# 方法3：封装查询函数，统一管理Cookie和错误处理
+def query(q, **kwargs):
+    cookie = load_cookie()
+    try:
+        return pywencai.get(
+            query=q, cookie=cookie,
+            no_detail=True, retry=3, sleep=1,
+            **kwargs
+        )
+    except Exception as e:
+        print(f"查询失败: {e}")
+        return None
+
+# 使用
+df = query('今日涨停的股票')
+```
+
+## 进阶示例：定时监控与告警
+
+```python
+import pywencai
+import time
+import datetime
+
+cookie = 'your_cookie_here'
+
+# 监控条件列表
+alerts = [
+    {'名称': '大盘跳水', '查询': '上证指数今日跌幅大于2%', '类型': 'zhishu'},
+    {'名称': '涨停潮', '查询': '今日涨停股票数量', '类型': 'stock'},
+    {'名称': '北向大额流出', '查询': '北向资金今日净卖出大于50亿', '类型': 'stock'},
+]
+
+def check_alerts():
+    now = datetime.datetime.now().strftime('%H:%M')
+    for alert in alerts:
+        try:
+            res = pywencai.get(
+                query=alert['查询'],
+                query_type=alert.get('类型', 'stock'),
+                cookie=cookie, no_detail=True
+            )
+            if res is not None and not res.empty:
+                print(f"[{now}] 告警触发 [{alert['名称']}]: {len(res)} 条结果")
+        except Exception as e:
+            print(f"[{now}] 查询失败 [{alert['名称']}]: {e}")
+        time.sleep(2)
+
+# 交易时间内每5分钟检查一次
+while True:
+    now = datetime.datetime.now()
+    if 9 <= now.hour < 15:
+        check_alerts()
+    time.sleep(300)
 ```
 
 ---
 
 ## 社区与支持
 
-由 **大佬量化 (Boss Quant)** 维护 — 量化交易教学与策略研发团队。
+由 **大佬量化 (BossQuant)** 维护 — 量化交易教学与策略研发团队。
 
-微信客服: **bossquant1** · [Bilibili](https://space.bilibili.com/48693330) · 搜索 **大佬量化** on 微信公众号 / Bilibili / 抖音
+微信客服: **bossquant1** · [Bilibili](https://space.bilibili.com/48693330) · 搜索 **大佬量化** — 微信公众号 / Bilibili / 抖音

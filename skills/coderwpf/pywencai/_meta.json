@@ -3,11 +3,16 @@
   "slug": "pywencai",
   "displayName": "pywencai",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773364882164,
-    "commit": "https://github.com/openclaw/skills/commit/99ab5db1ac96f35565f9aac8f35d926bc546ab09"
+    "version": "1.0.2",
+    "publishedAt": 1773643738929,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773364882164,
+      "commit": "https://github.com/openclaw/skills/commit/99ab5db1ac96f35565f9aac8f35d926bc546ab09"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773220936193,
