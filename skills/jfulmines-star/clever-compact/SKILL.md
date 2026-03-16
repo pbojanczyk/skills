@@ -1,15 +1,15 @@
 ---
 name: clever-compact
-description: "Your OpenClaw agent forgets everything between sessions — after /new, after compaction, after overnight. Clever Compact fixes all three: injects your last state on session start, flushes before every compact, and keeps memory stable across context resets. Native plugin. Zero per-turn overhead. Install in 3 commands, runs automatically."
+description: "Your OpenClaw agent forgets everything between sessions — after /new, after compaction, after overnight. Clever Compact fixes all three: injects your last state on session start, flushes before every compact, and keeps memory stable across context resets. Native plugin. Zero per-turn overhead. Install in 4 steps, runs automatically."
 tags: [memory, compaction, context, continuity, productivity, /new, amnesia, state-management, power-user, plugin, context-engine]
 ---
 
 # Clever Compact
 
 **Publisher:** Axiom Stream Group  
-**Version:** 2.2.2  
+**Version:** 2.2.3  
 **Tier:** Free  
-**Requires:** OpenClaw ≥ 2026.3.7  
+**Requires:** OpenClaw ≥ 2026.3.7 · Recommended: 2026.3.12+ (fixes double-compaction loop)  
 **ClaWHub:** https://clawhub.ai/jfulmines-star/clever-compact  
 **Support:** kit@axiomstreamgroup.com
 
@@ -54,11 +54,11 @@ The `api.fn("clever-compact:write")` exposure is intentional — it allows your 
 
 ---
 
-## Why explicit write is fine in practice
+## How the write side works
 
-The compact happens *after* you hit the context limit. That means your agent is still active and responsive right up until compact fires. A cron job 5 minutes before your scheduled compact, or a heartbeat flush at 75% context, gives you a clean save point every time — without needing an OS-level hook that doesn't exist yet.
+Your agent is active and responsive right up until compact fires — so a cron job 5 minutes before your scheduled compact, or a heartbeat flush at 75% context, gives you a clean, predictable save point every time.
 
-When OpenClaw ships a pre-compaction hook, Clever Compact will use it. Until then, the cron + heartbeat pattern is the right architecture.
+When OpenClaw ships a pre-compaction lifecycle hook, Clever Compact will use it automatically. Until then, the cron + heartbeat pattern is the right architecture — and it works.
 
 ---
 
@@ -175,6 +175,7 @@ The injection behavior is unchanged. One fix to apply:
 ---
 
 ## Changelog
+- **2.2.3** (2026-03-16): Version sync across all files (package.json, openclaw.plugin.json, index.ts were mismatched). Fixed install step count in description. Updated recommended OpenClaw version to 2026.3.12+. Rewrote defensive "explicit write" section. No functional changes.
 - **2.2.0** (2026-03-11): Fixed per-turn injection (now injects once at session start only — eliminates mid-session token overhead). Accurately documents write side as explicit/triggered, not automatic. Exposes `clever-compact:write` fn for programmatic state writes. No breaking changes.
 - **2.1.0** (2026-03-10): Added `writeState()` export. Clarified hooks.
 - **2.0.0** (2026-03-08): Full rewrite as native OpenClaw plugin. Requires OpenClaw ≥ 2026.3.7. Breaking change from v1.

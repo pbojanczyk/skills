@@ -1,3 +1,18 @@
+## v2.2.3 — March 16, 2026
+**Version sync + docs accuracy patch**
+- All version references now consistent across package.json, openclaw.plugin.json, index.ts, and SKILL.md (were mismatched across 2.1.0/2.2.0/2.2.2)
+- Fixed install step count in description: "3 commands" → "4 steps" (install, allowlist, restart gateway, flush trigger)
+- Updated recommended OpenClaw version: 2026.3.12+ (fixes double-compaction loop that could interfere with flush timing)
+- Rewrote "why explicit write is fine" section — removed defensive framing, stated the architecture plainly
+- No functional changes to the plugin
+
+## v2.2.0 — March 11, 2026
+**Per-turn injection fix**
+- Fixed: state file was being prepended to every prompt turn (mid-session token overhead). Now injects ONCE at session start only.
+- Added `clever-compact:write` fn exposure for programmatic state writes from heartbeats, cron, and other tools.
+- SKILL.md updated to accurately document the write side as explicit/triggered, not automatic.
+- No breaking changes; existing state files and cron setup carry over.
+
 ## v2.1.0 — March 8, 2026
 **Architecture fix — lifecycle hooks only, no context engine registration**
 

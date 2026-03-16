@@ -27,7 +27,7 @@ import {
 } from "fs";
 import { join } from "path";
 
-const VERSION = "2.2.0";
+const VERSION = "2.2.3";
 const MAX_STATE_AGE_HOURS = 72;
 const STATE_FILE_PREFIX = "compact-state-";
 const RESTORE_HEADER = "## 🔄 Clever Compact — Resuming Previous Session\n\n";
