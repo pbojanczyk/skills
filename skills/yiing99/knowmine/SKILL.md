@@ -1,61 +1,114 @@
 ---
 name: knowmine
-description: "KnowMine - AI Agent 个人知识库。语义搜索、AI 洞察、知识关联发现，让你的 AI 拥有长期记忆。"
+description: "Save and search personal notes, decisions, and insights with semantic search via MCP. Use this skill when users want to remember things across conversations, search their past knowledge by meaning, save dev logs or learning notes, or carry context between AI platforms like Claude and ChatGPT."
+version: 1.2.0
+tags:
+  - knowledge-base
+  - semantic-search
+  - mcp
+  - memory
+  - notes
+  - personal-knowledge
+  - ai-agent
+permissions:
+  - network
 env:
   KNOWMINE_API_KEY:
-    description: "KnowMine API Key（以 km_mcp_ 开头）。前往 https://knowmine.ai/settings/mcp 创建。"
+    description: "KnowMine MCP API Key (starts with km_mcp_). Get yours at https://knowmine.ai/settings/mcp"
     required: true
 ---
 
-# KnowMine 个人知识库
+# KnowMine — Personal Knowledge Base for AI Agents
 
-让你的 AI Agent 拥有长期记忆。通过 MCP 协议接入个人知识库，支持语义搜索、AI 自动分类、知识关联发现、AI 洞察报告。
+Save notes, decisions, and insights. Search them later by meaning, not keywords.
 
-## 快速开始
+KnowMine is a remote MCP server that gives your AI agent a personal knowledge base with semantic search. Your agent can save knowledge entries during conversations and retrieve them later using natural language queries. All data is stored per-user with full isolation.
 
-1. 注册 [KnowMine](https://knowmine.ai/auth/signup)（免费）
-2. 进入 **设置 → MCP 连接**，创建 API Key
-3. 将 API Key 填入上方 `KNOWMINE_API_KEY` 环境变量
-4. 开始使用！试试问："帮我搜索知识库里关于 XXX 的内容"
+## Setup
 
-## 连接配置
+### 1. Get your API key
 
-这是一个**远程托管**的 MCP 服务器，无需本地安装 Docker。
+Sign up at [knowmine.ai](https://knowmine.ai), go to Settings → MCP, and copy your key.
+
+### 2. Connect
+
+Remote MCP server — no Docker or local install needed.
 
 ```
-Server URL: https://knowmine.ai/api/mcp
-传输方式:   Streamable HTTP
-认证头:     Authorization: Bearer <你的 KNOWMINE_API_KEY>
+Server URL:  https://knowmine.ai/api/mcp
+Transport:   Streamable HTTP
+Auth header: Authorization: Bearer <YOUR_KNOWMINE_API_KEY>
 ```
 
-## 8 个工具
+For OpenClaw:
 
-| 工具 | 功能 |
-|------|------|
-| `search_my_knowledge` | 语义搜索知识库 |
-| `add_knowledge` | 添加知识，AI 自动结构化 |
-| `get_knowledge` | 按 ID 获取完整内容 |
-| `get_related_knowledge` | 发现关联知识 |
-| `get_insight` | 生成 AI 洞察报告 |
-| `list_folders` | 查看文件夹结构 |
-| `update_knowledge` | 更新知识（自动重新向量化） |
-| `delete_knowledge` | 删除知识 |
+```bash
+npx clawhub@latest install knowmine
+```
 
-## 数据安全
+## Tools (11)
 
-- 每个 API Key 绑定一个用户账号，数据完全隔离
-- API Key 使用 SHA-256 哈希存储，服务端不保存明文
-- 速率限制 60 次/分钟
+### Knowledge CRUD
 
-## 使用场景
+| Tool | What it does |
+|------|-------------|
+| `add_knowledge` | Save a note, insight, dev log, article, or reflection. Auto-generates title and tags. |
+| `search_my_knowledge` | Search your knowledge base by meaning. Supports type and tag filters. |
+| `get_knowledge` | Get full content of one entry by ID. |
+| `update_knowledge` | Edit title, content, type, or tags of an entry. |
+| `delete_knowledge` | Remove an entry. |
+| `get_related_knowledge` | Find entries related to a given entry by semantic similarity. |
+| `list_folders` | List your folders and recent entries in each. |
 
-- **开发日志**："帮我记一下今天解决的 Docker 网络问题"
-- **阅读笔记**："把这篇文章的核心观点存到知识库"
-- **知识检索**："帮我找之前关于 K8s 部署的笔记"
-- **趋势分析**："分析一下我最近关注的技术方向"
+### Memory
 
-## 更多信息
+| Tool | What it does |
+|------|-------------|
+| `save_memory` | Save a decision, lesson, insight, or preference from a conversation. |
+| `recall_memory` | Search past memories by natural language. Filter by type. |
 
-- 官网：https://knowmine.ai
-- 多平台接入指南：https://knowmine.ai/connect
-- API 健康检查：https://knowmine.ai/api/mcp/health
+### Analysis
+
+| Tool | What it does |
+|------|-------------|
+| `get_soul` | Generate a user profile summary based on your knowledge. Exportable as a system prompt. |
+| `get_insight` | Analyze your knowledge for patterns — frequent topics, recurring themes. |
+
+## Example Usage
+
+**Save a decision during work:**
+```
+save_memory: "Chose PostgreSQL over MongoDB for the new project — need ACID transactions and our team knows SQL well"
+```
+
+**Find it later in a new session:**
+```
+recall_memory: "database decision for new project"
+→ Returns the PostgreSQL decision with full context
+```
+
+**Search across all knowledge:**
+```
+search_my_knowledge: "deployment strategies"
+→ Returns matching notes ranked by relevance, even if you never used the word "deployment" in the original entry
+```
+
+## How It Works
+
+- **Search**: pgvector semantic similarity on PostgreSQL (not keyword matching)
+- **Embeddings**: OpenAI text-embedding-3-small, auto-generated on save
+- **Protocol**: MCP over Streamable HTTP
+- **Auth**: API key via Bearer token
+- **Data isolation**: Each API key maps to one user account
+- **Network**: All requests go to `knowmine.ai` only (no third-party data sharing)
+- **Rate limit**: 60 requests/minute
+
+## Source Code
+
+- GitHub: [github.com/YIING99/knowmine](https://github.com/YIING99/knowmine)
+- Website: [knowmine.ai](https://knowmine.ai)
+- Health check: [knowmine.ai/api/mcp/health](https://knowmine.ai/api/mcp/health)
+
+---
+
+Built by [YIING99](https://github.com/YIING99)
