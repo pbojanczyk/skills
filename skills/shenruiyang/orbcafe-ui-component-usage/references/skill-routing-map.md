@@ -10,6 +10,8 @@
   - `orbcafe-layout-navigation`
 - Build pivot analytics or voice navigation:
   - `orbcafe-pivot-ainav`
+- Build chat page, assistant panel, or floating copilot:
+  - `orbcafe-agentui-chat`
 
 ## Route by keywords
 
@@ -21,9 +23,12 @@
   - Layout+Navigation skill
 - `透视表`, `pivot`, `拖拽维度`, `preset`, `语音导航`, `space 长按`:
   - Pivot+AINav skill
+- `聊天`, `chat`, `copilot`, `assistant`, `streaming`, `卡片消息`, `AgentUI`, `StdChat`, `CopilotChat`, `AgentPanel`:
+  - AgentUI Chat skill
 
 ## Cross-skill composition
 
 - StdReport + GraphReport: choose StdReport as primary, then attach graph options.
 - DetailInfo + CTable: choose Graph+Detail+Agent skill.
 - App shell + any page module: apply Layout+Navigation skill first for frame, then attach module skill.
+- AgentUI + app shell: apply Layout+Navigation skill first for frame, then attach AgentUI Chat skill.
