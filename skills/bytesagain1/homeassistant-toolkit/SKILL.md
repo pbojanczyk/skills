@@ -1,7 +1,8 @@
 ---
+version: "2.0.0"
 name: homeassistant-toolkit
-version: 1.0.0
-description: Deep integration with Home Assistant via REST API. Control devices, manage automations, query entity states, and orchestrate scenes/scripts from the command line.
+description: "Deep integration with Home Assistant via REST API. Control devices, manage automations, query entity states, and manage scenes/scripts from the command line. Use when you need homeassistant toolkit capabilities. Triggers on: homeassistant toolkit."
+author: BytesAgain
 ---
 
 # Home Assistant Toolkit
@@ -20,7 +21,7 @@ description: Deep integration with Home Assistant via REST API. Control devices,
 ## Environment Variables
 
 ```bash
-export HA_URL="http://192.168.1.100:8123"    # Your HA instance URL
+export HA_URL="[configured-endpoint]    # Your HA instance URL
 export HA_TOKEN="eyJ0eXAiOiJKV..."           # Long-Lived Access Token
 ```
 
@@ -134,3 +135,6 @@ The toolkit validates:
 - Tokens are read from environment variables only — never stored on disk by the script
 - All API calls use HTTPS when your HA instance supports it
 - Consider using a dedicated HA user with limited permissions for automation scripts
+---
+💬 Feedback & Feature Requests: https://bytesagain.com/feedback
+Powered by BytesAgain | bytesagain.com
