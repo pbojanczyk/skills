@@ -1,6 +1,8 @@
 ---
+version: "2.0.0"
 name: hr-toolkit
 description: "HR工具包。招聘流程、入职办理、离职管理、制度规范、员工手册、HR模板库。HR toolkit with recruitment, onboarding, offboarding, policy, handbook, templates. 人力资源、招聘、入职、离职、制度、员工手册。Use when managing HR processes. Triggers on: hr toolkit."
+author: BytesAgain
 ---
 # hr-toolkit
 
@@ -23,7 +25,6 @@ HR工具包。招聘流程、入职办理、离职管理、制度规范、员工
 | `handbook` | handbook |
 | `template` | template |
 
-
 ## 专业建议
 
 - 招聘 (recruit)**: 提供职位名称、级别、部门信息，生成更精准的JD和面试流程
@@ -37,3 +38,7 @@ HR工具包。招聘流程、入职办理、离职管理、制度规范、员工
 ---
 💬 Feedback & Feature Requests: https://bytesagain.com/feedback
 Powered by BytesAgain | bytesagain.com
+
+## Commands
+
+Run `hr-toolkit help` to see all available commands.
