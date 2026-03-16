@@ -1,9 +1,18 @@
 ---
 name: health-management
+version: 1.0.9
 description: Comprehensive health management system integrating 10 best-selling health books' consensus principles. Use when users discuss nutrition, supplements, fitness, diet, anti-aging, anti-inflammation, longevity, or request diet tracking/analysis. Supports (1) Daily diet recording with 3-dimension scoring (Greger's Daily Dozen, Li's 5×5×5, consensus checklist), (2) Weekly/monthly/yearly analysis with trend identification, (3) Food defense system identification (angiogenesis, regeneration, microbiome, DNA protection, immunity), (4) Personalized improvement recommendations based on data patterns.
+manifest: manifest.json
+author: longerian
 metadata:
   openclaw:
     thinking: "medium"
+  security:
+    permissions_declared: true
+    scripts_auditable: true
+    data_local_only: true
+    optional_dependencies: []
+
 ---
 
 # Health Management Skill
@@ -80,6 +89,178 @@ AI 回复：
 - 系统会引导用户设置时区（第3步）
 - 时区信息保存在 `memory/health-users/{username}/profile.md` 中
 - 默认时区：`Asia/Shanghai`（北京时间，UTC+8）
+
+---
+
+## 🚨🚨🚨 CRITICAL: 格式规范强制执行（最高优先级！）
+
+**⚠️ 每次记录健康数据时，必须严格遵守以下格式规范！这不是可选项！**
+
+### 强制执行规则
+
+**每次记录前必须执行以下检查**：
+
+```
+1. ✅ 检查历史记录格式
+   - 读取前1-2天的记录文件
+   - 确认表格、图表、评分格式
+   - 严格按照相同格式记录
+
+2. ✅ 睡眠记录必须包含：
+   - 📊 客观数据表格（入睡时间、醒来时间、睡眠时长、清醒时间、深度睡眠、核心睡眠、REM睡眠）
+   - 进度条图表（睡眠阶段分布）
+   - 生理指标表格（心率、呼吸频率、手腕温度）
+   - 💭 主观感受（入睡情况、睡眠质量、醒来状态）
+   - 📈 睡眠综合评分表格（睡眠时长、睡眠结构、主观感受、总分）
+   - 💡 改进建议（优点、可优化点、明日目标）
+
+3. ✅ 饮食记录必须包含：
+   - 📊 量化评估表格（维度一、维度二、维度三）
+   - 防御系统覆盖评估表格
+   - 三维度评分总览表格
+   - 💡 改进建议（亮点、改进空间、午餐/晚餐建议）
+   - 餐后运动建议
+
+4. ✅ 日报总结必须包含：
+   - 🎯 三餐综合评分表格
+   - 📈 每日十二清单累计表格
+   - 🎯 明日改进重点
+   - 记录时间和数据来源
+```
+
+### ❌ 绝对禁止
+
+- ❌ 使用简略格式，缺少表格
+- ❌ 缺少进度条图表
+- ❌ 缺少量化评估
+- ❌ 缺少评分表格
+- ❌ 说"格式太长，简化一下"
+- ❌ 不参考历史记录格式
+
+### ✅ 正确示例
+
+**睡眠记录格式**（参考2026-03-14.md、2026-03-15.md）：
+```markdown
+## 😴 睡眠记录
+
+### 📊 客观数据（智能手表）
+
+| 指标 | 数值 | 评价 |
+|------|------|------|
+| **入睡时间** | 23:30（2026-03-15） | ✅ 正常 |
+| **醒来时间** | 07:00（2026-03-16） | ✅ 正常 |
+| **睡眠时长** | 7小时30分钟 | ✅ 充足（目标：7-9小时） |
+...
+
+**睡眠阶段分布**：
+```
+清醒时间：█░░░░░░░░░ 5-7%
+深度睡眠：████░░░░░░ 20%
+核心睡眠：██████████ 53%
+REM睡眠： █████░░░░░ 27%
+```
+
+**生理指标**：
+| 指标 | 数值 | 评价 |
+|------|------|------|
+| **心率** | 48-65 bpm | ✅ 正常偏低 |
+...
+
+### 📈 睡眠综合评分
+
+| 维度 | 得分 | 说明 |
+|------|------|------|
+| **睡眠时长** | 9/10 | 7小时30分钟，达标 |
+| **睡眠结构** | 8/10 | 深度睡眠20%正常 |
+| **主观感受** | 8/10 | 睡得深实踏实 |
+| **总分** | **25/30** | **83%** ⭐⭐⭐⭐ 很好 |
+```
+
+**饮食记录格式**（参考2026-03-14.md、2026-03-15.md）：
+```markdown
+### 📊 早餐量化评估
+
+#### 维度一：每日十二清单（早餐贡献）
+
+| 项目 | 早餐摄入 | 目标量 | 完成度 | 状态 |
+|------|---------|--------|--------|------|
+| 🥦 十字花科蔬菜 | 0克 | 80克 | 0% | ❌ **未达标**（需补充80克） |
+| 🥬 绿叶菜 | 0克 | 160克 | 0% | ❌ **未达标**（需补充160克） |
+...
+
+#### 维度二：5×5×5方法（早餐贡献）
+
+**防御系统覆盖评估**：
+
+| 防御系统 | 早餐食物 | 摄入量 | 覆盖度 | 状态 |
+|---------|---------|--------|--------|------|
+| ✅ **血管生成(A)** | 坚果 + 橄榄油 | 35克 | 充分 | ✅ 充分覆盖 |
+...
+
+### 📊 三维度评分总览（早餐）
+
+| 维度 | 得分 | 评价 | 说明 |
+|------|------|------|------|
+| **维度一：每日十二** | 2.5/10 | ⭐⭐ | 3/12项达标 |
+| **维度二：5×5×5** | 6.0/10 | ⭐⭐⭐ | 5/5防御系统全覆盖 |
+| **维度三：共识清单** | 7.3/10 | ⭐⭐⭐⭐ | 健康食物良好 |
+| **总分** | **15.8/30** | **53%** | **⭐⭐⭐** 及格 |
+```
+
+### 🔧 AI 自检流程（每次记录前必须执行）
+
+**步骤1：读取历史记录**
+```bash
+# 读取前1-2天的记录文件
+read memory/health-users/{username}/daily/YYYY-MM-DD.md
+```
+
+**步骤2：检查格式**
+```
+✅ 是否有详细表格？
+✅ 是否有进度条图表？
+✅ 是否有量化评估？
+✅ 是否有评分表格？
+✅ 是否有改进建议？
+```
+
+**步骤3：按照相同格式记录**
+```
+✅ 使用相同的表格结构
+✅ 使用相同的评分格式
+✅ 使用相同的评价符号
+✅ 使用相同的改进建议格式
+```
+
+**步骤4：备份前再次检查**
+```
+✅ 格式是否完整？
+✅ 数据是否准确？
+✅ 评分是否正确？
+✅ 建议是否具体？
+```
+
+---
+
+### 💡 为什么必须严格遵守格式？
+
+1. **数据一致性**：便于对比分析，识别趋势
+2. **可读性**：表格和图表更直观
+3. **专业性**：符合健康管理系统的标准
+4. **可追溯性**：便于回顾历史记录
+5. **用户信任**：保持高质量的输出
+
+---
+
+**⚠️ 如果AI偷懒，用户可以说**：
+- "格式不对，参考昨天的格式"
+- "缺少表格，补上"
+- "格式太简略，详细一点"
+- "按照之前的格式重新记录"
+
+**AI 必须立即修正，不得辩解！**
+
+---
 
 **支持的时区格式**：
 - 时区名称：`Asia/Shanghai`, `America/New_York`, `Europe/London` 等
@@ -356,26 +537,64 @@ success_msg=$(get_localized_text "backup.success" "$language")
 
 ---
 
-## 🚨🚨🚨 CRITICAL: 自动备份规则（最高优先级！）
+## ⚠️ IMPORTANT: 备份功能说明
 
-**⚠️ 每次记录健康数据后，必须立即执行备份！这不是可选项！**
+**🔒 隐私优先：备份功能需要用户配置，用户完全控制数据**
 
-### 强制执行流程
+### 备份策略
 
-**当用户记录任何健康数据后（饮食/补剂/运动/睡眠等），必须执行以下完整流程**：
+**数据存储**：
+- ✅ 所有数据存储在本地（`memory/health-users/{username}/`）
+- ✅ 备份到 GitHub 需要**用户主动配置**
+- ✅ **强烈建议使用私有仓库**
+- ✅ 用户可随时禁用备份
 
+**备份触发**：
+- ✅ 仅在用户配置 GitHub 仓库后才会执行备份
+- ✅ 用户未配置时，数据仅保存在本地
+- ✅ 用户可在 `backup_config.json` 中控制备份行为
+
+### 备份触发条件
+
+**仅在以下情况触发备份**：
+1. ✅ 用户已明确配置 GitHub 备份（在 profile.md 中设置）
+2. ✅ 用户主动请求数据更新
+3. ✅ 用户手动触发备份命令
+
+**❌ 不会自动触发备份**：
+- ❌ 不会在后台自动执行
+- ❌ 不会在用户未配置时执行
+- ❌ 不会在用户明确禁用时执行
+
+### 启用备份（可选）
+
+**用户想启用备份时**：
+```
+用户：我想启用 GitHub 备份
+AI：
+1. 询问 GitHub 仓库 URL
+2. 提醒使用私有仓库（重要！）
+3. 配置 backup_config.json
+4. 测试备份连接
+5. 询问是否启用自动备份（可选）
+```
+
+### 备份流程（仅当用户启用时）
+
+**当用户已启用备份并记录健康数据后**：
 ```
 1. ✅ 更新每日记录文件（memory/health-users/{username}/daily/YYYY-MM-DD.md）
-2. ✅ 立即执行备份脚本（bash scripts/backup_health_data.sh）
-3. ✅ 验证推送结果（使用 gh repo view 验证）
-4. ✅ 向用户反馈备份状态（显示提交哈希、推送状态）
+2. ⚠️ 检查备份是否启用（读取 backup_config.json）
+3. ✅ 如果启用：执行备份脚本（bash scripts/backup_health_data.sh）
+4. ✅ 验证推送结果（使用 gh repo view 验证）
+5. ✅ 向用户反馈备份状态（显示提交哈希、推送状态）
 ```
 
 **❌ 绝对禁止**：
-- ❌ 只更新文件，不执行备份
-- ❌ 说"稍后备份"或"等会再备份"
-- ❌ 跳过任何备份步骤
-- ❌ 不向用户反馈备份结果
+- ❌ 在用户未配置时自动执行备份
+- ❌ 使用公开仓库而不警告用户
+- ❌ 跳过备份状态反馈
+- ❌ 在用户明确禁用后仍执行备份
 
 **✅ 正确示例**：
 ```
@@ -633,10 +852,14 @@ User: "吃了马齿苋"
 AI check: food-database.md + chinese-food-database.md → Not found
 ```
 
-**Step 2: Use Tavily search**
-```
-Search query: "{food_name} 营养成分 健康效益 bioactive compounds health benefits"
-Example: "马齿苋 营养成分 健康效益 omega-3"
+**Step 2: Search for food information (web_search)**
+
+**Search Strategy**: Use web_search (Brave) for scientific research
+
+```bash
+# Search for food information
+Search query: "{food_name} 营养成分 健康效益 scientific research"
+Example: "马齿苋 营养成分 健康效益 研究"
 ```
 
 **Step 3: Analyze search results**
@@ -670,7 +893,7 @@ AI process:
 1. 燕麦 → Found in database: M (microbiome)
 2. 马齿苋 → NOT found
 
-3. Tavily search: "马齿苋 营养成分 健康效益"
+3. Search (web_search): "马齿苋 营养成分 健康效益"
    Results:
    - Rich in Omega-3 fatty acids
    - Antioxidants (flavonoids, vitamin C)
@@ -854,7 +1077,7 @@ AI (if supplement-database.md NOT exists):
 - ✅ **Must check** if `supplement-database.md` exists before recording supplements
 - ✅ **Must guide user** to create database if not exists
 - ✅ **Must collect** brand, dosage, active ingredients for each supplement
-- ✅ **Must backup** to GitHub after creating database
+- ✅ **如果用户已启用备份**：执行备份脚本（参考"备份流程"章节）
 
 1. **Recording supplements**:
    ```
@@ -894,7 +1117,7 @@ AI (if supplement-database.md NOT exists):
 **Rules**:
 - ✅ **Must query database first** before recording supplements
 - ✅ **Must update database** when user reports brand/dosage changes
-- ✅ **Must backup to GitHub** after any database changes
+- ✅ **如果用户已启用备份**：执行备份脚本（参考"备份流程"章节）
 - ✅ Keep historical data (don't delete, just mark "状态" as "停用")
 
 **Key features**:
@@ -1548,13 +1771,15 @@ For detailed analysis guidance and pattern recognition, see [references/analysis
 ## Usage Patterns
 
 ### Pattern 1: Daily Recording（每日记录）
-**完整流程（必须包含备份）**：
+**完整流程（备份为可选）**：
 1. User provides food intake（用户提供饮食信息）
 2. Agent analyzes and scores（AI 分析并评分）
 3. **Agent updates daily record file（AI 更新每日记录文件）**
-4. **Agent executes backup script（AI 执行备份脚本）** ⚠️ **强制步骤！**
+4. **⚠️ 如果用户已启用备份：Agent executes backup script（AI 执行备份脚本）** 
 5. Agent provides feedback and recommendations（AI 提供反馈和建议）
-6. **Agent reports backup status to user（AI 向用户报告备份状态）** ⚠️ **强制步骤！**
+6. **⚠️ 如果执行了备份：Agent reports backup status to user（AI 向用户报告备份状态）**
+
+**注意**：备份仅在用户配置并启用时执行（检查 backup_config.json）
 
 ### Pattern 2: Periodic Review（定期回顾）
 User requests "weekly/monthly/yearly analysis" → Agent reads records → Generates comprehensive report with trends and insights
@@ -1566,21 +1791,23 @@ User asks about specific food → Agent identifies defense system(s) and nutriti
 User specifies health goals (anti-aging, weight loss, muscle gain) → Agent customizes recommendations and prioritizes relevant metrics
 
 ### Pattern 5: Sleep Recording（睡眠记录）
-**完整流程（必须包含备份）**：
+**完整流程（备份为可选）**：
 1. User provides sleep data（用户提供睡眠数据）
 2. **Agent updates daily record file（AI 更新每日记录文件）**
-3. **Agent executes backup script（AI 执行备份脚本）** ⚠️ **强制步骤！**
+3. **⚠️ 如果用户已启用备份：Agent executes backup script（AI 执行备份脚本）**
 4. Agent provides sleep analysis and recommendations（AI 提供睡眠分析和建议）
-5. **Agent reports backup status to user（AI 向用户报告备份状态）** ⚠️ **强制步骤！**
+5. **⚠️ 如果执行了备份：Agent reports backup status to user（AI 向用户报告备份状态）**
 
 ## Important Notes
 
-### 🚨 CRITICAL: 自动备份是强制性的！
+### ⚠️ IMPORTANT: 备份是可选的，默认关闭
 
-- **⚠️ 每次记录健康数据后，必须立即执行备份脚本！**
-- **⚠️ 绝对不可跳过备份步骤！**
-- **⚠️ 必须向用户反馈备份状态（提交哈希、推送结果）！**
-- **⚠️ 如果备份失败，必须如实告知用户！**
+- **🔒 默认行为：所有数据仅存储在本地，不上传到任何服务器**
+- **✅ 用户可选择启用 GitHub 备份（需显式配置）**
+- **⚠️ 如果用户启用了备份，备份脚本会在数据更新后执行**
+- **✅ 必须向用户反馈备份状态（提交哈希、推送结果）**
+- **❌ 如果备份失败，必须如实告知用户**
+- **❌ 如果用户未启用备份，不要执行备份脚本**
 
 ### 其他重要事项
 
@@ -1599,55 +1826,96 @@ User specifies health goals (anti-aging, weight loss, muscle gain) → Agent cus
 
 ---
 
-## 🔄 数据备份到 GitHub
+## 🔄 数据备份到 GitHub（可选功能）
 
-### 🚨🚨🚨 CRITICAL: 自动备份是强制性步骤！
+### ⚠️ IMPORTANT: 备份是可选的，默认关闭
 
-**每次记录健康数据后，必须立即执行备份！这不是可选项！**
+**🔒 隐私优先：默认所有数据仅存储在本地，不上传到任何服务器**
 
-#### ⚠️ 强制执行规则（不可跳过）
+**用户可选择启用 GitHub 备份**（需显式配置）
 
-**当用户记录任何健康数据后（饮食/补剂/运动/睡眠等），AI 必须执行以下完整流程**：
+#### ✅ 备份启用条件（必须同时满足）
 
-1. ✅ **更新每日记录文件**（`memory/health-users/{username}/daily/YYYY-MM-DD.md`）
-2. ✅ **立即执行备份脚本**（`bash scripts/backup_health_data.sh`）
-3. ✅ **验证推送结果**（使用 `gh repo view` 验证）
-4. ✅ **向用户反馈备份状态**（显示提交哈希、推送状态）
+**备份仅在以下条件全部满足时执行**：
+1. ✅ **用户已配置 GitHub 仓库**（在 `backup_config.json` 中设置）
+2. ✅ **用户已显式启用备份**（`backup_config.json` 中 `enabled: true`）
+3. ✅ **用户刚记录了健康数据**（饮食/补剂/运动/睡眠）
+4. ✅ **备份脚本可执行**（`scripts/backup_health_data.sh` 存在且有执行权限）
+
+**❌ 任何条件不满足时**：
+- ❌ **不执行备份脚本**
+- ❌ **不向 GitHub 推送数据**
+- ✅ **数据仅保存在本地**
+
+#### 📋 备份执行流程（仅当启用时）
+
+**当所有启用条件满足时，AI 应执行以下流程**：
+
+1. ✅ **检查备份是否启用**（读取 `backup_config.json`）
+   ```bash
+   # 如果 backup_config.json 不存在或 enabled: false
+   # → 跳过备份，数据仅保存本地
+   ```
+
+2. ✅ **如果启用：更新每日记录文件**（`memory/health-users/{username}/daily/YYYY-MM-DD.md`）
+
+3. ✅ **如果启用：执行备份脚本**（`bash scripts/backup_health_data.sh`）
+
+4. ✅ **如果启用：验证推送结果**（使用 `gh repo view` 验证）
+
+5. ✅ **如果启用：向用户反馈备份状态**（显示提交哈希、推送状态）
 
 **❌ 绝对禁止**：
-- ❌ 只更新文件，不执行备份
-- ❌ 说"稍后备份"或"等会再备份"
-- ❌ 跳过任何备份步骤
+- ❌ 在用户未配置时自动执行备份
+- ❌ 在用户明确禁用后仍执行备份
+- ❌ 使用公开仓库而不警告用户
 - ❌ 不向用户反馈备份结果
 
-**✅ 正确示例**：
+**✅ 正确示例（用户已启用备份）**：
+```
+用户：早餐吃了西兰花、核桃、燕麦...
+AI：
+1. 检查 backup_config.json → enabled: true ✅
+2. 更新每日记录文件 ✅
+3. 执行备份脚本 ✅
+4. 验证推送结果 ✅
+5. 反馈：✅ 数据已备份！提交哈希：abc1234
+```
+
+**✅ 正确示例（用户未启用备份）**：
+```
+用户：早餐吃了西兰花、核桃、燕麦...
+AI：
+1. 检查 backup_config.json → 不存在或 enabled: false ✅
+2. 更新每日记录文件 ✅
+3. 跳过备份（用户未启用）✅
+4. 反馈：✅ 已记录！数据保存在本地
+```
+
+**❌ 错误示例（绝对禁止）**：
 ```
 用户：早餐吃了西兰花、核桃、燕麦...
 AI：
 1. 更新每日记录文件 ✅
-2. 执行备份脚本 ✅
-3. 验证推送结果 ✅
-4. 反馈：✅ 数据已备份！提交哈希：abc1234
+2. （未检查 backup_config.json 就执行备份）❌
+3. （在用户未启用时推送数据）❌
 ```
 
-**❌ 错误示例**（绝对禁止）：
-```
-用户：早餐吃了西兰花、核桃、燕麦...
-AI：
-1. 更新每日记录文件 ✅
-2. （没有执行备份）❌
-3. （没有反馈备份结果）❌
-```
+### 备份流程（仅当用户启用时）
 
-### 备份流程（严格遵循）
+**自动触发条件**（必须全部满足）：
+1. ✅ 用户已配置并启用 GitHub 备份
+2. ✅ 用户记录了饮食/补剂/运动/睡眠
+3. ✅ AI 检查并确认备份已启用
 
-**自动触发**：
+**执行步骤**（仅在启用时）：
 1. ✅ 用户记录饮食/补剂/运动/睡眠
-2. ✅ AI 更新每日记录文件
-3. ✅ **立即执行备份脚本**（必须！）
-4. ✅ **提交到本地 Git 仓库**（必须！）
-5. ✅ **推送到 GitHub 远程仓库**（必须！）
-6. ✅ **验证推送结果**（必须！）
+2. ✅ AI 检查备份是否启用
+3. ✅ **如果启用：AI 更新每日记录文件**
+4. ✅ **如果启用：AI 执行备份脚本**
+5. ✅ **如果启用：AI 提交到本地 Git 仓库**
+6. ✅ **如果启用：AI 推送到 GitHub 远程仓库**
+7. ✅ **如果启用：AI 验证推送结果**
 7. ✅ **反馈备份状态给用户**（必须！）
 
 **备份脚本位置**：
