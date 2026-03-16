@@ -3,11 +3,16 @@
   "slug": "post-merge-rename",
   "displayName": "Post Merge Rename",
   "latest": {
-    "version": "1.9.23",
-    "publishedAt": 1773507698623,
-    "commit": "https://github.com/openclaw/skills/commit/bdc90706d483ee21161735c0d3f2a0cca831c51c"
+    "version": "1.9.40",
+    "publishedAt": 1773699719664,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.9.23",
+      "publishedAt": 1773507698623,
+      "commit": "https://github.com/openclaw/skills/commit/bdc90706d483ee21161735c0d3f2a0cca831c51c"
+    },
     {
       "version": "1.9.12",
       "publishedAt": 1773439128261,
