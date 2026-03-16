@@ -1,13 +1,18 @@
 {
   "owner": "siraustin",
   "slug": "openclaw-dx",
-  "displayName": "Openclaw Dx",
+  "displayName": "OpenClaw DX",
   "latest": {
-    "version": "1.7.0",
-    "publishedAt": 1773174566100,
-    "commit": "https://github.com/openclaw/skills/commit/0c0c76f72c3564b61335622eee0062610a0b9a98"
+    "version": "1.9.0",
+    "publishedAt": 1773505644649,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.7.0",
+      "publishedAt": 1773174566100,
+      "commit": "https://github.com/openclaw/skills/commit/0c0c76f72c3564b61335622eee0062610a0b9a98"
+    },
     {
       "version": "1.5.1",
       "publishedAt": 1773061174964,

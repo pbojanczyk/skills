@@ -1,6 +1,6 @@
 ---
 name: openclaw-dx
-version: 1.7.0
+version: 1.9.0
 license: MIT
 description: Diagnose and fix openclaw gateway issues. Use when the gateway is stuck, not starting, crash-looping, or rejecting connections. Covers main and --profile vesper gateways. Runs triage, applies fixes, writes incident report to ~/clawd/inbox.
 ---
@@ -413,6 +413,94 @@ cat ~/.openclaw/openclaw.json | python3 -c "import sys,json; c=json.load(sys.std
 - Local models via LM Studio — $0 but needs testing for summary quality
 **Prevention:** Avoid cross-provider compaction models that add auth overhead. Same-provider as primary model reduces failure modes. Monitor for `timed out during compaction` in err.log periodically.
 
+### 18. Self-Reinforcing Config.Patch Crash Loop (Post-Update / Post-Restart)
+**Symptom:** Gateway starts, runs for ~2 minutes, receives SIGTERM, LaunchAgent left unloaded. Repeats on every manual bootstrap. No config.patch visible in gateway logs (it happens too fast or logs rotate). Update to latest version does not fix it.
+**Diagnosis:** The agent's session preserves context about a pending config change (e.g., "fix auth order array"). On each restart, the agent resumes that intent and immediately issues a config.patch on `auth.*` keys, triggering a restart cascade. The gateway dies, gets re-bootstrapped, and the cycle repeats because the session still has the patching intent.
+```bash
+# 1. Check if sessions are bloated (session context preserves patching intent)
+python3 -c "
+import json
+data=json.load(open('$HOME/.openclaw/agents/main/sessions/sessions.json'))
+bloated=[k for k,v in data.items() if v.get('contextTokens',0)>=150000]
+print(f'Total: {len(data)}, Bloated: {len(bloated)}')
+for k in bloated[:5]: print(f'  {k}')
+"
+# 2. Check if plist was regenerated after update
+ls -la ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+openclaw --version
+# If plist mtime is before the update, it's stale
+```
+**Distinguishing from #12 (Config Patch Restart Cascade):**
+- #12: One-time config.patch crash, manual bootstrap fixes it
+- #18: Bootstrap→crash→bootstrap loop because session context re-triggers config.patch on every restart
+**Fix:**
+```bash
+# 1. Regenerate plist for current version
+openclaw gateway install
+# 2. Prune bloated sessions (breaks the loop by clearing patching intent)
+python3 -c "
+import json
+path='$HOME/.openclaw/agents/main/sessions/sessions.json'
+data=json.load(open(path))
+healthy={k:v for k,v in data.items() if v.get('contextTokens',0)<150000}
+print(f'Pruning {len(data)-len(healthy)} bloated, keeping {len(healthy)} healthy')
+json.dump(healthy, open(path, 'w'), indent=2)
+"
+# 3. Bootstrap
+launchctl bootstrap gui/501 ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+```
+**Prevention:**
+- Always run `openclaw gateway install` after `openclaw update` to regenerate the plist
+- Restrict agent's ability to config.patch `auth.*` keys without human confirmation
+- Session reset breaks the loop — if the gateway crashes >2 times in a row, prune sessions before next bootstrap
+
+### 19. Auto-Update Kills All Gateways Simultaneously
+**Symptom:** Both main AND vesper gateways go down at the same time. No reboot. No config changes. LaunchAgents left unloaded for both.
+**Diagnosis:** OpenClaw auto-updated to a new version. The package was replaced hours earlier but the deferred restart fired later, sending SIGTERM to all running gateway processes within seconds of each other. The `kickstart -k` fix from v2026.3.12 does NOT prevent this — auto-update restarts still leave LaunchAgents unloaded.
+```bash
+# 1. Confirm simultaneous SIGTERM
+grep 'signal SIGTERM received' ~/.openclaw/logs/gateway.log | tail -1
+grep 'signal SIGTERM received' ~/.openclaw-vesper/logs/gateway.log | tail -1
+# If timestamps are within ~10 seconds → auto-update
+
+# 2. Check version changed
+openclaw --version
+ls -la /opt/homebrew/lib/node_modules/openclaw/package.json  # mtime = update time
+```
+**Distinguishing from other failures:**
+- #12/#18: Single gateway, triggered by config.patch
+- #19: ALL gateways die within seconds, no config.patch in logs, version changed
+**Fix:**
+```bash
+# 1. Prune bloated sessions for all profiles
+for dir in ~/.openclaw ~/.openclaw-vesper; do
+  f="$dir/agents/main/sessions/sessions.json"
+  [ -f "$f" ] && python3 -c "
+import json
+path='$f'
+data=json.load(open(path))
+healthy={k:v for k,v in data.items() if v.get('contextTokens',0)<150000}
+pruned=len(data)-len(healthy)
+if pruned:
+    json.dump(healthy, open(path, 'w'), indent=2)
+    print(f'$(basename $dir): pruned {pruned}')
+"
+done
+# 2. Regenerate plists for new version
+openclaw gateway install --force
+openclaw --profile vesper gateway install --force
+# 3. Verify plist alignment (failure mode #14)
+grep OPENCLAW_STATE_DIR ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+grep OPENCLAW_STATE_DIR ~/Library/LaunchAgents/ai.openclaw.vesper.plist
+# 4. Restart both
+launchctl bootout gui/501/ai.openclaw.gateway 2>/dev/null; launchctl bootstrap gui/501 ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+launchctl bootout gui/501/ai.openclaw.vesper 2>/dev/null; launchctl bootstrap gui/501 ~/Library/LaunchAgents/ai.openclaw.vesper.plist
+```
+**Prevention:**
+- Disable auto-update if stability is critical: check `update.autoInstall` in `openclaw.json`
+- If auto-update is desired, add a post-update hook that runs `openclaw gateway install --force` for all profiles
+- Always follow the Post-Upgrade Checklist after any version change (manual or auto)
+
 ## Memory Thresholds
 
 | RSS | Status | Action |
@@ -580,6 +668,16 @@ Run after any openclaw version bump:
 openclaw --version
 cp ~/.openclaw/openclaw.json ~/.openclaw/openclaw.json.pre-upgrade
 openclaw doctor --fix
+
+# CRITICAL: Regenerate plist for new version (update does NOT do this automatically)
+openclaw gateway install
+# For vesper too:
+openclaw --profile vesper gateway install
+
+# Verify plists weren't cross-contaminated (failure mode #14)
+grep OPENCLAW_STATE_DIR ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+grep OPENCLAW_STATE_DIR ~/Library/LaunchAgents/ai.openclaw.vesper.plist
+
 openclaw devices list --json | jq '.pending'
 # Approve any pending pairings
 openclaw channels status
