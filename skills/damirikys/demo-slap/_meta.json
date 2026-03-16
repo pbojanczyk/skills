@@ -1,11 +1,17 @@
 {
   "owner": "damirikys",
   "slug": "demo-slap",
-  "displayName": "Demo-Slap Highlights",
+  "displayName": "Demo Slap",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1772199175062,
-    "commit": "https://github.com/openclaw/skills/commit/8c110ac7594d7fb289feb4ff29c63951a0a75c6d"
+    "version": "0.1.4",
+    "publishedAt": 1773552433100,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1772199175062,
+      "commit": "https://github.com/openclaw/skills/commit/8c110ac7594d7fb289feb4ff29c63951a0a75c6d"
+    }
+  ]
 }

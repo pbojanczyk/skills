@@ -1,12 +1,12 @@
 ---
 name: demo-slap
-description: Generate CS2 highlights and fragmovies from demos using the Demo-Slap API. Includes optional Leetify integration for auto-fetching demo URLs. Use when a user asks to "record a highlight", "make a fragmovie", "clip that round", etc.
+description: Generate CS2 highlights and fragmovies from demos using the Demo-Slap API, with optional Leetify integration and Demo-Slap match history fallback to select recent matches. Use when a user asks to record a highlight, render a clip, make a fragmovie, clip a round, or turn a CS2 demo into MP4 video.
 metadata:
   {
     "openclaw": {
       "requires": {
         "env": ["DEMOSLAP_API_KEY"],
-        "bins": ["ffmpeg", "python3"]
+        "bins": ["python3", "openclaw"]
       }
     }
   }
@@ -14,88 +14,189 @@ metadata:
 
 # Demo-Slap Highlight Skill
 
-Generate beautiful MP4 highlights and fragmovies straight from CS2 demos.
+Generate MP4 highlights and fragmovies from CS2 demos.
 
-## 🔗 APIs & Prerequisites
-- **Demo-Slap API:** [https://api-doc.demo-slap.net/](https://api-doc.demo-slap.net/)
-- **Leetify API (Optional but recommended):** [https://api-public-docs.cs-prod.leetify.com/](https://api-public-docs.cs-prod.leetify.com/)
+This skill is designed for OpenClaw environments where background jobs, local helper scripts, and chat-aware delivery are available. It uses Python 3 scripts and the `requests` package for HTTP API access.
 
-**Using Leetify:** 
-Leetify integration is optional but highly recommended to automatically fetch demo URLs from recent matches. 
-- **API Key:** Free to get at [leetify.com/app/developer](https://leetify.com/app/developer).
-- **Steam64 ID:** Users can find their 17-digit Steam64 ID using sites like [steamid.io](https://steamid.io/) or by checking their Steam profile URL.
+Expected runtime inputs:
+- Required: `DEMOSLAP_API_KEY`
+- Optional: `LEETIFY_API_KEY`
+- Optional deployment helper: `DEMO_SLAP_WATCHDOG_JOB_ID`
 
-## 🛠 Identity & Setup
+## Scripts
 
-### 1. Set API Keys (One-time setup)
-You need to save the API keys to `data/config.json`. You can do this via the CLI:
+Run bundled scripts relative to the skill root, usually from `scripts/`.
+
+### Demo-Slap
+| Script | Purpose |
+|--------|---------|
+| `demo_slap_matches.py` | List recent matches from Demo-Slap `/public-api/matches` |
+| `demo_slap_resolve.py` | Try to resolve replay/demo URL from Demo-Slap match history by index; fail clearly if the API exposes only `jobId` |
+| `demo_slap_match_pick.py` | Pick a Demo-Slap match by index and return structured match info including `jobId` |
+| `demo_slap_analyze.py` | Submit a demo for analysis, poll until done, output highlights JSON |
+| `demo_slap_render.py` | Render one or more highlights, poll until done, output clip URL |
+| `demo_slap_common.py` | Shared utilities (config, API calls, state) |
+
+### Leetify
+| Script | Purpose |
+|--------|---------|
+| `leetify/leetify_matches.py` | List recent matches |
+| `leetify/leetify_resolve.py` | Resolve replay URL by username + match index |
+| `leetify/leetify_save_id.py` | Save username -> Steam64 ID mapping |
+| `leetify/leetify_common.py` | Shared Leetify utilities |
+
+### Match source selection
+- Prefer Leetify for recent match discovery when `LEETIFY_API_KEY` is available.
+- If `LEETIFY_API_KEY` is not configured but `DEMOSLAP_API_KEY` is available, use Demo-Slap match history from `/public-api/matches`.
+- Swagger: `https://api-doc.demo-slap.net/`
+- Treat Demo-Slap match history as the fallback discovery path for listing matches and selecting an existing analyzed match or replay context before analyze/render.
+
+## Runtime files
+
+Use these files as optional local runtime state during execution:
+- `data/state.json`
+- `data/highlights.json`
+- `data/history.log`
+- `data/steam_ids.json`
+- `data/config.json`
+
+These files are runtime helpers for local operation and are not required to understand or inspect the skill package itself.
+
+`state.json` tracks the current operation:
+```json
+{
+  "status": "idle|analyzing|rendering|done|error",
+  "job_id": "...",
+  "render_job_id": "...",
+  "chat_id": "telegram:182314856",
+  "clip_urls": {"highlight_id": "https://..."},
+  "progress": "polling 3/30",
+  "last_completed_op": "analyze|render",
+  "notification": {
+    "sent": false,
+    "sent_at": null,
+    "last_attempt_at": null,
+    "error": null
+  },
+  "updated_at": "ISO timestamp"
+}
+```
+
+## Workflow
+
+### 1. Find the match
+Preferred path when `LEETIFY_API_KEY` is available:
 ```bash
-python3 scripts/demo_slap_cli.py set-key demoslap <DEMOSLAP_API_KEY>
-python3 scripts/demo_slap_cli.py set-key leetify <LEETIFY_API_KEY>
+python3 scripts/leetify/leetify_matches.py <USERNAME> [--limit 10]
 ```
-*Note: The keys can also be provided via `DEMOSLAP_API_KEY` and `LEETIFY_API_KEY` environment variables.*
 
-### 2. Map User to Steam ID
-To map a user's chat username (Telegram, Discord, Slack, etc.) or nickname to their Steam64 ID (required for Leetify match fetching and filtering their specific highlights):
-
+Fallback path when `LEETIFY_API_KEY` is missing but `DEMOSLAP_API_KEY` is available:
 ```bash
-python3 scripts/demo_slap_cli.py save-id <USERNAME> <STEAM_64_ID>
+python3 scripts/demo_slap_matches.py [<USERNAME>] [--limit 10]
 ```
-*If a user asks for their highlights but their Steam ID is unknown, explain how to find it (e.g., via steamid.io), then run this command.*
-
-## 📋 Step 1: Find the Match (Optional)
-
-If the user wants a highlight from a recent match and the Leetify API key is available, you can list their recent matches:
-
+- uses Demo-Slap `/public-api/matches`
+- use the Demo-Slap swagger docs at `https://api-doc.demo-slap.net/` if schema details are needed
+- if `<USERNAME>` is provided and mapped, filter matches to that player's Steam ID when possible
+- after the user picks a match, run:
 ```bash
-python3 scripts/demo_slap_cli.py matches <USERNAME>
+python3 scripts/demo_slap_match_pick.py [<USERNAME>] --match-index <N>
 ```
-*This lists their recent matches (index 0 is the most recent). Note the index they want.*
+- treat the returned `jobId` as the primary handle for downstream Demo-Slap operations
 
-If the Leetify API key is NOT available or the user wants to use a specific match not tracked, **ask them to provide a direct download link (.dem.gz or similar) to the demo.**
-
-## 🔍 Step 2: Analyze the Demo (Async)
-
-**CRITICAL: DO NOT BLOCK THE MAIN SESSION.** Analysis on Demo-Slap servers takes 2-4 minutes. You MUST use `sessions_spawn` to run this step asynchronously. When using relative paths, ensure your `cwd` points to this skill's folder or run the command relative to it.
-
-**Subagent Prompt Template:**
-```text
-Task: Analyze a demo for highlights.
-1. Run the analysis command:
-   # If using Leetify match index (e.g. index 0):
-   exec(command="python3 -u scripts/demo_slap_cli.py analyze --username <USERNAME> --match-index <N>")
-   
-   # OR if using a direct URL:
-   exec(command="python3 -u scripts/demo_slap_cli.py analyze --url '<URL>' --username <USERNAME>")
-
-2. Loop `process(action="poll", sessionId="...", timeout=30000)` until the script finishes.
-3. Extract the printed table of highlights (with JobID and Highlight IDs).
-4. Send the table to the user in their channel using the `message` tool (`action="send"`). Ask them: "Which Highlight ID(s) do you want to render?"
-5. Reply NO_REPLY.
+### 2. Resolve replay URL
+Preferred path when using Leetify:
+```bash
+python3 scripts/leetify/leetify_resolve.py <USERNAME> --match-index <N>
 ```
 
-## 🎥 Step 3: Render Highlight or Fragmovie (Async)
-
-Once the user replies with the Highlight ID(s) they want, render the final video.
-**CRITICAL: DO NOT BLOCK THE MAIN SESSION.** Rendering and downloading the MP4 takes 2-5 minutes. You MUST use `sessions_spawn` to run this step asynchronously.
-
-**Subagent Prompt Template:**
-```text
-Task: Render a CS2 clip.
-1. Run the render command:
-   # For a SINGLE highlight:
-   exec(command="python3 -u scripts/demo_slap_cli.py render <JOB_ID> <HIGHLIGHT_ID>")
-   
-   # For a FRAGMOVIE (multiple highlights stitched together):
-   exec(command="python3 -u scripts/demo_slap_cli.py render-fragmovie <JOB_ID> <ID_1> <ID_2> ...")
-
-2. Loop `process(action="poll", sessionId="...", timeout=30000)` until the script finishes and prints the downloaded file path (e.g., `/tmp/render_...mp4`).
-3. Check the file size using `du -m <file_path>`.
-4. If the file is > 48MB (Telegram limit), compress it:
-   `ffmpeg -i <file_path> -c:v libx264 -crf 28 -preset fast -c:a aac -b:a 128k /tmp/compressed_clip.mp4`
-   Then use the compressed file path for the next step.
-5. Send the video to the user using the `message` tool (`action="send"`, `media="<final_file_path>"`).
-   ⚠️ CRITICAL: Set `timeoutMs: 120000` (2 minutes) on the `message` tool call because uploading large videos takes time!
-6. Remove the MP4 files from `/tmp/`.
-7. Reply NO_REPLY.
+When using Demo-Slap fallback:
+```bash
+python3 scripts/demo_slap_match_pick.py [<USERNAME>] --match-index <N>
 ```
+- use the returned `jobId` as the selected match identifier
+- if `demoUrl` is present, you may still use analyze-by-URL
+- if `demoUrl` is absent, skip URL resolution and continue by API endpoints that accept the existing analyze `jobId`
+- use `GET /public-api/analyze/{jobId}/status` and `GET /public-api/analyze/{jobId}/data` to inspect existing highlights
+- if the user wants clips and highlights already exist, render directly from that `jobId`
+
+### 3. Analyze in background
+```bash
+python3 -u scripts/demo_slap_analyze.py --url '<REPLAY_URL>' --username <USERNAME> --chat-id <CHAT_ID>
+```
+
+Run with `exec(background: true)` and keep the returned process/session id.
+
+Optional deployment-specific watchdog pattern for OpenClaw environments:
+- Use a watchdog only when background analyze/render work benefits from periodic delivery checks.
+- Reuse an existing deployment watchdog when available instead of assuming a new persistent scheduler entry is always needed.
+- If a deployment chooses to create or enable a watchdog through the built-in `cron` tool, keep it scoped to the active run and disable it again after terminal delivery.
+- A 2 minute interval is a reasonable default.
+- Use `scripts/demo_slap_watchdog.sh status|tail|job` only as a local helper for inspecting runtime state, logs, or deployment-specific job references.
+- Treat `data/state.json` and `data/highlights.json` as the source of truth during runtime.
+
+Agent workflow:
+1. Choose the match source:
+   - Leetify if `LEETIFY_API_KEY` exists
+   - Demo-Slap `/public-api/matches` if `LEETIFY_API_KEY` is missing and `DEMOSLAP_API_KEY` exists
+2. If using Leetify, resolve the replay URL and run analyze
+3. If using Demo-Slap fallback, pick a match and inspect the returned `jobId`
+4. If the selected Demo-Slap match already has analyze data, continue by `jobId` instead of forcing analyze-by-URL
+5. Use or enable a deployment watchdog only when long-running analyze/render work benefits from it
+6. Launch analyze or render and save the returned process/session id when applicable
+7. Let the watchdog deliver the result when a deployment uses one
+8. Disable the watchdog again after terminal delivery
+
+### 4. Render in background
+```bash
+# Single highlight
+python3 -u scripts/demo_slap_render.py <JOB_ID> <HIGHLIGHT_ID> --chat-id <CHAT_ID>
+
+# Fragmovie
+python3 -u scripts/demo_slap_render.py <JOB_ID> <ID1> <ID2> ... --fragmovie --chat-id <CHAT_ID>
+```
+
+Run with `exec(background: true)` and keep the returned process/session id.
+
+Optional deployment-specific watchdog pattern for OpenClaw environments:
+- Use a watchdog only when background analyze/render work benefits from periodic delivery checks.
+- Reuse an existing deployment watchdog when available instead of assuming a new persistent scheduler entry is always needed.
+- If a deployment chooses to create or enable a watchdog through the built-in `cron` tool, keep it scoped to the active run and disable it again after terminal delivery.
+- A 2 minute interval is a reasonable default.
+- Use `scripts/demo_slap_watchdog.sh status|tail|job` only as a local helper for inspecting runtime state, logs, or deployment-specific job references.
+- Treat `data/state.json` and `data/highlights.json` as the source of truth during runtime.
+
+Agent workflow:
+1. Enable or reuse a deployment watchdog only when needed for the active run
+2. Launch render and save the returned process/session id
+3. Poll process output for the `Estimated finish:` line and tell the user the ETA if present
+4. Let the watchdog deliver the result when one is in use
+5. Disable the watchdog again after terminal delivery
+
+**Critical:** set `<CHAT_ID>` from inbound metadata of the originating request. Treat hardcoded chat identifiers as local examples only, not as a reusable default.
+
+### 5. Check status
+Read `data/state.json`.
+
+## Setup
+
+### Map username to Steam ID
+```bash
+python3 scripts/leetify/leetify_save_id.py <USERNAME> <STEAM_64_ID>
+```
+
+### Configure API keys
+Prefer environment variables:
+- `DEMOSLAP_API_KEY` - required
+- `LEETIFY_API_KEY` - optional, only for Leetify-backed match discovery
+- `DEMO_SLAP_WATCHDOG_JOB_ID` - optional deployment-specific helper for watchdog inspection scripts
+
+Source selection rules:
+- If `LEETIFY_API_KEY` exists, use Leetify for match discovery.
+- If `LEETIFY_API_KEY` is absent but `DEMOSLAP_API_KEY` exists, use Demo-Slap `/public-api/matches` for match discovery.
+- `DEMOSLAP_API_KEY` is always required for analyze/render.
+
+Optional local fallback for controlled self-hosted setups: put them in `data/config.json`.
+
+## Support
+
+For access and support, please join our Discord community: https://discord.gg/8nfh26W9wQ
