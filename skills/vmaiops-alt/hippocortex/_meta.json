@@ -1,0 +1,11 @@
+{
+  "owner": "vmaiops-alt",
+  "slug": "hippocortex",
+  "displayName": "Hippocortex",
+  "latest": {
+    "version": "2.2.1",
+    "publishedAt": 1773688588611,
+    "commit": null
+  },
+  "history": []
+}
