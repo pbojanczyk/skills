@@ -3,9 +3,15 @@
   "slug": "polymarket-real-time-trades",
   "displayName": "Polymarket Real Time Trades Stream",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1773151571864,
-    "commit": "https://github.com/openclaw/skills/commit/c1d29afba9e6fa8f48c59008222d64b4692e1eee"
+    "version": "1.0.3",
+    "publishedAt": 1773669350227,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1773151571864,
+      "commit": "https://github.com/openclaw/skills/commit/c1d29afba9e6fa8f48c59008222d64b4692e1eee"
+    }
+  ]
 }
