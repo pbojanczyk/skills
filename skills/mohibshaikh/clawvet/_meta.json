@@ -1,13 +1,18 @@
 {
   "owner": "mohibshaikh",
   "slug": "clawvet",
-  "displayName": "Clawguard",
+  "displayName": "Clawvet",
   "latest": {
-    "version": "0.2.3",
-    "publishedAt": 1772693979453,
-    "commit": "https://github.com/openclaw/skills/commit/a6271be77facfd1773ea69510341590eea780794"
+    "version": "0.6.1",
+    "publishedAt": 1773483791627,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.2.3",
+      "publishedAt": 1772693979453,
+      "commit": "https://github.com/openclaw/skills/commit/a6271be77facfd1773ea69510341590eea780794"
+    },
     {
       "version": "0.2.2",
       "publishedAt": 1772530375961,

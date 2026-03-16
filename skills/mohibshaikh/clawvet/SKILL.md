@@ -1,7 +1,7 @@
 ---
 name: clawvet
-version: 0.2.3
-description: Vet OpenClaw skills for security threats before installing them. 6-pass scanner detects RCE, credential theft, prompt injection, typosquatting, and social engineering.
+version: 0.6.1
+description: Stateless CLI security scanner for OpenClaw skills. The npm package runs fully offline with zero database or auth dependencies. Detects threats across 6 analysis passes before you install.
 author: MohibShaikh
 license: MIT
 homepage: https://github.com/MohibShaikh/clawvet
@@ -23,7 +23,7 @@ metadata:
 
 # clawvet
 
-Scan any OpenClaw skill for security threats before you install it.
+Security scanner for OpenClaw skills. Analyzes skills for threats before installation.
 
 ## Usage
 
@@ -33,7 +33,7 @@ Scan a local skill:
 npx clawvet scan ./skill-folder/
 ```
 
-Scan with JSON output (for CI/CD):
+JSON output for CI/CD:
 
 ```bash
 npx clawvet scan ./skill-folder/ --format json --fail-on high
@@ -45,22 +45,39 @@ Audit all installed skills:
 npx clawvet audit
 ```
 
-Watch for new skill installs and auto-block risky ones:
+Watch mode — auto-block risky installs:
 
 ```bash
 npx clawvet watch --threshold 50
 ```
 
-## What it detects
+Submit feedback or get threat alerts:
 
-clawvet runs 6 analysis passes on every skill:
+```bash
+npx clawvet feedback
+```
+
+## Analysis Passes
 
 1. **Skill Parser** — Extracts YAML frontmatter, code blocks, URLs, IPs, domains
-2. **Static Analysis** — 54 regex patterns: RCE, reverse shells, credential theft, DNS exfil, obfuscation
-3. **Metadata Validator** — Undeclared binaries, env vars, missing descriptions
-4. **Dependency Checker** — `npx -y` auto-install, global npm installs
-5. **Typosquat Detector** — Levenshtein distance against popular skills
-6. **Semantic Analysis** — AI-powered social engineering and prompt injection detection (Pro)
+2. **Static Analysis** — 54 pattern rules across multiple threat categories
+3. **Metadata Validator** — Checks for undeclared binaries, env vars, missing descriptions
+4. **Dependency Checker** — Flags auto-install and global package installs
+5. **Typosquat Detector** — Levenshtein distance against popular skill names
+6. **Semantic Analysis** — AI-powered detection of social engineering and injection (Pro)
+
+## What's New in v0.6
+
+- **Confidence scores** — Each finding shows a confidence percentage based on context. Risk scores are weighted accordingly.
+- **Fix suggestions** — Every finding includes an actionable remediation shown in terminal and SARIF output.
+- **Content-hash caching** — Repeat scans of unchanged files are near-instant.
+- **Trust badges** — Run `npx clawvet badge ./skill/` to generate a shields.io trust badge for your README.
+- **Ban list** — Create a `.clawvetban` file to block skills by name, author, or slug.
+- **Feedback form** — Run `npx clawvet feedback` to share what you think.
+
+## Note on Monorepo
+
+The `clawvet` npm package contains only the CLI scanner (`packages/cli` + `packages/shared`). It is a stateless tool with no databases, no authentication, and no network access by default. The repository also contains an optional web dashboard (`apps/api` + `apps/web`) for self-hosted deployments — these are NOT included in the npm package.
 
 ## Risk Grades
 

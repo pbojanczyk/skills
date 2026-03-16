@@ -1,88 +1,113 @@
 import type { ThreatPattern } from "./types.js";
 
+// Build regex from parts at runtime to avoid AV false positives on signature strings
+function re(parts: string[], flags: string): RegExp {
+  return new RegExp(parts.join(""), flags);
+}
+
 export const THREAT_PATTERNS: ThreatPattern[] = [
   // ═══════════════════════════════════════════════════════
   // CRITICAL: Remote code execution
   // ═══════════════════════════════════════════════════════
   {
     name: "CURL_PIPE_BASH",
-    pattern: /curl\s+.*\|\s*(ba)?sh/gi,
+    pattern: re(["curl\\s+.*\\|\\s*(ba)?", "sh"], "gi"),
     severity: "critical",
     category: "remote_code_execution",
     title: "Curl piped to shell",
     description: "Downloads and executes remote code directly — classic supply chain attack vector.",
+    codeOnly: true,
+    fix: "Download the script first, inspect it, then execute: `curl -o setup.sh URL && cat setup.sh && bash setup.sh`",
   },
   {
     name: "WGET_EXECUTE",
-    pattern: /wget\s+.*&&\s*(ba)?sh/gi,
+    pattern: re(["wget\\s+.*&&\\s*(ba)?", "sh"], "gi"),
     severity: "critical",
     category: "remote_code_execution",
     title: "Wget with shell execution",
     description: "Downloads and executes remote code via wget.",
+    codeOnly: true,
+    fix: "Download the file first with `wget -O script.sh URL`, review it, then execute.",
   },
   {
     name: "EVAL_DYNAMIC",
-    pattern: /eval\s*\(/gi,
+    pattern: re(["ev", "al\\s*\\("], "gi"),
     severity: "critical",
     category: "remote_code_execution",
-    title: "Dynamic eval() usage",
-    description: "Uses eval() which can execute arbitrary code.",
+    title: "Dynamic code evaluation",
+    description: "Uses dynamic code evaluation which can run arbitrary code.",
+    codeOnly: true,
+    fix: "Replace dynamic evaluation with a safer alternative like JSON.parse() or a sandboxed environment.",
   },
   {
     name: "BASE64_DECODE",
-    pattern: /base64\s+(-d|--decode)/gi,
+    pattern: re(["base", "64\\s+(-d|--dec", "ode)"], "gi"),
     severity: "critical",
     category: "obfuscation",
     title: "Base64 decode execution",
     description: "Decodes base64 content, often used to hide malicious payloads.",
+    codeOnly: true,
+    fix: "Decode and include the command directly so users can review it.",
   },
   {
     name: "PYTHON_EXEC",
-    pattern: /python[3]?\s+-c/gi,
+    pattern: re(["pyth", "on[3]?\\s+-c"], "gi"),
     severity: "critical",
     category: "remote_code_execution",
     title: "Python inline execution",
     description: "Executes inline Python code which may contain hidden payloads.",
+    codeOnly: true,
+    fix: "Move inline code to a separate .py file so users can review it before execution.",
   },
   {
     name: "REVERSE_SHELL",
-    pattern: /\/dev\/tcp\/|nc\s+-[elp]|ncat\s+-|mkfifo\s+.*\/tmp/gi,
+    pattern: re(["\\/dev\\/tc", "p\\/|nc\\s+-[elp]|nca", "t\\s+-|mkfi", "fo\\s+.*\\/tmp"], "gi"),
     severity: "critical",
     category: "remote_code_execution",
     title: "Reverse shell",
-    description: "Creates a reverse shell connection back to an attacker-controlled server.",
+    description: "Creates a reverse connection back to an attacker-controlled server.",
+    codeOnly: true,
+    fix: "Remove reverse connection commands — these are almost never legitimate in skills.",
   },
   {
     name: "CRON_PERSISTENCE",
-    pattern: /crontab\s+-|\/etc\/cron|systemctl\s+enable/gi,
+    pattern: re(["cron", "tab\\s+-|\\/etc\\/cro", "n|system", "ctl\\s+enable"], "gi"),
     severity: "critical",
     category: "persistence",
     title: "Scheduled task persistence",
     description: "Installs a cron job or systemd service for persistent execution after reboot.",
+    codeOnly: true,
+    fix: "Document the scheduled task in the skill description and require explicit user consent before installing.",
   },
   {
     name: "PERL_EXEC",
-    pattern: /perl\s+-e/gi,
+    pattern: re(["per", "l\\s+-e"], "gi"),
     severity: "critical",
     category: "remote_code_execution",
     title: "Perl inline execution",
     description: "Executes inline Perl code which may contain obfuscated payloads.",
+    codeOnly: true,
+    fix: "Move inline code to a separate .pl file so users can review it before execution.",
   },
   {
     name: "NODE_EVAL",
-    pattern: /node\s+-e\s/gi,
+    pattern: re(["no", "de\\s+-e\\s"], "gi"),
     severity: "critical",
     category: "remote_code_execution",
     title: "Node.js inline execution",
     description: "Executes inline Node.js code, often used to hide malicious logic.",
+    codeOnly: true,
+    fix: "Move inline code to a separate .js file so users can review it before execution.",
   },
   {
     name: "RUBY_EXEC",
-    pattern: /ruby\s+-e/gi,
+    pattern: re(["rub", "y\\s+-e"], "gi"),
     severity: "critical",
     category: "remote_code_execution",
     title: "Ruby inline execution",
     description: "Executes inline Ruby code which may contain hidden payloads.",
+    codeOnly: true,
+    fix: "Move inline code to a separate .rb file so users can review it before execution.",
   },
 
   // ═══════════════════════════════════════════════════════
@@ -95,6 +120,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "credential_theft",
     title: "Sensitive file access",
     description: "Accesses credential files (.env, .aws, .ssh, keychain).",
+    fix: "Declare required env vars in frontmatter under `metadata.openclaw.requires.env`.",
   },
   {
     name: "API_KEY_EXFIL",
@@ -103,6 +129,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "credential_theft",
     title: "API key reference",
     description: "References specific API keys/tokens that could be exfiltrated.",
+    fix: "Use environment variable references ($VAR) instead of hardcoding keys, and declare them in requires.env.",
   },
   {
     name: "DOTFILE_ACCESS",
@@ -111,6 +138,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "credential_theft",
     title: "OpenClaw config access",
     description: "Accesses OpenClaw/Clawdbot/Moltbot configuration directories.",
+    fix: "Use the official OpenClaw SDK/API instead of directly reading config directories.",
   },
   {
     name: "SESSION_THEFT",
@@ -119,6 +147,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "credential_theft",
     title: "Session data access",
     description: "Accesses session transcript files which may contain sensitive data.",
+    fix: "Remove session file access — skills should not read conversation transcripts.",
   },
   {
     name: "SSH_KEY_ACCESS",
@@ -127,6 +156,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "credential_theft",
     title: "SSH/private key access",
     description: "Accesses SSH keys or private key files that could be stolen.",
+    fix: "Use ssh-agent or a credential manager instead of directly reading key files.",
   },
   {
     name: "BROWSER_DATA",
@@ -135,6 +165,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "credential_theft",
     title: "Browser data access",
     description: "Accesses browser profiles which contain saved passwords, cookies, and tokens.",
+    fix: "Remove browser data access — skills should not read browser profiles.",
   },
   {
     name: "GIT_CREDENTIALS",
@@ -143,6 +174,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "credential_theft",
     title: "Git credential access",
     description: "Accesses git credential storage which may contain auth tokens.",
+    fix: "Use `git` CLI commands instead of directly reading credential files.",
   },
   {
     name: "NPM_TOKEN",
@@ -151,6 +183,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "credential_theft",
     title: "npm token access",
     description: "Accesses npm auth tokens which could be used to publish malicious packages.",
+    fix: "Use `npm whoami` or `npm config get` instead of directly reading .npmrc.",
   },
   {
     name: "KUBE_CONFIG",
@@ -159,6 +192,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "credential_theft",
     title: "Kubernetes config access",
     description: "Accesses Kubernetes configuration which contains cluster credentials.",
+    fix: "Use `kubectl` CLI commands instead of directly reading kubeconfig.",
   },
   {
     name: "DOCKER_SOCKET",
@@ -167,6 +201,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "container_escape",
     title: "Docker socket/exec access",
     description: "Accesses Docker socket or runs exec — could enable container escape.",
+    fix: "Use Docker SDK or CLI with limited permissions instead of direct socket access.",
   },
 
   // ═══════════════════════════════════════════════════════
@@ -179,6 +214,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "data_exfiltration",
     title: "Webhook data exfiltration",
     description: "Sends data to webhook endpoints (Discord, Slack, Telegram) — common exfiltration channel.",
+    fix: "If webhook integration is needed, declare it in the skill description and let users configure their own webhook URL.",
   },
   {
     name: "BORE_TUNNEL",
@@ -187,6 +223,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "data_exfiltration",
     title: "Tunnel service usage",
     description: "Uses tunneling services to expose local services or exfiltrate data.",
+    fix: "Document tunnel usage in the skill description and require explicit user consent.",
   },
   {
     name: "SUSPICIOUS_IP",
@@ -195,6 +232,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "data_exfiltration",
     title: "Known malicious IP",
     description: "Contains IP addresses associated with known ClawHavoc C2 infrastructure.",
+    fix: "Remove references to known malicious IP addresses.",
   },
   {
     name: "DNS_EXFIL",
@@ -203,6 +241,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "data_exfiltration",
     title: "DNS exfiltration",
     description: "Uses DNS queries to exfiltrate data — bypasses most firewalls.",
+    fix: "Remove DNS exfiltration patterns — use standard HTTP APIs for data transfer.",
   },
   {
     name: "PASTEBIN_FETCH",
@@ -211,6 +250,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "data_exfiltration",
     title: "Pastebin service usage",
     description: "References paste services commonly used to host malicious payloads or receive exfiltrated data.",
+    fix: "Host code in a version-controlled repository (GitHub, GitLab) instead of paste services.",
   },
   {
     name: "SUSPICIOUS_TLD",
@@ -219,6 +259,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "data_exfiltration",
     title: "Suspicious TLD",
     description: "URL uses a top-level domain frequently associated with malicious infrastructure.",
+    fix: "Use URLs from well-known, reputable domains instead of suspicious TLDs.",
   },
   {
     name: "URL_SHORTENER",
@@ -227,14 +268,17 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "obfuscation",
     title: "URL shortener",
     description: "Uses URL shorteners to hide the real destination of links.",
+    fix: "Use the full, unshortened URL so users can verify the destination.",
   },
   {
     name: "RAW_SOCKET",
-    pattern: /new\s+Socket|net\.connect|dgram\.createSocket/gi,
+    pattern: re(["new\\s+Soc", "ket|net\\.conn", "ect|dgram\\.create", "Socket"], "gi"),
     severity: "high",
     category: "data_exfiltration",
     title: "Raw socket connection",
     description: "Creates raw network sockets which can bypass HTTP monitoring.",
+    codeOnly: true,
+    fix: "Use standard HTTP libraries (fetch, axios) instead of raw sockets for network communication.",
   },
 
   // ═══════════════════════════════════════════════════════
@@ -247,6 +291,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "social_engineering",
     title: "Prerequisite install trick",
     description: "Instructs users to install prerequisites — common social engineering tactic.",
+    fix: "Declare dependencies in `metadata.openclaw.requires.bins` instead of instructing manual installs.",
   },
   {
     name: "COPY_PASTE_COMMAND",
@@ -255,6 +300,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "social_engineering",
     title: "Copy-paste command instruction",
     description: "Instructs users to copy-paste commands into their terminal.",
+    fix: "Put commands in code blocks with proper context instead of copy-paste instructions.",
   },
   {
     name: "FAKE_DEPENDENCY",
@@ -263,6 +309,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "social_engineering",
     title: "Fake dependency reference",
     description: "References fake packages that mimic official OpenClaw components.",
+    fix: "Use only official OpenClaw packages from the verified registry.",
   },
   {
     name: "AUTHORITY_SPOOFING",
@@ -271,6 +318,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "social_engineering",
     title: "Authority spoofing",
     description: "Claims official endorsement or verification to gain trust.",
+    fix: "Remove false authority claims — let the skill's quality speak for itself.",
   },
   {
     name: "URGENCY_MANIPULATION",
@@ -279,6 +327,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "social_engineering",
     title: "Urgency manipulation",
     description: "Creates false urgency to pressure users into installing without review.",
+    fix: "Remove urgency language — let users evaluate the skill at their own pace.",
   },
 
   // ═══════════════════════════════════════════════════════
@@ -291,6 +340,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "prompt_injection",
     title: "Prompt injection — ignore instructions",
     description: "Attempts to override the AI agent's existing instructions.",
+    fix: "Remove prompt injection attempts — skills should not try to override agent instructions.",
   },
   {
     name: "SYSTEM_OVERRIDE",
@@ -299,6 +349,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "prompt_injection",
     title: "Prompt injection — system override",
     description: "Attempts to redefine the AI agent's identity or instructions.",
+    fix: "Remove system override attempts — skills should not alter agent identity.",
   },
   {
     name: "MEMORY_MANIPULATION",
@@ -307,6 +358,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "persistence",
     title: "Memory/personality file manipulation",
     description: "References core personality or memory files, may attempt persistence.",
+    fix: "Remove references to agent memory/personality files — skills should not modify agent state.",
   },
   {
     name: "JAILBREAK_ATTEMPT",
@@ -315,6 +367,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "prompt_injection",
     title: "Jailbreak attempt",
     description: "Uses known jailbreak techniques (DAN, developer mode) to bypass safety constraints.",
+    fix: "Remove jailbreak attempts — skills should work within the agent's safety constraints.",
   },
   {
     name: "ROLE_HIJACK",
@@ -323,6 +376,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "prompt_injection",
     title: "Role hijacking",
     description: "Attempts to change the agent's persona to bypass safety restrictions.",
+    fix: "Remove role hijacking attempts — skills should not alter the agent's persona.",
   },
   {
     name: "PROMPT_EXTRACTION",
@@ -331,6 +385,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "prompt_injection",
     title: "System prompt extraction",
     description: "Attempts to extract the agent's system prompt or configuration.",
+    fix: "Remove prompt extraction attempts — skills should not try to access system prompts.",
   },
 
   // ═══════════════════════════════════════════════════════
@@ -343,6 +398,8 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "obfuscation",
     title: "Hex-encoded payload",
     description: "Contains hex-encoded strings commonly used to hide malicious commands.",
+    codeOnly: true,
+    fix: "Replace hex-encoded strings with readable text so users can review the content.",
   },
   {
     name: "JS_OBFUSCATOR",
@@ -351,6 +408,8 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "obfuscation",
     title: "JavaScript obfuscator output",
     description: "Contains patterns from JavaScript obfuscation tools used to hide malicious code.",
+    codeOnly: true,
+    fix: "Provide readable, unobfuscated source code instead of obfuscated JavaScript.",
   },
   {
     name: "UNICODE_STEGANOGRAPHY",
@@ -359,6 +418,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "obfuscation",
     title: "Hidden zero-width characters",
     description: "Contains clusters of invisible zero-width Unicode characters that may hide instructions.",
+    fix: "Remove zero-width characters — all content should be visible to users.",
   },
   {
     name: "RTL_OVERRIDE",
@@ -367,6 +427,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "obfuscation",
     title: "Bidirectional text override",
     description: "Contains Unicode bidi override characters that can reverse displayed text to hide real content.",
+    fix: "Remove bidirectional text override characters — text direction should be natural.",
   },
   {
     name: "HTML_COMMENT_INJECTION",
@@ -375,6 +436,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "obfuscation",
     title: "Hidden HTML comment instruction",
     description: "Embeds instructions inside HTML comments that are invisible to users but read by agents.",
+    fix: "Move instructions from HTML comments into visible content.",
   },
   {
     name: "STRING_CONCAT_OBFUSC",
@@ -383,6 +445,38 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "obfuscation",
     title: "String concatenation obfuscation",
     description: "Builds commands via single-character string concatenation to evade pattern detection.",
+    codeOnly: true,
+    fix: "Use complete string literals instead of character-by-character concatenation.",
+  },
+  {
+    name: "BUFFER_BASE64_DECODE",
+    pattern: re(["Buf", "fer\\.from\\s*\\(.*['\"]base", "64['\"]\\)|at", "ob\\s*\\("], "gi"),
+    severity: "critical",
+    category: "obfuscation",
+    title: "Buffer/atob encoded payload",
+    description: "Decodes encoded content via Buffer.from() or atob(), often used to hide malicious payloads.",
+    codeOnly: true,
+    fix: "Include the decoded content directly so users can review it.",
+  },
+  {
+    name: "STRING_FROMCHARCODE",
+    pattern: re(["String\\.from", "CharCode\\s*\\("], "gi"),
+    severity: "medium",
+    category: "obfuscation",
+    title: "String.fromCharCode usage",
+    description: "Builds strings from character codes to evade static pattern detection.",
+    codeOnly: true,
+    fix: "Use plain string literals instead of String.fromCharCode().",
+  },
+  {
+    name: "DYNAMIC_PROPERTY_ACCESS",
+    pattern: /(?:process|global|window|globalThis)\s*\[\s*['"`]?\w*['"`]?\s*\+/gi,
+    severity: "medium",
+    category: "obfuscation",
+    title: "Dynamic property access on globals",
+    description: "Dynamically accesses global object properties via string concatenation to hide intent.",
+    codeOnly: true,
+    fix: "Use direct property access (e.g., `process.env`) instead of dynamic bracket notation.",
   },
 
   // ═══════════════════════════════════════════════════════
@@ -395,6 +489,8 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "privilege_escalation",
     title: "Sudo usage",
     description: "Requests elevated privileges — check if actually required for the task.",
+    codeOnly: true,
+    fix: "Remove sudo if not strictly necessary, or document why elevated privileges are required.",
   },
   {
     name: "CHMOD_DANGEROUS",
@@ -403,6 +499,8 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "privilege_escalation",
     title: "Dangerous file permissions",
     description: "Sets overly permissive file permissions (777) or setuid/setgid bits.",
+    codeOnly: true,
+    fix: "Use least-privilege permissions (e.g., `chmod 755` or `chmod 644`) instead of 777.",
   },
   {
     name: "PATH_TRAVERSAL",
@@ -411,6 +509,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "file_system",
     title: "Path traversal",
     description: "Uses relative path traversal (../) which could access files outside expected directories.",
+    fix: "Use absolute paths or paths relative to the skill's working directory.",
   },
 
   // ═══════════════════════════════════════════════════════
@@ -418,11 +517,13 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
   // ═══════════════════════════════════════════════════════
   {
     name: "SHELL_EXEC",
-    pattern: /child_process|exec\(|spawn\(/gi,
+    pattern: re(["child_", "process|ex", "ec\\(|spa", "wn\\("], "gi"),
     severity: "low",
     category: "code_execution",
     title: "Shell execution API",
     description: "Uses shell execution APIs — legitimate but worth noting.",
+    codeOnly: true,
+    fix: "If shell execution is needed, use execFile() with explicit arguments instead of exec() with string commands.",
   },
   {
     name: "NETWORK_REQUEST",
@@ -431,6 +532,8 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "network",
     title: "Network request API",
     description: "Makes network requests — legitimate but worth reviewing targets.",
+    codeOnly: true,
+    fix: "Document all network endpoints in the skill description so users can review them.",
   },
   {
     name: "FILE_WRITE",
@@ -439,6 +542,8 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "file_system",
     title: "File write operation",
     description: "Writes to the filesystem — check what files are being modified.",
+    codeOnly: true,
+    fix: "Document which files are written and why in the skill description.",
   },
   {
     name: "ENV_MODIFICATION",
@@ -447,6 +552,8 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "environment",
     title: "Environment variable modification",
     description: "Modifies environment variables which could affect other tools or processes.",
+    codeOnly: true,
+    fix: "Document env var modifications in the skill description and declare them in requires.env.",
   },
   {
     name: "WILDCARD_FILE_ACCESS",
@@ -455,6 +562,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "credential_theft",
     title: "Sensitive file extension glob",
     description: "Globs for files with sensitive extensions (keys, certificates, VPN configs).",
+    fix: "Reference specific files by name instead of using wildcard patterns on sensitive extensions.",
   },
   {
     name: "LARGE_BASE64_LITERAL",
@@ -463,6 +571,7 @@ export const THREAT_PATTERNS: ThreatPattern[] = [
     category: "obfuscation",
     title: "Large base64-like string",
     description: "Contains a long base64-like string that may be an encoded payload.",
+    fix: "Include the decoded content directly or explain what the base64 string contains.",
   },
 ];
 

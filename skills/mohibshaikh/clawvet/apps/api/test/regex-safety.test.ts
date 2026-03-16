@@ -39,7 +39,7 @@ eval(b)
 eval(c)
 \`\`\``;
     const result = await scanSkill(content);
-    const evalFindings = result.findings.filter(f => f.title === "Dynamic eval() usage");
+    const evalFindings = result.findings.filter(f => f.title === "Dynamic code evaluation");
     // Each eval() should be its own finding with correct line number
     expect(evalFindings.length).toBe(3);
     // Each should have a different line number
@@ -54,12 +54,13 @@ describe("line number accuracy", () => {
 name: line-test
 ---
 line 4 is safe
-line 5 is safe
-line 6: eval(x)
+\`\`\`js
+eval(x)
 line 7 is safe
-line 8: eval(y)`;
+eval(y)
+\`\`\``;
     const result = await scanSkill(content);
-    const evalFindings = result.findings.filter(f => f.title === "Dynamic eval() usage");
+    const evalFindings = result.findings.filter(f => f.title === "Dynamic code evaluation");
     expect(evalFindings.length).toBe(2);
     expect(evalFindings[0].lineNumber).toBe(6);
     expect(evalFindings[1].lineNumber).toBe(8);
@@ -125,6 +126,9 @@ describe("pattern coverage", () => {
       ENV_MODIFICATION: "process.env[",
       WILDCARD_FILE_ACCESS: "*.pem",
       LARGE_BASE64_LITERAL: "A".repeat(120),
+      BUFFER_BASE64_DECODE: "Buffer.from(payload, 'base64')",
+      STRING_FROMCHARCODE: "String.fromCharCode(72)",
+      DYNAMIC_PROPERTY_ACCESS: "process['ev' +",
     };
 
     for (const pattern of THREAT_PATTERNS) {
