@@ -1,11 +1,17 @@
 {
   "owner": "xueyetianya",
   "slug": "data-visualizer",
-  "displayName": "data-visualizer",
+  "displayName": "Data Visualizer",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773195484195,
-    "commit": "https://github.com/openclaw/skills/commit/0b43078372353f869751beafdabf1c3c9aff36d5"
+    "version": "2.3.4",
+    "publishedAt": 1773665645576,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773195484195,
+      "commit": "https://github.com/openclaw/skills/commit/0b43078372353f869751beafdabf1c3c9aff36d5"
+    }
+  ]
 }
