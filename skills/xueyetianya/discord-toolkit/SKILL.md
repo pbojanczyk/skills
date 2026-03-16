@@ -1,10 +1,11 @@
 ---
+version: "2.0.0"
 name: discord-toolkit
 description: "Error: --action required. Use when you need discord toolkit capabilities. Triggers on: discord toolkit, token, guild-id, channel-id, message, user-id."
+author: BytesAgain
 ---
 
 # Discord Toolkit
-
 
 A complete Discord bot management toolkit for sending messages, managing channels and roles, listing guild members, creating rich embeds, managing reactions, and automating server administration — all from the command line using the Discord REST API with a bot token.
 
@@ -28,6 +29,8 @@ Discord Toolkit gives you full programmatic control over your Discord server. Se
 - Invite bot to your server with appropriate permissions
 
 ## Commands
+
+See commands above.
 
 ## Environment Variables
 
