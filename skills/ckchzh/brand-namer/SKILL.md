@@ -1,7 +1,9 @@
 ---
+version: "2.0.0"
 name: Brand Namer
-description: >-
+description: "Brand Namer. Use when you need brand namer capabilities. Triggers on: brand namer."
   品牌命名引擎。中英文品牌名生成、域名检查、商标初筛、品牌故事。Brand name generator with Chinese/English names, domain check, trademark screening. 取名字、公司起名、品牌策划。Use when naming a brand or product.
+author: BytesAgain
 ---
 
 # brand-namer
@@ -45,3 +47,8 @@ bash {{SKILL_DIR}}/scripts/brand.sh story "星沐" "咖啡"
 - 纯本地生成，无需API
 - Python 3.6+ 兼容
 - 输出中英双语
+---
+💬 Feedback & Feature Requests: https://bytesagain.com/feedback
+Powered by BytesAgain | bytesagain.com
+
+- Run `brand-namer help` for all commands
