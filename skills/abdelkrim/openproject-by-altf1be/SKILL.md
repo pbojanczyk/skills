@@ -3,7 +3,7 @@ name: openproject-by-altf1be
 description: "OpenProject CRUD skill — manage work packages, projects, time entries, comments, attachments, statuses, and more via OpenProject API v3 with API token auth. Supports cloud and self-hosted instances."
 homepage: https://github.com/ALT-F1-OpenClaw/openclaw-skill-openproject
 metadata:
-  {"openclaw": {"emoji": "📊", "requires": {"env": ["OP_HOST", "OP_API_TOKEN"]}, "primaryEnv": "OP_HOST"}}
+  {"openclaw": {"emoji": "📊", "requires": {"env": ["OP_HOST", "OP_API_TOKEN"]}, "optional": {"env": ["OP_DEFAULT_PROJECT", "OP_MAX_RESULTS", "OP_MAX_FILE_SIZE"]}, "primaryEnv": "OP_HOST"}}
 ---
 
 # OpenProject by @altf1be
