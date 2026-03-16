@@ -3,11 +3,16 @@
   "slug": "agent-team-skill",
   "displayName": "Agent Team Skill",
   "latest": {
-    "version": "2.0.1",
-    "publishedAt": 1773404932347,
-    "commit": "https://github.com/openclaw/skills/commit/821f7dfa88b8bcd1509ed979b88fd9b103b6f074"
+    "version": "2.1.0",
+    "publishedAt": 1773420522850,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.0.1",
+      "publishedAt": 1773404932347,
+      "commit": "https://github.com/openclaw/skills/commit/821f7dfa88b8bcd1509ed979b88fd9b103b6f074"
+    },
     {
       "version": "1.5.0",
       "publishedAt": 1773126786764,

@@ -62,7 +62,7 @@ def reset_data() -> None:
 
 
 def list_members() -> None:
-    """List all team members in YAML format."""
+    """List all team members in compact format."""
     data = load_data()
     team = data.get("team", {})
 
@@ -70,35 +70,48 @@ def list_members() -> None:
         print("No team members found.")
         return
 
-    print("team:")
-    for member_id, member in team.items():
-        print(f"  - agent_id: {member.get('agent_id', '')}")
-        print(f"    name: {member.get('name', '')}")
-        print(f"    role: {member.get('role', '')}")
-        print(f"    enabled: {str(member.get('enabled', '')).lower()}")
-        
-        tags = member.get("tags", [])
-        print("    tags:")
-        for tag in tags:
-            print(f"      - {tag}")
-        
-        expertise = member.get("expertise", [])
-        print("    expertise:")
-        for exp in expertise:
-            print(f"      - {exp}")
-        
-        not_good_at = member.get("not_good_at", [])
-        print("    not_good_at:")
-        for item in not_good_at:
-            print(f"      - {item}")
+    print("## Team Members")
+    print()
 
-    print(f"# Total: {len(team)} member(s)")
+    for member_id, member in team.items():
+        name = member.get("name", "")
+        role = member.get("role", "")
+        is_leader = member.get("is_leader", False)
+        tags = member.get("tags", [])
+        expertise = member.get("expertise", [])
+        not_good_at = member.get("not_good_at", [])
+
+        # First line: name, role, tags
+        tags_str = ",".join(tags)
+        if is_leader:
+            print(f"**{name}** ⭐ {role} - {tags_str}")
+        else:
+            print(f"**{name}** - {role} - {tags_str}")
+
+        # agent_id line
+        print(f"- agent_id: {member_id}")
+
+        # expertise line
+        if expertise:
+            print(f"- expertise: {','.join(expertise)}")
+
+        # not_good_at line
+        if not_good_at:
+            print(f"- not_good_at: {','.join(not_good_at)}")
+
+        print()
+
+    # Find leader for summary
+    leader = next((m for m in team.values() if m.get("is_leader")), None)
+    leader_info = f", Leader: {leader.get('name')} ({leader.get('agent_id')})" if leader else ""
+    print(f"# Total: {len(team)} member(s){leader_info}")
 
 
 def update_member(
     agent_id: str,
     name: str,
     role: str,
+    is_leader: bool,
     enabled: bool,
     tags: str,
     expertise: str,
@@ -108,10 +121,18 @@ def update_member(
     data = load_data()
     is_new = agent_id not in data["team"]
 
+    # If setting this member as leader, remove leader status from others
+    if is_leader:
+        for existing_id, existing_member in data["team"].items():
+            if existing_id != agent_id and existing_member.get("is_leader"):
+                existing_member["is_leader"] = False
+                print(f"Note: Removed leader status from {existing_member.get('name', existing_id)}")
+
     member = {
         "agent_id": agent_id,
         "name": name,
         "role": role,
+        "is_leader": is_leader,
         "enabled": enabled,
         "tags": [t.strip() for t in tags.split(",") if t.strip()],
         "expertise": [e.strip() for e in expertise.split(",") if e.strip()],
@@ -122,7 +143,8 @@ def update_member(
     save_data(data)
 
     action = "Added" if is_new else "Updated"
-    print(f"{action} member: {name} ({agent_id})")
+    leader_suffix = " (Leader)" if is_leader else ""
+    print(f"{action} member: {name} ({agent_id}){leader_suffix}")
 
 
 def main():
@@ -147,6 +169,10 @@ def main():
     update_parser.add_argument("--agent-id", required=True, help="Member unique ID")
     update_parser.add_argument("--name", required=True, help="Member name")
     update_parser.add_argument("--role", required=True, help="Member role")
+    update_parser.add_argument(
+        "--is-leader", required=True, choices=["true", "false"],
+        help="Is team leader (only one leader allowed per team)"
+    )
     update_parser.add_argument(
         "--enabled", required=True, choices=["true", "false"], help="Is member enabled"
     )
@@ -176,6 +202,7 @@ def main():
             agent_id=args.agent_id,
             name=args.name,
             role=args.role,
+            is_leader=args.is_leader == "true",
             enabled=args.enabled == "true",
             tags=args.tags,
             expertise=args.expertise,
