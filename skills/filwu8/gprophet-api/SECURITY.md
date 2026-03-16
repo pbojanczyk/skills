@@ -18,7 +18,7 @@ The G-Prophet API skill connects to an external service (https://www.gprophet.co
 
 ```bash
 # Add to your shell profile (~/.bashrc, ~/.zshrc, etc.)
-export GPROPHET_API_KEY="gp_sk_your_key_here"
+export GPROPHET_API_KEY="gp_sk_[REDACTED]_key_here"
 ```
 
 **Alternative Methods**:
@@ -130,7 +130,7 @@ This skill provides predictions and analysis for informational purposes only. It
 
 ```bash
 # Use a separate test key
-export GPROPHET_API_KEY="gp_sk_test_your_test_key"
+export GPROPHET_API_KEY="gp_sk_[REDACTED]_your_test_key"
 
 # Test with common symbols
 /gprophet predict AAPL US 7

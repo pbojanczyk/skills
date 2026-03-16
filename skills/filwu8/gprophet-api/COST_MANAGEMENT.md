@@ -260,7 +260,7 @@ Monthly cost: ~480 points (95% savings)
 ```bash
 # Check current balance and usage
 curl "https://www.gprophet.com/api/external/v1/account/usage" \
-  -H "X-API-Key: gp_sk_your_key"
+  -H "X-API-Key: gp_sk_[REDACTED]_key"
 ```
 
 #### Weekly Usage Report

@@ -1,104 +1,74 @@
-# Release Notes - v1.0.2
+# Release Notes - v1.0.3
 
-## 📚 Documentation & User Experience Update
+## 🔧 ClawHub Metadata Fix
 
-This release significantly enhances documentation and user experience with comprehensive guides for cost management, troubleshooting, and best practices.
+This release fixes the ClawHub security scan warning about missing credential declaration by adding proper frontmatter metadata to SKILL.md and README.md.
 
-## What's New
+## What's Fixed
 
-### New Documentation
+### ClawHub Metadata
+- ✅ **Added SKILL.md frontmatter** with clawdbot metadata
+- ✅ **Added README.md frontmatter** with clawdbot metadata
+- ✅ **Declared GPROPHET_API_KEY** in metadata.clawdbot.requires.env
+- ✅ **Resolved security scan warning** about missing credential declaration
 
-- ✅ **TROUBLESHOOTING.md**: Comprehensive troubleshooting guide with solutions for common issues
-- ✅ **COST_MANAGEMENT.md**: Detailed pricing, budget planning, and cost optimization strategies
-- ✅ **Enhanced README**: Better organization with links to all documentation
+## Why This Matters
 
-### Documentation Improvements
-
-- Added error handling best practices
-- Added rate limiting and quota management information
-- Added monthly budget scenarios for different user types
-- Added cost estimation examples for common workflows
-- Added ROI calculation examples
-- Added billing alert setup instructions
-- Added FAQ section with common questions
-
-## Key Features
-
-### Troubleshooting Guide Includes
-
-- Authentication issues and solutions
-- Billing and points issues
-- Data and symbol issues
-- Performance and timeout issues
-- Data quality issues
-- Integration issues
-- Network and connectivity issues
-- Account and billing issues
-- Comprehensive FAQ
-
-### Cost Management Guide Includes
-
-- Complete points pricing table
-- 5 detailed cost estimation examples
-- 4 monthly budget scenarios (light, active, automated, research)
-- 6 cost optimization strategies
-- Quota management instructions
-- ROI calculation examples
-- Unexpected charges prevention
+ClawHub's security scanner looks for environment variable declarations in the SKILL.md and README.md frontmatter (metadata.clawdbot section), not in _meta.json. This release ensures the credential requirement is properly declared where ClawHub expects it.
 
 ## Breaking Changes
 
-None. This is a documentation update only.
+None. This is a metadata fix only.
 
 ## Migration Guide
 
-If you're upgrading from v1.0.1:
+If you're upgrading from v1.0.2:
 
-1. **Review new documentation**: Check TROUBLESHOOTING.md and COST_MANAGEMENT.md
-2. **Plan your budget**: Use the budget scenarios to estimate your monthly costs
-3. **Optimize your usage**: Review cost optimization strategies
-4. **Set up alerts**: Configure billing alerts at https://www.gprophet.com/dashboard
-5. **No code changes required**: The skill functionality remains unchanged
+1. **No action required** - The skill functionality remains unchanged
+2. **Security warning should disappear** - ClawHub will now recognize the credential requirement
+3. **Installation experience improves** - Users will see proper credential warnings
 
 ## Files Changed
 
-- `README.md`: Enhanced with documentation links
-- `CHANGELOG.md`: Updated with v1.0.2 changes
-- `TROUBLESHOOTING.md`: New comprehensive troubleshooting guide
-- `COST_MANAGEMENT.md`: New cost management and budget planning guide
+- `SKILL.md`: Added frontmatter with clawdbot metadata
+- `README.md`: Added frontmatter with clawdbot metadata
+- `_meta.json`: Updated version to 1.0.3
+- `CHANGELOG.md`: Updated with v1.0.3 changes
+- `RELEASE_NOTES.md`: Updated with v1.0.3 info
 
 ## Verification
 
-To verify the improvements:
+To verify the fix:
 
 ```bash
-# Check new documentation files exist
-ls -la TROUBLESHOOTING.md COST_MANAGEMENT.md
+# Check SKILL.md frontmatter
+head -15 SKILL.md | grep -A 10 "metadata:"
 
-# Review README for documentation links
-cat README.md | grep -A 10 "Documentation"
+# Check README.md frontmatter
+head -15 README.md | grep -A 10 "metadata:"
 
-# Check changelog for version history
-cat CHANGELOG.md | head -30
+# Both should show:
+# metadata:
+#   clawdbot:
+#     requires:
+#       env: ["GPROPHET_API_KEY"]
 ```
 
 ## Next Steps
 
-1. Review the troubleshooting guide for common issues
-2. Use the cost management guide to plan your budget
-3. Set up billing alerts for cost control
-4. Optimize your API usage based on recommendations
-5. Refer to these guides when issues arise
+1. Review the updated documentation
+2. Verify ClawHub security scan passes
+3. Install and test the skill
+4. Provide feedback on improvements
 
 ## Support
 
 - Documentation: https://www.gprophet.com/docs
-- Troubleshooting: See TROUBLESHOOTING.md
-- Cost Questions: See COST_MANAGEMENT.md
+- ClawHub: https://clawhub.ai
 - General Support: support@gprophet.com
 
 ---
 
 **Release Date**: 2026-03-04  
-**Version**: 1.0.2  
-**Previous Version**: 1.0.1
+**Version**: 1.0.3  
+**Previous Version**: 1.0.2

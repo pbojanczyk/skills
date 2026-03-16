@@ -12,7 +12,7 @@ Get up and running with G-Prophet API in 5 minutes.
 
 ```bash
 # Add to your shell profile (~/.bashrc, ~/.zshrc, etc.)
-export GPROPHET_API_KEY="gp_sk_your_key_here"
+export GPROPHET_API_KEY="gp_sk_[REDACTED]_key_here"
 
 # Verify it's set
 echo $GPROPHET_API_KEY
