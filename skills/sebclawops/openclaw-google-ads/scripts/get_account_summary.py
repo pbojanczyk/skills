@@ -11,7 +11,17 @@ from google.ads.googleads.client import GoogleAdsClient
 def get_account_summary(manager_account_id, days=30):
     """Get performance summary for the account."""
     
-    client = GoogleAdsClient.load_from_env()
+    # Load config from env with proto_plus setting
+    config = {
+        "developer_token": os.environ.get("GOOGLE_ADS_DEVELOPER_TOKEN"),
+        "client_id": os.environ.get("GOOGLE_ADS_CLIENT_ID"),
+        "client_secret": os.environ.get("GOOGLE_ADS_CLIENT_SECRET"),
+        "refresh_token": os.environ.get("GOOGLE_ADS_REFRESH_TOKEN"),
+        "login_customer_id": os.environ.get("GOOGLE_ADS_LOGIN_CUSTOMER_ID", "").replace("-", ""),
+        "use_proto_plus": True
+    }
+    
+    client = GoogleAdsClient.load_from_dict(config)
     ga_service = client.get_service("GoogleAdsService")
     
     query = f"""

@@ -1,8 +1,13 @@
-# GAQL (Google Ads Query Language) Examples
+# GAQL Examples
 
-## Common Query Patterns
+## Notes
 
-### Campaign Performance (Last 30 Days)
+- Customer IDs are 10-digit numbers without dashes.
+- Cost fields are returned in micros. Divide by 1,000,000 for currency units.
+- Start with read-only reporting queries before considering any operational change.
+
+## Campaign performance, last 30 days
+
 ```sql
 SELECT
     campaign.id,
@@ -15,9 +20,11 @@ SELECT
     metrics.conversions_value
 FROM campaign
 WHERE segments.date DURING LAST_30_DAYS
+ORDER BY metrics.cost_micros DESC
 ```
 
-### Ad Group Performance
+## Ad group performance
+
 ```sql
 SELECT
     ad_group.id,
@@ -28,17 +35,21 @@ SELECT
     metrics.clicks,
     metrics.cost_micros,
     metrics.ctr,
-    metrics.average_cpc
+    metrics.average_cpc,
+    metrics.conversions
 FROM ad_group
 WHERE segments.date DURING LAST_30_DAYS
+ORDER BY metrics.cost_micros DESC
 ```
 
-### Keyword Performance
+## Keyword performance
+
 ```sql
 SELECT
     ad_group_criterion.criterion_id,
     ad_group_criterion.keyword.text,
     ad_group_criterion.keyword.match_type,
+    campaign.name,
     metrics.impressions,
     metrics.clicks,
     metrics.cost_micros,
@@ -46,36 +57,75 @@ SELECT
     metrics.quality_score
 FROM keyword_view
 WHERE segments.date DURING LAST_30_DAYS
+ORDER BY metrics.cost_micros DESC
 ```
 
-### Search Terms Report
+## Search terms report
+
 ```sql
 SELECT
     search_term_view.search_term,
-    search_term_view.status,
     campaign.name,
+    ad_group.name,
     metrics.impressions,
     metrics.clicks,
     metrics.cost_micros,
     metrics.conversions
 FROM search_term_view
 WHERE segments.date DURING LAST_30_DAYS
+ORDER BY metrics.cost_micros DESC
 ```
 
-### Geographic Performance
+## Zero-conversion keywords with meaningful spend
+
 ```sql
 SELECT
-    geographic_view.country_criterion_id,
-    geographic_view.location_name,
-    metrics.impressions,
-    metrics.clicks,
+    ad_group_criterion.keyword.text,
+    ad_group_criterion.keyword.match_type,
+    campaign.name,
     metrics.cost_micros,
+    metrics.clicks,
+    metrics.impressions,
     metrics.conversions
-FROM geographic_view
+FROM keyword_view
 WHERE segments.date DURING LAST_30_DAYS
+  AND metrics.conversions = 0
+  AND metrics.cost_micros > 5000000
+ORDER BY metrics.cost_micros DESC
 ```
 
-### Device Performance
+## Search terms with spend and no conversions
+
+```sql
+SELECT
+    search_term_view.search_term,
+    campaign.name,
+    metrics.cost_micros,
+    metrics.clicks,
+    metrics.impressions,
+    metrics.conversions
+FROM search_term_view
+WHERE segments.date DURING LAST_30_DAYS
+  AND metrics.conversions = 0
+  AND metrics.cost_micros > 5000000
+ORDER BY metrics.cost_micros DESC
+```
+
+## Conversion actions overview
+
+```sql
+SELECT
+    conversion_action.name,
+    conversion_action.category,
+    conversion_action.status,
+    conversion_action.primary_for_goal,
+    conversion_action.type
+FROM conversion_action
+ORDER BY conversion_action.name
+```
+
+## Device performance
+
 ```sql
 SELECT
     segments.device,
@@ -86,22 +136,42 @@ SELECT
     metrics.conversions_value
 FROM campaign
 WHERE segments.date DURING LAST_30_DAYS
+ORDER BY metrics.cost_micros DESC
 ```
 
-### Daily Performance Trend
+## Geographic performance
+
+```sql
+SELECT
+    geographic_view.country_criterion_id,
+    geographic_view.location_name,
+    metrics.impressions,
+    metrics.clicks,
+    metrics.cost_micros,
+    metrics.conversions,
+    metrics.conversions_value
+FROM geographic_view
+WHERE segments.date DURING LAST_30_DAYS
+ORDER BY metrics.cost_micros DESC
+```
+
+## Daily trend
+
 ```sql
 SELECT
     segments.date,
     metrics.impressions,
     metrics.clicks,
     metrics.cost_micros,
-    metrics.conversions
+    metrics.conversions,
+    metrics.conversions_value
 FROM campaign
 WHERE segments.date DURING LAST_30_DAYS
 ORDER BY segments.date DESC
 ```
 
-### Account Budget Information
+## Account overview
+
 ```sql
 SELECT
     customer.id,
@@ -111,38 +181,3 @@ SELECT
     customer.time_zone
 FROM customer
 ```
-
-## Date Ranges
-
-- `TODAY`
-- `YESTERDAY`
-- `LAST_7_DAYS`
-- `LAST_30_DAYS`
-- `LAST_MONTH`
-- `THIS_MONTH`
-- `CUSTOM_DATE_RANGE` (requires start_date and end_date)
-
-## Status Filters
-
-```sql
-WHERE campaign.status = 'ENABLED'
-WHERE campaign.status IN ('ENABLED', 'PAUSED')
-WHERE ad_group.status != 'REMOVED'
-```
-
-## Cost Calculations
-
-Cost is returned in micros (1/1,000,000 of the currency unit):
-- Divide by 1,000,000 to get actual currency amount
-- Example: 5000000 micros = $5.00 USD
-
-## Common Metrics
-
-- `metrics.impressions` - Number of times ads were shown
-- `metrics.clicks` - Number of clicks on ads
-- `metrics.cost_micros` - Total cost in micros
-- `metrics.conversions` - Number of conversions
-- `metrics.conversions_value` - Total conversion value
-- `metrics.ctr` - Click-through rate
-- `metrics.average_cpc` - Average cost per click
-- `metrics.quality_score` - Quality score (for keywords)
