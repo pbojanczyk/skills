@@ -1,10 +1,10 @@
 ---
 name: CashFlow
-description: "Personal cash flow tracker for managing daily finances. Log income and expenses with notes, check your current balance, view daily and monthly transaction summaries, and browse transaction history. All data stored locally for complete privacy. Perfect for freelancers, students, or anyone who wants simple money tracking without complex apps."
-version: "1.0.0"
+version: "2.0.0"
 author: "BytesAgain"
 tags: ["finance","money","budget","cashflow","expense","income","tracker","personal-finance"]
 categories: ["Finance", "Personal Management", "Productivity"]
+description: "Cashflow - command-line tool for everyday use"
 ---
 
 # CashFlow
@@ -14,7 +14,6 @@ CashFlow is a lightweight personal finance tracker that runs entirely in your te
 ## Why CashFlow?
 
 - **Zero setup**: Works immediately, no configuration needed
-- **Privacy first**: All data stored locally on your machine
 - **Fast logging**: Log transactions in seconds
 - **Clear summaries**: Instant daily and monthly overviews
 - **Portable**: Works on any system with bash and python3
