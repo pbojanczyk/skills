@@ -1,0 +1,11 @@
+{
+  "owner": "parinll",
+  "slug": "gnews",
+  "displayName": "GNews CLI",
+  "latest": {
+    "version": "1.0.7",
+    "publishedAt": 1773562376026,
+    "commit": null
+  },
+  "history": []
+}
