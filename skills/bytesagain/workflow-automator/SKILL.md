@@ -1,14 +1,14 @@
 ---
 name: workflow-automator
-version: 1.1.0
+version: "2.0.0"
 author: BytesAgain
 license: MIT-0
+description: "Workflow Automator - command-line tool for everyday use"
 ---
 
 # Workflow Automator
 
 > OpenClaw-native workflow automation engine — define, run, schedule, and manage task pipelines from the CLI.
-
 
 ## Description
 
