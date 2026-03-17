@@ -3,7 +3,7 @@ name: browser-commerce-base
 description: Browser-first workflow for e-commerce skills on OpenClaw. Use when shopping, comparing products, extracting prices, checking seller/store details, reading logged-in carts/orders, validating coupons, checking delivery availability, or collecting screenshots from Taobao, JD, Pinduoduo, Meituan, Eleme, VIP, SHEIN, Dianping, and similar commerce platforms.
 ---
 
-# Browser Commerce Base
+# Browser e-Commerce
 
 Use this skill as the shared browser workflow for e-commerce tasks.
 
