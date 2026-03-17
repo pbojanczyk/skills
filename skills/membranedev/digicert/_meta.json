@@ -1,0 +1,11 @@
+{
+  "owner": "membranedev",
+  "slug": "digicert",
+  "displayName": "Digicert",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773615750452,
+    "commit": null
+  },
+  "history": []
+}
