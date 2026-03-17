@@ -2,10 +2,9 @@
 
 # Auto-Study
 
-Auto study skill 是一个面向 **网页学习平台** 像是 **雨课堂、学习通、Pintia** 或其他 **答题场景** 的 agent skill
-。让 agent 学会在浏览器中使用学习平台、读取文本或图片、返回答案、选择选项、进行填空等操作。使用独立的浏览器 profile 保持登录状态，减少潜在的安全问题，并支持后台运行。
+Auto study skill 是一个面向 **网页学习平台** 像是 **雨课堂、学习通、pintia** 或其他 **答题场景** 的 agent skill。让 agent 学会在浏览器中使用学习平台、读取文本或图片、返回答案、选择选项、进行填空等操作。使用独立的浏览器 profile 保持登录状态，减少潜在的安全问题，并支持后台运行。
 
-目前支持 **Windows** 或 **WSL** 环境，浏览器支持 **windows chrome**
+目前支持 **Windows** 或 **WSL** 环境，浏览器支持 **Windows Chrome**
 
 ## 效果预览
 
@@ -19,17 +18,31 @@ https://github.com/user-attachments/assets/816565a6-a28b-4a12-a4c5-e75b99978868
 
 `user: 打开学习通`
 
-`user: 做 24.1-24.3 的章节测验，做完直接提交`
+`user: 做 10.1-10.5 的章节测验，直接提交`
 
-*wait for some time...*
+> *wait for some time...*
 
 `agent:`
+
 ```text
-24.1 - 24.3 已做完，章节测验结果：
- - 24.1：100分
- - 24.2：100分
- - 24.3：100分
+10.1 - 10.5 的章节测验都已经做完并提交了喵～
+- 10.1：100 分
+- 10.2：100 分
+- 10.3：100 分
+- 10.4：100 分
+- 10.5：100 分
+
+我还把每一节的截图和答案记录都存好了：
+- quiz/markdown/xuexitong-10.1-以法治为重器：法治的价值定位.md
+- quiz/markdown/xuexitong-10.2-以系统为谋划：法治的推进战略.md
+- quiz/markdown/xuexitong-10.3-以世界为方法：法治的世界结构（上）.md
+- quiz/markdown/xuexitong-10.4-以世界为方法：法治的世界结构（下）.md
+- quiz/markdown/xuexitong-10.5-以中国为目的：法治的中国语境.md
 ```
+
+>  自动生成 markdown，截取题目，分析答案，记录分数
+
+<img width="1632" height="1773" alt="Image" src="https://github.com/user-attachments/assets/96d5dbff-6cd3-45dc-9957-d2a094b141ba" />
 
 **其他使用方式**
 
@@ -57,7 +70,7 @@ https://github.com/user-attachments/assets/816565a6-a28b-4a12-a4c5-e75b99978868
 
 #### 安装依赖
 
-- **Google Chrome**（Windows）
+- Google Chrome (Windows)
 - [Agent Browser CLI](https://github.com/vercel-labs/agent-browser)
 - [Agent Browser Skill](https://clawhub.ai/MaTriXy/agent-browser-clawdbot)
 
@@ -82,20 +95,20 @@ https://github.com/user-attachments/assets/816565a6-a28b-4a12-a4c5-e75b99978868
 ## 详细策略
 
 - [SKILL.md](SKILL.md) 核心策略
-- [references/xuexitong.md](references/xuexitong.md) 学习通专用说明
-- [references/yuketang.md](references/yuketang.md) 雨课堂专用说明
-- [references/pintia.md](references/pintia.md) pintia 专用说明
+- [references/xuexitong.md](references/xuexitong.md) 学习通专用策略
+- [references/yuketang.md](references/yuketang.md) 雨课堂专用策略
+- [references/pintia.md](references/pintia.md) pintia 专用策略
 - [references/runtime-windows.md](references/runtime-windows.md) Windows 运行说明
 - [references/runtime-wsl.md](references/runtime-wsl.md) WSL 运行说明
-- [references/browser.md](references/browser.md) 浏览器说明
+- [references/browser.md](references/browser.md) 浏览器相关说明
 
 ## 合规使用
 
 使用这个 skill 时，需要自行确保符合法律法规、学校或机构规则以及平台服务条款
 
-这个 skill 的设计目标是：**知识学习、普通练习、网页答题辅助**
+这个 skill 的设计目标是：**知识学习、普通测验、网页答题辅助**
 
-不要用于 **监考考试、未授权访问、绕过技术限制或其他不被允许的自动化**
+不要用于 **正式考试，绕过技术限制或其他不被允许的自动化**
 
 ---
 

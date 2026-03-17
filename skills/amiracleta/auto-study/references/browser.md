@@ -8,7 +8,7 @@ Use agent-browser directly as needed. Check the agent-browser skill for details.
 
 ## Default
 
-- The default CDP port is 9344.
+- The default CDP port is 9344 (**not** browser of openclaw).
 - Use a browser profile stored at %LOCALAPPDATA%\AutoStudy\browser.
 
 ## What to do

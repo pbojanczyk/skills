@@ -19,95 +19,62 @@ xuexitong
 
 - Do not enter a full-screen homework page.
 - Do not perform actions that a normal user could not perform.
-- Submit the answers in the same way a normal user would.
-- A confirmation dialog may appear and require one more click to complete the submission.
-- Before submitting, briefly check whether the answers have actually been selected.
-- Do not attempt to redo it unless the user explicitly asks.
+- Use this `references`, you must **strictly** follow the process and guidance (**especially you** - Codex !!!).
 
 ## Chapter quiz
 
-For chapter quizzes opened inside `studentstudy`, do not search the whole outer page blindly.
-The outer page usually only shows the shell and tab bar.
-The real questions are normally three layers deep:
+**Do not skip the process unless explicitly instructed otherwise; just follow it.**
 
-1. outer page: `/mycourse/studentstudy`
-2. main content iframe: `#iframe` → usually `/mooc-ans/knowledge/cards`
-3. work wrapper iframe inside that page: usually an iframe whose `src` contains `/ananas/modules/work/index.html`
-4. real quiz iframe inside the wrapper: `#frame_content` → usually `/mooc-ans/work/doHomeWorkNew...`
+This workflow is mandatory whenever you answer a chapter quiz.
+**Required** order:
+1. `locate questions`
+2. `answering workflow`
+3. `apply answers on page` (if needed)
+4. `submission workflow` (if needed)
 
-Once the real quiz iframe is found, stop exploring the outer shell.
-Prefer one larger DOM read inside the innermost document over many tiny probe steps.
+### Locate Questions
 
-Use this fast order:
+#### Target page structure
+- The title may be `学生学习页面` or `studentstudy`
+- Outer wrapper page: `studentstudy`
+- The top-level page contains the main content `iframe` `#iframe`
 
-1. enter `#iframe`
-2. find the work wrapper iframe
-3. enter `#frame_content`
-4. read the innermost document in one pass
+#### What to do
+- **First**, click a chapter link to enter the target page, or continue if you are already on it.
+- You do not need to analyze the full page; it is enough to detect `studentstudy` and `iframe` -> `#iframe`.
+- If the `#iframe` sub-document title is `视频` instead of `章节测验`, click `章节测验` to switch from the video page to the quiz page, with a URL like `/mooc-ans/knowledge/cards?...&num=1...`.
 
-Inside the innermost document, prefer these targets:
+### Answering Workflow
 
-- quiz status: `.testTit_status`, `.newTestTitle`, `.achievement`
-- title block: `.ceyan_name`
-- form: `#form1`
-- normalized question blocks: `#form1 .TiMu.newTiMu`
-- fallback question blocks only if needed: `#form1 .singleQuesId`
-- stem: `.Zy_TItle`
-- options: `li.font-cxsecret.before-after`
-- option marker and value carrier: `.num_option`
-- answer input: `#answer<questionId>`
-- answer type: `#answertype<questionId>`
-- submit trigger: `a.btnSubmit` or page function `btnBlueSubmit()`
+1. Take a full-page(with --full) screenshot and immediately save the picture to `workspace/quiz/picture//[platform(xuexitong)]-[chapter].xxx` before doing anything else.
+2. Read the questions from the screenshot rather than from the DOM, then immediately record them in markdown and save the file to `workspace/quiz/markdown/[platform(xuexitong)]-[chapter].md`(for example `xuexitong-10.3-以世界为方法.md`) before moving to the next step.
+3. Read the markdown file, carefully analyze each question one by one, and immediately append the final answers to the end of the file before proceeding any further.
 
-Important details:
+### Apply Answers On Page (if required)
 
-- `.TiMu.newTiMu` is usually the real readable block. `.singleQuesId` often mirrors the same question and can cause duplicate counting.
-- Do not judge selection only by visible highlight classes. Prefer checking whether the hidden answer input `#answer<questionId>` was updated. For many choice questions, the chosen option also gets class `check_answer`.
-- For judgment questions, the visible labels may be `A/B`, but the actual option values are often `.num_option[data="true"]` and `.num_option[data="false"]` for `对/错`.
-- Before submitting, briefly verify that each intended answer is already reflected in the corresponding hidden answer input.
+- **Do not** apply answers on page until the markdown file has been created and the final answers have been appended to it.
 
-Submission flow:
+1. Actual `iframe` path to the quiz content
+   `#iframe` -> `work/index.html` -> `#frame_content` -> `doHomeWorkNew`
+2. In the innermost document, locate the question blocks.
+   Prefer `#form1` `.TiMu.newTiMu`.
+3. Inside each question block, locate the target option.
+   The option node is usually `li.font-cxsecret.before-after`.
+   The option label is usually in `.num_option`, such as A or B.
+4. Before clicking, check whether it is already selected.
+   Avoid duplicate clicks.
+5. After each applied answer, verify that the hidden answer input for that question matches the intended markdown answer.
 
-1. trigger the innermost page submit control
-2. if needed, call the page's native submit path rather than inventing a custom flow
-3. confirm the outer dialog, usually top document `#popok`
-4. verify success from the result page, usually by one of:
-   - URL containing `selectWorkQuestionYiPiYue`
-   - status text `已完成`
-   - score text such as `本次成绩`
+### Submission Workflow (if required)
 
-After submission, do not keep re-scanning the directory or outer shell if the result page already clearly shows completion.
+- **Do not** submit until the applied answers on page have been verified against the markdown answers.
 
-## Text obfuscation
-
-- If the text is obfuscated or appears as garbled pseudo-Chinese, infer the intended meaning directly and don't taking a screenshot.
-
-For example
-
-```text
-运用阶媺分析媻来判断媹嫀我们的朋友、媹嫀我们的敌人,对于革命至关重要。以下哪本隗嫀马克思媾义阶媺分析媻的经典?
-A
-《嫅国媯偸嫄媭媺的分嫃》
-B
-《嫇嫆论》
-C
-《嫉嫈论》
-D
-《嫏南溓裊嫎媥嫊察报嫍》
-```
-
-can infer to:
-
-```text
-运用阶级分析法来判断谁是我们的朋友、谁是我们的敌人，对于革命至关重要。以下哪本书是马克思主义阶级分析法的经典？
-
-选项：
-- A 《中国社会各阶级的分析》
-- B 《矛盾论》
-- C 《实践论》
-- D 《湖南农民运动考察报告》
-```
-
-## Note
-
-It is normal for an AI assistant to make mistakes on some questions.
+1. **Submission cannot be undone**, so carefully verify that **all options** have `check_answer` or that the hidden answer input `answer<questionId>` already has a value.
+2. Trigger the native submit control on the innermost page.
+   Prefer clicking `a.btnSubmit` on the page.
+   If the page uses a built-in function flow, you may also call the native submit flow, such as `btnBlueSubmit()`.
+3. Handle the confirmation popup.
+   A second confirmation dialog usually appears, often in an outer document.
+   Check the confirm button in the top-level or outer page, such as `#popok`, then confirm again.
+4. If the innermost URL changes to include `selectWorkQuestionYiPiYue`, submission is successful.
+5. Finally, write the actual score at the end of the markdown file you just created.

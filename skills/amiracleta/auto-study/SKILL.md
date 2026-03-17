@@ -1,11 +1,11 @@
 ---
 name: auto-study
-description: Use for browser-based study, quiz, and practice tasks. Best for Yuketang, Xuexitong, Pintia, and similar learning or question pages where you need a persistent profile, a CDP connection through agent-browser, and concise answer or page-action help.
+description: Use when handling browser-based study tasks on platforms like Yuketang, Xuexitong, and Pintia, including quiz answering and page actions.
 metadata:
   openclaw:
     emoji: "🎓"
-    category: "study"
-    tags: ["study platform", "practice", "quiz", "automation tasks"]
+    category: ["study", "browser automation"]
+    tags: ["study platform", "practice", "quiz", "browser automation"]
 ---
 
 # auto-study
@@ -30,9 +30,7 @@ This skill provides a browser workflow for study platforms during ordinary pract
 
 - If the user asks for page actions, apply them sequentially with short pauses, usually around 0.1 seconds.
 
-- If the question is presented as an image, read the image directly.
-
-- If the DOM-visible text is obfuscated, encrypted, or obvious gibberish, try to infer the meaning first. If you still cannot make sense of it completely, take a screenshot to answer.
+- If the question is presented as an image, read the image directly **instead of** trying to extract text from it.
 
 - Reuse the same browser profile for the same site when login state matters.
 
@@ -44,11 +42,11 @@ This skill provides a browser workflow for study platforms during ordinary pract
 
 - Do not rely on actions that a normal user could not perform. Prefer the normal user flow whenever possible.
 
-- Keep answers short and easy to scan.
-
 - Do not submit automatically unless the user explicitly asks for it.
 
-- Just infer answer directly, do not search the web unless the user explicitly asks for it.
+- Keep answers short and easy to scan.
+
+- Just carefully analyze answer, do not search the web unless the user explicitly asks for it.
 
 ## Output rules
 
@@ -86,6 +84,6 @@ Return only the expected word or phrase.
 
 ## Prerequisites
 
-- **Google Chrome**（Windows）
+- Google Chrome (on Windows)
 - [Agent Browser CLI](https://github.com/vercel-labs/agent-browser)
 - [Agent Browser Skill](https://clawhub.ai/MaTriXy/agent-browser-clawdbot)
