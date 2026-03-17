@@ -1,6 +1,8 @@
 ---
+version: "2.0.0"
 name: clip-history
 description: "Clipboard history manager with pinning and search. Use when you need to save clipboard entries, search clipboard history, pin important items, or retrieve previously copied text. Triggers on: clipboard, copy, paste, clipboard history, clip."
+author: BytesAgain
 ---
 
 # Copyq
@@ -11,7 +13,7 @@ Clipboard Manager — clipboard history & tools
 
 - Designed for personal daily use — simple and practical
 - No external dependencies — works with standard system tools
-- Data stored locally — your data stays on your machine
+ — your data stays on your machine
 - Original implementation by BytesAgain
 
 ## Commands

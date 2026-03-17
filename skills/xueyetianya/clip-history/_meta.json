@@ -3,9 +3,15 @@
   "slug": "clip-history",
   "displayName": "Clip History",
   "latest": {
-    "version": "2.3.0",
-    "publishedAt": 1773448360577,
-    "commit": "https://github.com/openclaw/skills/commit/da50977293ccba5fc207ca3e9aa14346ad0c5975"
+    "version": "2.3.5",
+    "publishedAt": 1773665200746,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "2.3.0",
+      "publishedAt": 1773448360577,
+      "commit": "https://github.com/openclaw/skills/commit/da50977293ccba5fc207ca3e9aa14346ad0c5975"
+    }
+  ]
 }
