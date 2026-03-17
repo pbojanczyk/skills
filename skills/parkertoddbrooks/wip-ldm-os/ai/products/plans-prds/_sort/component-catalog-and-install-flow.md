@@ -16,7 +16,7 @@ Three products exist. None of them know about each other at install time. If som
 | Product | What it is | npm | Repo |
 |---------|-----------|-----|------|
 | **LDM OS** | The runtime. Extensions, identity, boot, harness wiring. | `@wipcomputer/wip-ldm-os` | `wipcomputer/wip-ldm-os` |
-| **Memory Crystal** | Memory. Persistent search, capture, Dream Weaver. | `memory-crystal` | `wipcomputer/memory-crystal` |
+| **Memory Crystal** | Memory. Persistent search, capture, Dream Weaver. | `@wipcomputer/memory-crystal` | `wipcomputer/memory-crystal` |
 | **AI DevOps Toolbox** | Dev tools. Release, deploy, license, repo management, file guard. | `@wipcomputer/universal-installer` | `wipcomputer/wip-ai-devops-toolbox` |
 
 Agent Pay exists but isn't installable yet. It shows in the catalog as "coming soon."
@@ -130,7 +130,7 @@ LDM OS ships with a built-in catalog file. Not a remote registry. A local JSON t
       "id": "memory-crystal",
       "name": "Memory Crystal",
       "description": "Persistent memory for your AI. Search, capture, consolidation.",
-      "npm": "memory-crystal",
+      "npm": "@wipcomputer/memory-crystal",
       "repo": "wipcomputer/memory-crystal",
       "recommended": true,
       "status": "stable",

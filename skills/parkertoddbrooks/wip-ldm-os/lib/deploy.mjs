@@ -10,7 +10,7 @@
 
 import { execSync } from 'node:child_process';
 import {
-  existsSync, readFileSync, writeFileSync, cpSync, mkdirSync,
+  existsSync, readFileSync, writeFileSync, copyFileSync, cpSync, mkdirSync,
   lstatSync, readlinkSync, unlinkSync, chmodSync, readdirSync,
   renameSync, rmSync, statSync,
 } from 'node:fs';
@@ -137,7 +137,7 @@ function findExistingInstalls(toolName, pkg, ocPluginConfig) {
 
 function runBuildIfNeeded(repoPath) {
   const pkg = readJSON(join(repoPath, 'package.json'));
-  if (!pkg) return;
+  if (!pkg) return true;
 
   const hasBuildScript = !!pkg.scripts?.build;
   const hasTsConfig = existsSync(join(repoPath, 'tsconfig.json'));
@@ -155,8 +155,10 @@ function runBuildIfNeeded(repoPath) {
       ok(`Build complete`);
     } catch (e) {
       fail(`Build failed: ${e.stderr?.toString()?.slice(0, 200) || e.message}`);
+      return false;
     }
   }
+  return true;
 }
 
 // ── Version comparison (fix #7) ──
@@ -229,9 +231,17 @@ function safeDeployDir(repoPath, destDir, name) {
       } catch {}
     }
 
-    // 3. Verify temp has package.json (basic sanity)
+    // 3. Verify staged copy is valid
     if (!existsSync(join(tempPath, 'package.json'))) {
       fail(`Deploy verification failed: no package.json in staged copy`);
+      rmSync(tempPath, { recursive: true, force: true });
+      return false;
+    }
+
+    // 3b. If source has a build script, verify dist/ exists (#69)
+    const stagePkg = readJSON(join(tempPath, 'package.json'));
+    if (stagePkg?.scripts?.build && !existsSync(join(tempPath, 'dist'))) {
+      fail(`Deploy aborted: ${name} has a build script but no dist/. Build failed or was skipped.`);
       rmSync(tempPath, { recursive: true, force: true });
       return false;
     }
@@ -340,10 +350,37 @@ function installCLI(repoPath, door) {
   // Build if needed (fix #6)
   runBuildIfNeeded(repoPath);
 
+  // Prefer registry install over local install (#37).
+  // npm install -g . creates symlinks back to the source dir (often /tmp/).
+  // npm install -g @scope/pkg copies files. Only fall back to local for unpublished packages.
+  const packageName = pkg?.name;
+  const packageVersion = pkg?.version;
+
+  if (packageName && packageVersion) {
+    try {
+      // Check if this version exists on npm
+      const npmVersion = execSync(`npm view ${packageName}@${packageVersion} version 2>/dev/null`, {
+        encoding: 'utf8',
+        timeout: 15000,
+      }).trim();
+
+      if (npmVersion === packageVersion) {
+        // Install from registry (copies files, no symlinks)
+        execSync(`npm install -g ${packageName}@${packageVersion}`, { stdio: 'pipe', timeout: 60000 });
+        ensureBinExecutable(binNames);
+        ok(`CLI: ${binNames.join(', ')} installed from registry (v${packageVersion})`);
+        return true;
+      }
+    } catch {
+      // Registry check failed, fall through to local install
+    }
+  }
+
+  // Fallback: local install (creates symlinks, but better than nothing)
   try {
     execSync('npm install -g .', { cwd: repoPath, stdio: 'pipe' });
     ensureBinExecutable(binNames);
-    ok(`CLI: ${binNames.join(', ')} installed globally`);
+    ok(`CLI: ${binNames.join(', ')} installed locally (symlinked)`);
     return true;
   } catch (e) {
     const stderr = e.stderr?.toString() || '';
@@ -362,19 +399,12 @@ function installCLI(repoPath, door) {
       try {
         execSync('npm install -g .', { cwd: repoPath, stdio: 'pipe' });
         ensureBinExecutable(binNames);
-        ok(`CLI: ${binNames.join(', ')} installed globally (replaced stale symlink)`);
+        ok(`CLI: ${binNames.join(', ')} installed locally (replaced stale symlink)`);
         return true;
       } catch {}
     }
-    try {
-      execSync('npm link', { cwd: repoPath, stdio: 'pipe' });
-      ensureBinExecutable(binNames);
-      ok(`CLI: linked globally via npm link`);
-      return true;
-    } catch {
-      fail(`CLI: install failed. Run manually: cd "${repoPath}" && npm install -g .`);
-      return false;
-    }
+    fail(`CLI: install failed. Run manually: npm install -g ${packageName || '.'}`);
+    return false;
   }
 }
 
@@ -461,7 +491,9 @@ function verifyOcConfig(pluginDirName) {
 }
 
 function registerMCP(repoPath, door, toolName) {
-  const rawName = toolName || door.name || basename(repoPath);
+  let rawName = toolName || door.name || basename(repoPath);
+  // Strip /tmp/ clone prefixes (ldm-install-, wip-install-)
+  rawName = rawName.replace(/^(ldm-install-|wip-install-)/, '');
   const name = rawName.replace(/^@[\w-]+\//, '');
   const ldmServerPath = join(LDM_EXTENSIONS, name, door.file);
   const ldmFallbackPath = join(LDM_EXTENSIONS, basename(repoPath), door.file);
@@ -523,10 +555,26 @@ function installClaudeCodeHook(repoPath, door) {
   }
 
   const toolName = basename(repoPath);
-  const installedGuard = join(LDM_EXTENSIONS, toolName, 'guard.mjs');
+  const extDir = join(LDM_EXTENSIONS, toolName);
+  const installedGuard = join(extDir, 'guard.mjs');
+
+  // Deploy guard.mjs to ~/.ldm/extensions/{toolName}/ if not already there
+  const srcGuard = join(repoPath, 'guard.mjs');
+  if (!existsSync(installedGuard) && existsSync(srcGuard)) {
+    try {
+      if (!existsSync(extDir)) mkdirSync(extDir, { recursive: true });
+      copyFileSync(srcGuard, installedGuard);
+      // Also copy package.json for metadata
+      const srcPkg = join(repoPath, 'package.json');
+      if (existsSync(srcPkg)) copyFileSync(srcPkg, join(extDir, 'package.json'));
+    } catch (e) {
+      // Non-fatal: fall back to source path
+    }
+  }
+
   const hookCommand = existsSync(installedGuard)
     ? `node ${installedGuard}`
-    : (door.command || `node "${join(repoPath, 'guard.mjs')}"`);
+    : (door.command || `node "${srcGuard}"`);
 
   if (DRY_RUN) {
     ok(`Claude Code: would add ${door.event || 'PreToolUse'} hook (dry run)`);
@@ -646,10 +694,18 @@ export function installSingleTool(toolPath) {
   }
 
   let installed = 0;
+  // Don't store /tmp/ clone paths as source (#54). Use the repo URL from package.json if available.
+  let source = toolPath;
+  const isTmpPath = toolPath.startsWith('/tmp/') || toolPath.startsWith('/private/tmp/');
+  if (isTmpPath && pkg?.repository?.url) {
+    source = pkg.repository.url.replace(/^git\+/, '').replace(/\.git$/, '');
+  } else if (isTmpPath) {
+    source = null; // better than a /tmp/ path
+  }
   const registryInfo = {
     name: toolName,
     version: pkg?.version || 'unknown',
-    source: toolPath,
+    source,
     interfaces: ifaceNames,
   };
 

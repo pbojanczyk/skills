@@ -5,7 +5,7 @@ license: MIT
 interface: [cli, skill]
 metadata:
   display-name: "LDM OS"
-  version: "0.2.10"
+  version: "0.4.12"
   homepage: "https://github.com/wipcomputer/wip-ldm-os"
   author: "Parker Todd Brooks"
   category: infrastructure
@@ -149,10 +149,32 @@ No manual configuration needed. Point it at a repo and it figures out the rest.
 
 ## Update
 
-If LDM OS is already installed:
+If LDM OS is already installed, run `ldm status` BEFORE presenting the summary to the user:
 
 ```bash
-ldm status        # show current version and extensions
+ldm status 2>&1
+```
+
+`ldm status` checks both the CLI and all extensions against npm. It shows:
+- CLI version and whether a newer version exists
+- Extension count and how many have updates available
+- Specific version diffs for each outdated extension
+
+**Use the output of `ldm status` as your summary.** Do not say "up to date" if `ldm status` shows updates available. Do not make your own summary without running `ldm status` first.
+
+When the user asks for a dry run or wants to update, run `ldm install --dry-run` and display the results as a **table**:
+
+```
+| Extension | Current | Available | Package |
+|-----------|---------|-----------|---------|
+| wip-branch-guard | v1.9.30 | v1.9.36 | @wipcomputer/wip-branch-guard |
+| memory-crystal | v0.7.24 | v0.7.26 | @wipcomputer/memory-crystal |
+```
+
+**Always show a table.** Never collapse updates into a paragraph or bullet list. Every update gets its own row. Show ALL updates, not a summary.
+
+When the user says "install":
+```bash
 ldm install       # update all registered extensions
 ldm doctor        # verify everything works
 ```
@@ -174,3 +196,13 @@ LDM OS is the runtime. Skills plug into it:
 - **Bridge** ... `wipcomputer/wip-bridge`
 
 Run `ldm install` anytime to add more skills.
+
+## Claude Code Marketplace
+
+If you're running Claude Code, you can browse and install all LDM OS plugins available from WIP Computer:
+
+```
+/plugin marketplace add wipcomputer/claude-plugins
+```
+
+This adds LDM OS skills to Claude Code's Discover tab alongside Anthropic's official plugins. Install any skill with `/plugin install`.
