@@ -1,0 +1,11 @@
+{
+  "owner": "jolestar",
+  "slug": "coinapi-openapi-skill",
+  "displayName": "CoinAPI OpenAPI Skill",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773707606810,
+    "commit": null
+  },
+  "history": []
+}
