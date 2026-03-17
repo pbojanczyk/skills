@@ -3,11 +3,16 @@
   "slug": "container-inspect",
   "displayName": "Container Inspect",
   "latest": {
-    "version": "1.0.6",
-    "publishedAt": 1773662239028,
-    "commit": "https://github.com/openclaw/skills/commit/81a94218aaffac2a3e2ecb109f397176aea5248d"
+    "version": "1.0.7",
+    "publishedAt": 1773665409232,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.6",
+      "publishedAt": 1773662239028,
+      "commit": "https://github.com/openclaw/skills/commit/81a94218aaffac2a3e2ecb109f397176aea5248d"
+    },
     {
       "version": "1.0.3",
       "publishedAt": 1773575482847,
