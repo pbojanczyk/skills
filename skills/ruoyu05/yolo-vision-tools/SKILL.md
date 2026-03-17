@@ -1,254 +1,416 @@
 ---
 name: yolo-vision-tools
-description: YOLO视觉任务辅助技能 - 提供YOLO模型安装、使用、配置的最佳实践,帮助用户完成图片处理任务。
+description: Use Ultralytics YOLO to perform computer vision tasks, such as detecting people or objects in images and videos, classifying images, estimating human poses, and tracking cars, people, or animals in videos.
+argument-hint: |
+  Use this tool when the user asks to analyze images or videos using YOLO computer vision models (YOLO26, YOLO11, etc.).
+
+  ## Supported Tasks & Trigger Keywords
+
+  ### 1. Object Detection (目标检测)
+  **English Triggers:**
+  - detect objects in this image/video
+  - what objects are in this picture/video
+  - find [object] in this image/video
+  - identify objects in the photo
+  - locate objects in the image
+  - show me what's in this picture
+  - analyze this image for objects
+  - object detection on this video
+  - yolo detection on this image
+  - run yolo on this picture
+  
+  **中文触发词:**
+  - 检测图片/视频中的物体
+  - 图片/视频里有什么东西
+  - 找到图片中的[物体]
+  - 识别图片中的物体
+  - 定位图片中的物体
+  - 显示图片中的内容
+  - 分析图片中的物体
+  - 对视频进行目标检测
+  - 用yolo检测这张图片
+  - 运行yolo分析图片
+
+  ### 2. Instance Segmentation (实例分割)
+  **English Triggers:**
+  - segment objects in this image
+  - extract object masks
+  - highlight object contours
+  - separate objects from background
+  - instance segmentation
+  - object segmentation
+  - mask detection
+  - pixel-level segmentation
+  
+  **中文触发词:**
+  - 分割图片中的物体
+  - 提取物体掩码
+  - 标出物体轮廓
+  - 将物体从背景分离
+  - 实例分割
+  - 物体分割
+  - 掩码检测
+  - 像素级分割
+
+  ### 3. Image Classification (图像分类)
+  **English Triggers:**
+  - classify this image
+  - what category is this image
+  - recognize image type
+  - determine image label
+  - image classification
+  - categorize this picture
+  
+  **中文触发词:**
+  - 对图片进行分类
+  - 图片属于哪一类
+  - 识别图片类型
+  - 确定图片标签
+  - 图像分类
+  - 分类这张图片
+
+  ### 4. Pose Estimation (姿态估计)
+  **English Triggers:**
+  - detect human poses
+  - find skeleton/keypoints
+  - recognize body posture
+  - analyze human movements
+  - pose estimation
+  - body pose detection
+  - human keypoints
+  
+  **中文触发词:**
+  - 检测人体姿态
+  - 找出人体骨架/关键点
+  - 识别身体姿势
+  - 分析人物动作
+  - 姿态估计
+  - 人体姿态检测
+  - 人体关键点
+
+  ### 5. Object Tracking (物体跟踪)
+  **English Triggers:**
+  - track objects in this video
+  - follow movement of objects
+  - monitor object trajectories
+  - track multiple objects
+  - video object tracking
+  - follow cars/people/animals
+  
+  **中文触发词:**
+  - 跟踪视频中的物体
+  - 追踪物体移动
+  - 监测物体轨迹
+  - 跟踪多个物体
+  - 视频物体跟踪
+  - 追踪汽车/行人/动物
+
+  ### 6. Model & Environment (模型与环境)
+  **English Triggers:**
+  - install yolo
+  - setup yolo environment
+  - check yolo installation
+  - which yolo model to use
+  - compare yolo models
+  - yolo model selection
+  - troubleshoot yolo
+  
+  **中文触发词:**
+  - 安装yolo
+  - 设置yolo环境
+  - 检查yolo安装
+  - 使用哪个yolo模型
+  - 比较yolo模型
+  - yolo模型选择
+  - yolo故障排除
+
+  ### 7. Specific Model Requests (特定模型请求)
+  **English Triggers:**
+  - use yolo26/yolo11/yolov8
+  - run yolo26 on this
+  - yolo11 detection
+  - latest yolo model
+  - yolo nano/small/medium/large
+  
+  **中文触发词:**
+  - 使用yolo26/yolo11/yolov8
+  - 用yolo26运行
+  - yolo11检测
+  - 最新yolo模型
+  - yolo nano/small/medium/large版本
+
+  ### 8. General Analysis (通用分析)
+  **English Triggers:**
+  - analyze this image with yolo
+  - yolo vision analysis
+  - computer vision analysis
+  - vision ai detection
+  - ai image analysis
+  
+  **中文触发词:**
+  - 用yolo分析这张图片
+  - yolo视觉分析
+  - 计算机视觉分析
+  - 视觉AI检测
+  - AI图片分析
+
+  ## Quick Examples:
+  - "Detect objects in this image" → 触发
+  - "检测这张图片中的物体" → 触发
+  - "Segment the cars in this video" → 触发
+  - "跟踪视频中的人体姿态" → 触发
+  
 ---
 
-# YOLO视觉任务辅助技能
+# Ultralytics YOLO Vision Tools
 
-**重要提醒**:在使用本技能提供的任何YOLO或SAM指导前,您必须首先了解许可要求。详细许可信息请参见 [references/license_compliance.md](references/license_compliance.md)。
+Ultralytics YOLO is a state-of-the-art computer vision framework supporting multiple tasks including object detection, instance segmentation, image classification, pose estimation, and oriented bounding box detection. This skill provides comprehensive guidance for using YOLO effectively.
 
-## 许可提醒
-首次使用本技能或涉及部署/商业使用时,参考以下的内容格式提醒用户许可要求。
-```
-## Ultralytics 许可提醒
+**Latest Model**: YOLO26 (released January 2026) features end-to-end NMS-free inference and optimized edge deployment. For stable production workloads, both YOLO26 and YOLO11 are recommended.
 
-使用 Ultralytics 技术前请注意以下许可要求：
-- AGPL-3.0：开源项目需整体开源
-- 商业用途：需购买 Ultralytics 企业授权
+## Quick Start
 
-**参考资源**
-- YOLO许可：https://github.com/ultralytics/ultralytics/blob/main/LICENSE
-- YOLO商业授权：https://ultralytics.com/license
+### 1. Installation & Environment Check
 
-**继续使用即表示您已了解并同意遵守相关许可要求。**
+```bash
+# Install/update Ultralytics
+pip install -U ultralytics
+
+# Verify installation and check environment
+yolo checks
 ```
 
-## 快速开始
+The `yolo checks` command validates Python version, PyTorch, CUDA, GPU availability, and all dependencies. For detailed environment troubleshooting, see [Environment Check](./references/environment_check.md) or use the provided environment check script: `python scripts/check_environment.py`.
 
-**详细快速开始指南请参见 [references/quick_start.md](references/quick_start.md)**
+### 2. Basic Usage Examples
 
-### 核心模型选择
-**当前最新版本:YOLO26系列**
+#### Python Interface
 ```python
-# 基础使用示例 根据需求选择模型
-model = YOLO('yolo26n.pt')    # 最快速度
-model = YOLO('yolo26s.pt')    # 平衡性能
-model = YOLO('yolo26m.pt')    # 中等精度
-model = YOLO('yolo26l.pt')    # 最高精度
+from ultralytics import YOLO
+
+# Load a model (YOLO automatically infers task from model)
+model = YOLO("yolo26n.pt")  # or your custom model path
+
+# Predict on various sources
+# By default, outputs are saved to workspace/yolo-vision folder
+results = model("image.jpg")                     # image file → saved to yolo-vision/outputs/images/
+results = model("video.mp4", stream=True)        # video with streaming → saved to yolo-vision/outputs/videos/
+results = model("https://example.com/image.jpg") # URL → saved to yolo-vision/outputs/images/
+results = model(0, show=True)                   # webcam with display → saved to yolo-vision/outputs/videos/
+
+# Custom output directory (optional)
+results = model("image.jpg", project="/custom/path")  # save to custom directory
 ```
 
-### 任务类型快速选择
+#### CLI Interface
+```bash
+# Basic syntax: yolo TASK MODE ARGS
+# By default, outputs are saved to workspace/yolo-vision folder
+yolo predict model=yolo26n.pt source="image.jpg"  # → saved to yolo-vision/runs/detect/predict/
 
-#### 1. 目标检测
+# Task-specific examples
+yolo detect predict model=yolo26n.pt source="video.mp4"  # → saved to yolo-vision/runs/detect/predict/
+yolo segment predict model=yolo26n-seg.pt source="image.jpg"  # → saved to yolo-vision/runs/segment/predict/
+yolo pose predict model=yolo26n-pose.pt source="image.jpg"  # → saved to yolo-vision/runs/pose/predict/
+
+# Custom output directory (optional)
+yolo predict model=yolo26n.pt source="image.jpg" project="/custom/path"  # save to custom directory
+```
+
+### 3. Model Selection
+
+For quick start, use these default models:
+- **Detection**: `yolo26n.pt` (nano), `yolo26s.pt` (small), `yolo26m.pt` (medium)
+- **Segmentation**: `yolo26n-seg.pt`, `yolo26s-seg.pt`, `yolo26m-seg.pt`
+- **Classification**: `yolo26n-cls.pt`, `yolo26s-cls.pt`, `yolo26m-cls.pt`
+- **Pose Estimation**: `yolo26n-pose.pt`, `yolo26s-pose.pt`, `yolo26m-pose.pt`
+- **Oriented Detection**: `yolo26n-obb.pt`, `yolo26s-obb.pt`, `yolo26m-obb.pt`
+
+For complete model list and selection guidance: [Model Names](./references/model_names.md) | [Model Selection](./references/model_selection.md)
+
+## Core Workflow
+
+### Step 1: Understand YOLO Tasks
+YOLO supports five main computer vision tasks. Choose the right task for your application:
+- **Detection**: Identify and localize objects with bounding boxes
+- **Segmentation**: Generate pixel-level masks for objects
+- **Classification**: Categorize entire images
+- **Pose Estimation**: Detect keypoints for pose analysis
+- **Oriented Detection**: Detect rotated objects with angle parameter
+
+Detailed comparison: [Task Types](./references/task_types.md)
+
+### Step 2: Select Appropriate Model
+Consider these factors when selecting a model:
+- **Speed vs. Accuracy**: Nano (fastest) → X (most accurate)
+- **Hardware Constraints**: GPU memory, CPU performance
+- **Application Requirements**: Real-time vs. batch processing
+
+Guidance: [Model Selection](./references/model_selection.md)
+
+### Step 3: Configure Parameters
+Common configuration parameters:
+- `conf`: Confidence threshold (default: 0.25)
+- `iou`: IoU threshold for NMS (default: 0.7)
+- `imgsz`: Input image size (default: 640)
+- `device`: Device ID (`0` for first GPU, `cpu` for CPU)
+- `save`: Save results to disk
+- `show`: Display results in real-time
+
+Complete examples: [Configuration Samples](./references/configuration_samples.md)
+
+### Step 4: Process Results
+YOLO returns `Results` objects containing:
+- `boxes`: Bounding boxes, confidence scores, class labels
+- `masks`: Segmentation masks (for segmentation tasks)
+- `keypoints`: Pose keypoints (for pose estimation)
+- `probs`: Classification probabilities (for classification)
+- `obb`: Oriented bounding boxes (for OBB tasks)
+
+## Advanced Topics
+
+### Training Custom Models
 ```python
-model = YOLO('yolo26s.pt')
-results = model('image.jpg', conf=0.25)
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("yolo26n.pt")
+
+# Train on custom dataset
+results = model.train(data="dataset.yaml", epochs=100, imgsz=640)
 ```
 
-#### 2. 实例分割
+Training guide: [Training Basics](./references/training_basics.md) | [Dataset Preparation](./references/dataset_preparation.md)
+
+### Installation Options
+Multiple installation methods available:
+- **pip**: `pip install -U ultralytics`
+- **Conda**: `conda install -c conda-forge ultralytics`
+- **Docker**: Pre-built images for GPU/CPU environments
+- **From Source**: For development and customization
+
+Detailed instructions: [Installation Guide](./references/installation_guide.md)
+
+### Performance Optimization
+- **Streaming Mode**: Use `stream=True` for videos/long sequences to reduce memory
+- **Batch Processing**: Process multiple images together for efficiency
+- **Hardware Acceleration**: Configure CUDA, TensorRT, or OpenVINO for optimal performance
+
+## Reference Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Environment Check](./references/environment_check.md) | Comprehensive environment validation and troubleshooting |
+| [Installation Guide](./references/installation_guide.md) | All installation methods (pip, Conda, Docker, source) |
+| [Task Types](./references/task_types.md) | Detailed comparison of YOLO tasks and use cases |
+| [Model Names](./references/model_names.md) | Complete YOLO26 model list with specifications |
+| [Model Selection](./references/model_selection.md) | Strategy for choosing models based on requirements |
+| [Configuration Samples](./references/configuration_samples.md) | Parameter configuration examples for various scenarios |
+| [Dataset Preparation](./references/dataset_preparation.md) | Guide for preparing custom datasets for training |
+| [Training Basics](./references/training_basics.md) | Fundamentals of training YOLO models on custom data |
+| [Parameter Reference](./references/parameter_reference.md) | Complete reference for all YOLO configuration parameters |
+
+## Utility Scripts
+
+To save token usage and provide ready-to-use tools, the following Python scripts are available in the `scripts/` directory:
+
+| Script | Description | Usage Example |
+|--------|-------------|---------------|
+| **check_environment.py** | Comprehensive environment diagnostics | `python scripts/check_environment.py` |
+| **config_templates.py** | Ready-to-use configuration templates | `from scripts.config_templates import get_production_config` |
+| **dataset_tools.py** | Dataset preparation and conversion tools | `from scripts.dataset_tools import coco_to_yolo` |
+| **training_helpers.py** | Training, evaluation, and model management | `from scripts.training_helpers import evaluate_model` |
+| **quick_tests.py** | Quick functionality tests | `python scripts/quick_tests.py --test environment` |
+| **model_utils.py** | Model selection and validation utilities | `from scripts.model_utils import select_model` |
+
+**Benefits of using scripts:**
+- **Save tokens**: Large code blocks are extracted from documentation
+- **Ready-to-use**: No need to copy-paste code from documentation
+- **Modular**: Import only what you need
+- **Maintainable**: Scripts can be updated independently
+
+## Troubleshooting
+
+### Common Issues
+
+**Q: `yolo` command not found after installation?**
+A: Try `python -m ultralytics yolo` or check Python environment PATH.
+
+**Q: How to use specific GPU?**
+A: Set `device=0` (first GPU) or `device=cpu` for CPU-only mode.
+
+**Q: Model downloads slowly?**
+A: Set `ULTRALYTICS_HOME` environment variable to control cache location.
+
+**Q: How to filter specific classes?**
+A: Use `classes` parameter: `classes=[0, 2, 5]` (class indices).
+
+**Q: Memory issues with long videos?**
+A: Use `stream=True` to process videos as generators.
+
+**Q: Real-time webcam support?**
+A: Yes, use `source=0` (default camera) with `show=True` for live display.
+
+### Getting Help
+- Run `yolo checks` to diagnose environment issues
+- Check official documentation: https://docs.ultralytics.com
+- Review configuration reference: https://docs.ultralytics.com/usage/cfg/
+
+## Output Directory Convention
+
+### Default Output Location
+When processing images or videos with YOLO, if the user does not specify an output directory, all generated files will be saved to the workspace's `yolo-vision` folder.
+
+### File Organization
+The `yolo-vision` folder will be organized as follows:
+
+```
+yolo-vision/
+├── inputs/            # Original input files (copied for reference)
+├── outputs/           # Processed files with detection results
+│   ├── images/        # Detected images
+│   ├── videos/        # Detected videos  
+│   └── previews/      # Preview images
+├── reports/           # Analysis reports and statistics
+│   ├── json/          # JSON format reports
+│   ├── markdown/      # Markdown format reports
+│   └── csv/           # CSV format data
+├── models/            # Downloaded YOLO models
+│   ├── yolo26/        # YOLO26 models
+│   ├── yolo11/        # YOLO11 models
+│   └── custom/        # Custom trained models
+└── logs/              # Processing logs and debug information
+```
+
+### Automatic Folder Creation
+The skill will automatically:
+1. Create the `yolo-vision` folder if it doesn't exist
+2. Create all subdirectories as needed
+3. Organize files by date and task type
+4. Generate timestamp-based filenames for easy tracking
+
+### Example Usage
 ```python
-model = YOLO('yolo26s-seg.pt')
-results = model('image.jpg', conf=0.3, iou=0.5)
+# Without specifying output directory - uses default yolo-vision folder
+results = model("image.jpg")  # Output saved to yolo-vision/outputs/images/
+
+# With custom output directory
+results = model("image.jpg", save_dir="/custom/path")  # Uses specified path
 ```
 
-#### 3. 图像分类
-```python
-model = YOLO('yolo26n-cls.pt')
-results = model('image.jpg', topk=3)
-```
+### Benefits
+1. **Consistency**: All YOLO outputs in one predictable location
+2. **Organization**: Files automatically categorized by type
+3. **Backup**: Input files are preserved for reference
+4. **Reproducibility**: Easy to find and compare previous analyses
+5. **Clean Workspace**: Prevents clutter in the main workspace directory
 
-#### 4. 姿态估计
-```python
-model = YOLO('yolo26n-pose.pt')
-results = model('image.jpg', conf=0.25)
-```
+### User Override
+Users can still specify custom output directories when needed:
+- By providing a `save_dir` parameter in Python code
+- By using the `--project` flag in CLI commands
+- By setting the `ULTRALYTICS_PROJECT` environment variable
 
-#### 5. 目标跟踪
-```python
-model = YOLO('yolo26s.pt')
-results = model('video.mp4', tracker='botsort.yaml', persist=True)
-```
-
-#### 6. SAM3概念分割
-```python
-# 文本提示分割
-predictor = SAM3SemanticPredictor(overrides=dict(
-    conf=0.25,
-    task="segment",
-    mode="predict",
-    model="sam3.pt",
-    half=True
-))
-predictor.set_image('image.jpg')
-results = predictor(text=['person', 'car', 'dog'])
-
-# 图像示例分割
-results = predictor(bboxes=[[480.0, 290.0, 590.0, 650.0]])
-
-# 视频概念跟踪
-video_predictor = SAM3VideoSemanticPredictor(overrides=dict(
-    conf=0.25,
-    task="segment",
-    mode="predict",
-    model="sam3.pt",
-    half=True
-))
-results = video_predictor(source='video.mp4', text=['person', 'bicycle'], stream=True)
-```
-
-#### 7. YOLO与SAM集成
-```python
-# 级联处理:YOLO检测 + SAM精细分割
-yolo_model = YOLO('yolo26n.pt')
-detections = yolo_model('image.jpg', conf=0.25)
-
-# 提取检测框用于SAM
-boxes = detections[0].boxes.xyxy.cpu().numpy()
-
-sam_predictor = SAM3SemanticPredictor(overrides=dict(
-    conf=0.25,
-    task="segment",
-    mode="predict",
-    model="sam3.pt",
-    half=True
-))
-sam_predictor.set_image('image.jpg')
-segmentation_results = sam_predictor(bboxes=boxes)
-
-# 混合处理:YOLO处理常见类别,SAM处理复杂类别
-def hybrid_analysis(image_path):
-    yolo_model = YOLO('yolo26n.pt')
-    yolo_results = yolo_model(image_path, conf=0.25)
-    
-    sam_predictor = SAM3SemanticPredictor(overrides=dict(
-        conf=0.25,
-        task="segment",
-        mode="predict",
-        model="sam3.pt"
-    ))
-    sam_predictor.set_image(image_path)
-    
-    # YOLO处理常见类别,SAM处理其他
-    common_classes = ['person', 'car', 'dog', 'cat']
-    sam_prompts = ['unusual object', 'rare item', 'special equipment']
-    sam_results = sam_predictor(text=sam_prompts)
-    
-    return {'yolo': yolo_results, 'sam': sam_results}
-```
-
-## 详细指导（按需加载）
-
-### 环境配置
-- **基础安装**:参见 [references/install_environment.md](references/install_environment.md)
-- **硬件加速**:参见 [references/hardware_acceleration.md](references/hardware_acceleration.md)
-
-### 模型选择策略
-- **性能对比与选择**:参见 [references/model_selection.md](references/model_selection.md)
-- **YOLO版本历史**:参见 [references/yolo_history.md](references/yolo_history.md)
-
-### 任务配置详解
-- **完整配置指南**:参见 [references/task_configuration.md](references/task_configuration.md)
-
-### 其他参考资料
-- **性能优化**:参见 [references/performance_optimization.md](references/performance_optimization.md)
-- **视频处理**:参见 [references/video_processing.md](references/video_processing.md)
-- **批量处理**:参见 [references/batch_processing.md](references/batch_processing.md)
-- **结果可视化**:参见 [references/visualize_results.md](references/visualize_results.md)
-- **故障排除**:参见 [references/trouble_shooting.md](references/trouble_shooting.md)
-- **YOLO-SAM集成**:参见 [references/yolo_sam_integration.md](references/yolo_sam_integration.md)
-
-## 使用流程
-
-### 标准响应流程
-1. **许可提醒**:首次使用需提醒许可要求
-2. **需求分析**:了解用户的具体需求
-3. **模型推荐**:根据需求合适模型
-4. **配置指导**:提供具体配置参数
-5. **代码示例**:给出可运行的代码示例
-6. **优化建议**:提供性能优化建议
-
-### 用户提问示例
-- "检测这张图片/视频里有什么物体？"
-- "如何分割图片/视频中的汽车？"
-- "这张图片属于什么类别？"
-- "分析图片/视频中的人体姿态"
-- "跟踪视频中的行人"
-- "分割图片中的所有人物"
-- "图片/视频里有什么"
-- "使用文本提示分割图片中的特定物体"
-- "发送检测后的视频" → 视频转换为H.264编码的MP4格式发送
-
-## 视频处理与格式转换
-### 视频格式转换
-当用户请求将"处理后的视频"发送或"发送检测后的视频"时,建议执行以下流程:
-1. **格式检查**:检查视频是否为AVI格式
-2. **自动转换**:如果是AVI → 转换为MP4格式
-3. **质量优化**:尽可能采用高画质，文件体积过大时考虑降低画质
-4. **发送处理**:发送转换后的MP4文件
-5. **清理**:可选清理临时文件
-
-### 触发条件
-以下用户请求时考虑以H.264编码的MP4格式响应用户请求:
-- "发送处理/检测后的视频" 
-- "分享视频结果"
-- "把视频发给我"
-- "把处理结果发给我"
-
-### 视频发送兼容性重要提示
-**重要**: 通过对话发送视频时，必须确保视频使用H.264编码。MPEG-4编码的视频在对话中发送时可能卡在第一帧。
-
-**解决方案**:
-1. 所有对话输出视频应使用H.264编码（libx264）
-2. 如果视频不是H.264编码，需要重新编码
-3. 使用以下命令检查视频编码：
-   ```bash
-   ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1 video.mp4
-   ```
-4. 如果不是h264，重新编码：
-   ```bash
-   ffmpeg -i input.mp4 -c:v libx264 -crf 23 -preset medium -pix_fmt yuv420p -movflags +faststart output.mp4
-   ```
-
-详细使用说明参见 [视频处理指南](references/video_processing.md)
-
-## AI使用注意事项
-### 针对AI助手的模型使用提醒:
-**重要**:本技能针对AI助手使用有以下明确的声明:
-**注意**:本声明旨在确保AI助手使用最新、最准确的模型版本,避免AI助手使用老旧的YOLO版本。
-1. **最新模型版本**:当前最新版的YOLO模型确信是 **yolo26系列模型**（包括yolo26n, yolo26s, yolo26m, yolo26l, yolo26x等）
-2. **默认模型选择**:在没有用户明确指定模型的情况下,**优先使用yolo26系列模型**作为默认选择
-3. **模型名称参考**:yolo26系列模型名称和性能参数请参考 [references/model_selection.md](references/model_selection.md) 文件
-
-### 示例应用规则
-- 当用户说"检测这张图片"时 → 使用 `yolo26n.pt`（默认轻量级模型）
-- 当用户说"高精度检测"时 → 使用 `yolo26l.pt` 或 `yolo26x.pt`
-- 当用户说"实时检测"时 → 使用 `yolo26n.pt`
-- 当用户未指定模型时 → **优先使用yolo26系列模型**
-
-## 重要注意事项
-### 安全与隐私规范
-- **AI助手需遵守**:参见 [references/security_privacy_guidelines.md](references/security_privacy_guidelines.md)
-
-### 许可合规
-- **提醒许可**:AGPL-3.0许可要求
-- **商业用途**:必须获取正式授权
-- **开源要求**:使用AGPL代码必须开源项目
-
-### 技术限制
-- **模型版本**:优先基于YOLO26系列
-- **硬件要求**:不同模型有不同的硬件需求
-- **精度/速度权衡**:需要根据场景平衡
-
-## 获取帮助
-
-### 官方资源
-- **文档**:https://docs.ultralytics.com
-- **GitHub**:https://github.com/ultralytics/ultralytics
-- **社区**:https://community.ultralytics.com
-
-### 技能维护
-- **问题反馈**:通过ClawHub技能平台反馈
-- **项目链接**:[ClawHub项目](https://clawhub.ai/Ruoyu05/yolo-vision-tools)
 ---
 
-**免责声明**:本技能仅提供技术指导。用户需自行承担使用本技能的法律和商业风险。
+**License Note**: Ultralytics YOLO is available under AGPL-3.0 for open source use and Enterprise License for commercial applications. Review licensing at https://ultralytics.com/license.

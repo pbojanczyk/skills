@@ -3,9 +3,15 @@
   "slug": "yolo-vision-tools",
   "displayName": "yolo-vision-tools",
   "latest": {
-    "version": "1.1.2",
-    "publishedAt": 1773402009314,
-    "commit": "https://github.com/openclaw/skills/commit/27f97850b7555a6a2aae7fb3b8e3a661740b7c0e"
+    "version": "1.2.3",
+    "publishedAt": 1773654793657,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.1.2",
+      "publishedAt": 1773402009314,
+      "commit": "https://github.com/openclaw/skills/commit/27f97850b7555a6a2aae7fb3b8e3a661740b7c0e"
+    }
+  ]
 }
