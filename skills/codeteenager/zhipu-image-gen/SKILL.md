@@ -56,6 +56,7 @@ export ZHIPU_API_KEY="your_api_key_here"
 | `-p, --prompt` | 图片描述（必填） | - |
 | `-s, --size` | 图片尺寸 | 1280x1280 |
 | `-o, --output` | 输出目录 | 当前目录 |
+| `-w, --watermark` | 启用水印 | false |
 | `-h, --help` | 显示帮助 | - |
 
 ### 支持的尺寸

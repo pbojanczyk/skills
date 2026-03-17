@@ -7,6 +7,7 @@ set -e
 # Default values
 DEFAULT_SIZE="1280x1280"
 DEFAULT_MODEL="glm-image"
+DEFAULT_WATERMARK="false"
 API_URL="https://open.bigmodel.cn/api/paas/v4/images/generations"
 
 # Get script directory
@@ -42,6 +43,7 @@ fi
 PROMPT=""
 SIZE="$DEFAULT_SIZE"
 OUTPUT_DIR="."
+WATERMARK="$DEFAULT_WATERMARK"
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -57,14 +59,19 @@ while [[ $# -gt 0 ]]; do
             OUTPUT_DIR="$2"
             shift 2
             ;;
+        -w|--watermark)
+            WATERMARK="true"
+            shift
+            ;;
         -h|--help)
-            echo "Usage: $0 -p <prompt> [-s <size>] [-o <output_dir>]"
+            echo "Usage: $0 -p <prompt> [-s <size>] [-o <output_dir>] [-w]"
             echo ""
             echo "Options:"
-            echo "  -p, --prompt   The image generation prompt (required)"
-            echo "  -s, --size     Image size (default: $DEFAULT_SIZE)"
-            echo "  -o, --output   Output directory (default: current directory)"
-            echo "  -h, --help     Show this help message"
+            echo "  -p, --prompt     The image generation prompt (required)"
+            echo "  -s, --size       Image size (default: $DEFAULT_SIZE)"
+            echo "  -o, --output     Output directory (default: current directory)"
+            echo "  -w, --watermark  Enable watermark (default: false)"
+            echo "  -h, --help       Show this help message"
             echo ""
             echo "Configuration:"
             echo "  Set ZHIPU_API_KEY via environment variable or .env file"
@@ -97,6 +104,7 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 echo "Generating image..."
 echo "Prompt: $PROMPT"
 echo "Size: $SIZE"
+echo "Watermark: $WATERMARK"
 
 RESPONSE=$(curl -s -X POST "$API_URL" \
     -H "Authorization: Bearer $API_KEY" \
@@ -104,7 +112,8 @@ RESPONSE=$(curl -s -X POST "$API_URL" \
     -d "{
         \"model\": \"$DEFAULT_MODEL\",
         \"prompt\": \"$PROMPT\",
-        \"size\": \"$SIZE\"
+        \"size\": \"$SIZE\",
+        \"watermark_enabled\": $WATERMARK
     }")
 
 # Check for errors
