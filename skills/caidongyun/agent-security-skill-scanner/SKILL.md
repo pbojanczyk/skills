@@ -1,7 +1,7 @@
 ---
 name: agent-security-skill-scanner
 description: AI Agent 技能安全扫描器 - 检测恶意技能、后门代码、权限滥用 (Beta 版本)
-version: 2.0.1-beta
+version: 2.2.1
 compatible_agents: ["openclaw >= 2.0.0"]
 author: Security Team
 license: MIT
@@ -17,7 +17,7 @@ permissions:
 # Agent Security Skill Scanner
 
 > **AI Agent 技能安全扫描器**  
-> **版本**: v2.0.1-beta  
+> **版本**: v2.2.1  
 > **状态**: ⚠️ 公开测试版  
 > **更新日期**: 2026-03-14
 
