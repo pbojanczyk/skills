@@ -3,11 +3,16 @@
   "slug": "openclaw-business-guide",
   "displayName": "Openclaw Business Guide",
   "latest": {
-    "version": "1.0.21",
-    "publishedAt": 1773611977535,
-    "commit": "https://github.com/openclaw/skills/commit/eddb35aba9a47a937f25c8cac8950f8afe9d5e68"
+    "version": "1.1.0",
+    "publishedAt": 1773643714378,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.21",
+      "publishedAt": 1773611977535,
+      "commit": "https://github.com/openclaw/skills/commit/eddb35aba9a47a937f25c8cac8950f8afe9d5e68"
+    },
     {
       "version": "1.0.17",
       "publishedAt": 1773611717749,
