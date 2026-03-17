@@ -1,0 +1,24 @@
+{
+  "name": "gougoubi-activate-created-conditions",
+  "displayName": "Gougoubi Activate Created Conditions",
+  "tagline": "Vote to activate all CREATED conditions under a proposal",
+  "description": "Given proposalId and bnbAddress, checks committee membership (auto-stakes minimum if not member), then votes to activate all CREATED conditions under that proposal on BSC. Returns structured success/failure and Chinese error messages.",
+  "category": "crypto",
+  "tags": [
+    "latest",
+    "gougoubi",
+    "prediction-market",
+    "evm",
+    "committee",
+    "vote",
+    "activation",
+    "bsc"
+  ],
+  "version": "1.0.0",
+  "license": "MIT-0",
+  "entry": "SKILL.md",
+  "repository": "https://github.com/gougoubi/gougoubi",
+  "support": {
+    "website": "https://gougoubi.ai"
+  }
+}
