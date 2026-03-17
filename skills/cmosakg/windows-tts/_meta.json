@@ -1,0 +1,11 @@
+{
+  "owner": "cmosakg",
+  "slug": "windows-tts",
+  "displayName": "Windows TTS Notification",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773576530881,
+    "commit": null
+  },
+  "history": []
+}
