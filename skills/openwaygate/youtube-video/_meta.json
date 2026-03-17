@@ -3,9 +3,15 @@
   "slug": "youtube-video",
   "displayName": "YouTube Video",
   "latest": {
-    "version": "0.10.6-3",
-    "publishedAt": 1773364981679,
-    "commit": "https://github.com/openclaw/skills/commit/2b1af615d6a3850481e4e533962eea16673253e3"
+    "version": "0.10.7-dev",
+    "publishedAt": 1773497681252,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.10.6-3",
+      "publishedAt": 1773364981679,
+      "commit": "https://github.com/openclaw/skills/commit/2b1af615d6a3850481e4e533962eea16673253e3"
+    }
+  ]
 }
