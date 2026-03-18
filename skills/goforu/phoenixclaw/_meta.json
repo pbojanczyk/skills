@@ -3,11 +3,16 @@
   "slug": "phoenixclaw",
   "displayName": "phoenixclaw",
   "latest": {
-    "version": "0.0.18",
-    "publishedAt": 1773216535455,
-    "commit": "https://github.com/openclaw/skills/commit/e78aea2205bd672216e6c1dde26e2f054bc3ef2a"
+    "version": "0.0.19",
+    "publishedAt": 1773805821800,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.0.18",
+      "publishedAt": 1773216535455,
+      "commit": "https://github.com/openclaw/skills/commit/e78aea2205bd672216e6c1dde26e2f054bc3ef2a"
+    },
     {
       "version": "0.0.16",
       "publishedAt": 1772264855577,
