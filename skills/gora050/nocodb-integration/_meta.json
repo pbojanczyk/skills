@@ -1,0 +1,11 @@
+{
+  "owner": "gora050",
+  "slug": "nocodb-integration",
+  "displayName": "Nocodb",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773817466308,
+    "commit": null
+  },
+  "history": []
+}
