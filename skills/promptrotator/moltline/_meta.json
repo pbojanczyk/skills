@@ -3,11 +3,16 @@
   "slug": "moltline",
   "displayName": "Moltline",
   "latest": {
-    "version": "1.0.10",
-    "publishedAt": 1771818482103,
-    "commit": "https://github.com/openclaw/skills/commit/7e5d6baa6c67e777107576da3eaad1f3fe79ccf8"
+    "version": "1.0.11",
+    "publishedAt": 1773685532922,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.10",
+      "publishedAt": 1771818482103,
+      "commit": "https://github.com/openclaw/skills/commit/7e5d6baa6c67e777107576da3eaad1f3fe79ccf8"
+    },
     {
       "version": "1.0.8",
       "publishedAt": 1770020959222,
