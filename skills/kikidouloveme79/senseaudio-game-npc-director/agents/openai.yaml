@@ -1,0 +1,4 @@
+interface:
+  display_name: "Game NPC Director"
+  short_description: "Build ASR-driven, relation-aware NPC voice lines and events"
+  default_prompt: "Use $senseaudio-game-npc-director to transcribe player speech when needed, generate NPC lines for this game scene, synthesize them with one consistent voice, and when the user asks to直接听或逐条发语音, automatically send the generated NPC lines one by one as Feishu audio messages instead of replying with file paths."
