@@ -1,0 +1,11 @@
+{
+  "owner": "odrobnik",
+  "slug": "post",
+  "displayName": "Post",
+  "latest": {
+    "version": "1.5.0",
+    "publishedAt": 1773762161577,
+    "commit": null
+  },
+  "history": []
+}
