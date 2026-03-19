@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """
-Soul Memory System v3.4.1 - Core Orchestrator
+Soul Memory System v3.6.1 - Core Orchestrator
 智能記憶管理系統 + 語義緩存 + 動態上下文窗口 + OpenClaw 2026.3.7 深度集成
 
 Author: Li Si (李斯)
 Date: 2026-03-09
 
-v3.4.1 - Bugfix: vector_search min_score 支持 + cli.py dict 兼容
+v3.6.1 - Add typed memory focus injection, distilled summaries, and audit logging
+v3.6.0 - Fix CLI pure JSON output, prefer last user message for memory query, improve plugin injection reliability
+v3.5.2 - Query extraction and long-term archive improvements
 v3.4.0 - 語義緩存層 + 動態上下文窗口 + 多引擎協同
 v3.3.4 - 查詢過濾優化（跳過問候語/簡單命令）
 v3.3.3 - 每日快取自動重建（跨日索引更新）
@@ -53,27 +55,14 @@ class MemoryQueryResult:
     priority: str
 
 
+from modules.soul_merge import merge_memory, get_context_for_label
+
 class SoulMemorySystem:
     """
-    Soul Memory System v3.4.0
-
-    Features:
-    - Priority-based memory management [C]/[I]/[N]
-    - Semantic keyword search (local, no external APIs)
-    - Dynamic category classification
-    - Automatic version control
-    - Memory decay & cleanup
-    - Pre-response auto-trigger
-    - Cantonese (廣東話) Grammar Branch v3.1.0
-    - Keyword Mapping v3.3 (分層權重系統)
-    - Semantic Dedup v3.3 (語意相似度去重)
-    - Multi-Tag Index v3.3 (多標籤索引)
-    - NEW v3.4.0: Semantic Cache Layer (語義緩存層)
-    - NEW v3.4.0: Dynamic Context Window (動態上下文窗口)
-    - NEW v3.4.0: Multi-Engine Collaboration (多引擎協同)
+    Soul Memory System v3.6.1
     """
 
-    VERSION = "3.4.1"
+    VERSION = "3.6.1"
 
     def __init__(self, base_path: Optional[str] = None):
         """Initialize memory system"""
@@ -98,6 +87,20 @@ class SoulMemorySystem:
         self.semantic_cache = get_cache(self.cache_path / "semantic_cache.json")
         self.context_window = get_context_window()
 
+        # v3.5.0: Long-term Soul Archive
+        self.soul_memory_path = self.base_path / "soul_memory.md"
+        if not self.soul_memory_path.exists():
+            self.soul_memory_path.write_text("# Soul Memory - 最終儲存庫 (v3.6.1)\n", encoding='utf-8')
+
+        self.indexed = False
+
+    def update_soul_memory(self, label: str, content: str):
+        """v3.5.0: Incremental merge into long-term archive"""
+        current_mem = self.soul_memory_path.read_text(encoding='utf-8')
+        updated = merge_memory(current_mem, content, label)
+        self.soul_memory_path.write_text(updated, encoding='utf-8')
+        print(f"💾 Soul Merge SUCCESS: soul\"{label}\" updated.")
+        # Rebuild index if needed
         self.indexed = False
 
     def initialize(self):
@@ -215,10 +218,21 @@ class SoulMemorySystem:
         
         return result_dicts
 
+    def get_auto_context(self, query: str) -> str:
+        """v3.5.1: Get dynamic soul context with tag swapping"""
+        return get_memory_context(self, query)
+
     def add_memory(self, content: str, auto_categorize: bool = True) -> str:
-        """Add memory (implementation remains the same)"""
-        # ... (existing code)
-        return "memory_id"
+        """v3.5.0: Enhanced add_memory with soul merge support"""
+        memory_id = super().add_memory(content, auto_categorize)
+        
+        # Check for soul"..." tag
+        match = re.search(r'soul"([^"]+)"', content)
+        if match:
+            label = match.group(1)
+            self.update_soul_memory(label, content)
+            
+        return memory_id
 
     def get_stats(self) -> Dict[str, Any]:
         """Get system statistics"""

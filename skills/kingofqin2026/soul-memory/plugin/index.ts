@@ -2,7 +2,7 @@
  * Soul Memory Plugin for OpenClaw
  * 
  * Automatically injects Soul Memory search results before each response
- * using the before_prompt_build Hook.
+ * using the before_prompt_build Hook. v3.6.1 adds typed memory focus injection, distilled summaries, and audit logging.
  */
 
 import { exec } from 'child_process';
@@ -30,53 +30,127 @@ interface MemoryResult {
  */
 async function searchMemories(query: string, config: SoulMemoryConfig): Promise<MemoryResult[]> {
   try {
+    const escapedQuery = query.replace(/"/g, '\\"');
     const { stdout } = await execAsync(
-      `python3 /root/.openclaw/workspace/soul-memory/cli.py search "${query}" --top_k ${config.topK} --min_score ${config.minScore}`,
-      { timeout: 5000 } // 5 second timeout
+      `python3 /root/.openclaw/workspace/soul-memory/cli.py search "${escapedQuery}" --top_k ${config.topK} --min_score ${config.minScore}`,
+      { timeout: 5000 }
     );
 
-    // Parse JSON output
-    const results = JSON.parse(stdout || '[]');
-    return Array.isArray(results) ? results : [];
+    const trimmed = (stdout || '').trim();
+    if (!trimmed) return [];
+
+    try {
+      const results = JSON.parse(trimmed);
+      return Array.isArray(results) ? results : [];
+    } catch {
+      const match = trimmed.match(/(\[[\s\S]*\]|\{[\s\S]*\})/);
+      if (match) {
+        const recovered = JSON.parse(match[1]);
+        return Array.isArray(recovered) ? recovered : [];
+      }
+      throw new Error(`Non-JSON search output: ${trimmed.substring(0, 200)}`);
+    }
   } catch (error) {
-    // Silently fail on errors to avoid breaking the agent
     console.error('[Soul Memory] Search failed:', error instanceof Error ? error.message : String(error));
     return [];
   }
 }
 
-/**
- * Build memory context string from results with marking
- * Uses SoulM delimiters to enable cleanup on next injection
- */
+
+
+type MemoryBucket = 'User' | 'QST' | 'Config' | 'Recent' | 'Project' | 'General';
+
+function normalizeText(text: string): string {
+  return (text || '')
+    .replace(/[`*_#>-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function summarizeText(text: string, maxLen: number = 160): string {
+  const normalized = normalizeText(text);
+  if (normalized.length <= maxLen) return normalized;
+  return normalized.slice(0, maxLen - 1).trimEnd() + '…';
+}
+
+function classifyMemory(result: MemoryResult): MemoryBucket {
+  const hay = `${result.path || ''} ${result.content || ''}`.toLowerCase();
+
+  if (/(user\.md|identity|preferred name|what to call|timezone|秦王|陛下|偏好|喜歡|user)/.test(hay)) {
+    return 'User';
+  }
+  if (/(qst|varphi|\bphi\b|fractal|spectral|dirac|fsca|torsion|dark matter|e8|theorem|appendix|cosmology)/.test(hay)) {
+    return 'QST';
+  }
+  if (/(config|token|api key|credential|password|gateway|telegram|bot|provider|model|port|dashboard|gmail|openclaw)/.test(hay)) {
+    return 'Config';
+  }
+  if (/(memory\/20\d\d-\d\d-\d\d\.md|today|yesterday|recent|剛才|今天|昨日|latest|last)/.test(hay)) {
+    return 'Recent';
+  }
+  if (/(project|repo|repository|deploy|deployment|issue|pr |pull request|archive|workspace|build)/.test(hay)) {
+    return 'Project';
+  }
+  return 'General';
+}
+
+function groupMemories(results: MemoryResult[]): Record<MemoryBucket, MemoryResult[]> {
+  const grouped: Record<MemoryBucket, MemoryResult[]> = {
+    User: [], QST: [], Config: [], Recent: [], Project: [], General: []
+  };
+
+  for (const result of results) {
+    grouped[classifyMemory(result)].push(result);
+  }
+
+  return grouped;
+}
+
+function formatSource(path?: string): string {
+  if (!path) return '';
+  const short = path.split('/').slice(-2).join('/');
+  return short || path;
+}
+
 function buildMemoryContext(results: MemoryResult[]): string {
   if (results.length === 0) {
     return '';
   }
 
-  // Add marker at the beginning
+  const grouped = groupMemories(results);
+  const bucketOrder: MemoryBucket[] = ['User', 'QST', 'Config', 'Recent', 'Project', 'General'];
   let context = '\nSoulM"';
+  context += '## Memory Focus\n';
 
-  // Build content
-  let content = '';
-  results.forEach((result, index) => {
-    const scoreBadge = result.score > 5 ? '🔥' : result.score > 3 ? '⭐' : '';
-    const priorityBadge = result.priority === 'C' ? '[🔴 Critical]'
-                        : result.priority === 'I' ? '[🟡 Important]'
-                        : '';
+  for (const bucket of bucketOrder) {
+    const items = grouped[bucket];
+    if (!items || items.length === 0) continue;
 
-    content += `${index + 1}. ${scoreBadge} ${priorityBadge} ${result.content}\n`;
-
-    if (result.path && result.score > 3) {
-      content += `   *Source: ${result.path}*\n`;
+    context += `- ${bucket}:\n`;
+    for (const item of items.slice(0, 2)) {
+      const summary = summarizeText(item.content, 150);
+      const source = formatSource(item.path);
+      const sourcePart = source ? ` (${source})` : '';
+      context += `  • ${summary}${sourcePart}\n`;
     }
-    content += '\n';
-  });
+  }
 
-  // Wrap final marker
-  context += content + '"\n';
-
+  context += '"\n';
   return context;
+}
+
+function buildAuditSummary(results: MemoryResult[]): string {
+  const grouped = groupMemories(results);
+  const parts: string[] = [];
+  for (const [bucket, items] of Object.entries(grouped)) {
+    if (items.length > 0) parts.push(`${bucket}:${items.length}`);
+  }
+  const topSources = results
+    .slice(0, 3)
+    .map(r => formatSource(r.path))
+    .filter(Boolean)
+    .join(', ');
+  return `buckets=[${parts.join(' | ')}] topSources=[${topSources}]`;
 }
 
 /**
@@ -129,6 +203,7 @@ function extractQuery(rawMessage: string): string {
 
   // Remove "Conversation info" metadata blocks
   cleaned = cleaned.replace(/Conversation info \(untrusted metadata\):[\s\S]*?\n\n/g, '');
+  cleaned = cleaned.replace(/Sender \(untrusted metadata\):[\s\S]*?\n\n/g, '');
 
   // Remove "System:" messages
   cleaned = cleaned.replace(/^System: \[[\s\S]*?\]$/gm, '');
@@ -302,32 +377,32 @@ export default function register(api: any) {
       return {};
     }
 
-    // CRITICAL: Extract query from prompt, not from messages history
-    // Messages may contain injected memory from previous turns
-    const prompt = event.prompt || '';
+    // v3.6.0: Prefer the actual last user message from messages.
+    // Prompt text may end with system / metadata lines and is less reliable.
+    const messages = event.messages || [];
+    const cleanedMessages = cleanOldMemoryFromMessages(messages);
+    let lastUserMessage = getLastUserMessage(cleanedMessages);
+    let querySource = 'messages';
 
-    // Extract query from the last line of prompt (user's actual question)
-    let userQuery = prompt.trim();
-
-    // Get the last line (user's current question)
-    const lastNewlineIndex = userQuery.lastIndexOf('\n');
-    if (lastNewlineIndex >= 0) {
-      userQuery = userQuery.substring(lastNewlineIndex + 1).trim();
-    }
-
-    // If prompt is empty, try to get from messages as fallback
-    let lastUserMessage = userQuery;
-
-    // v3.3.4 optimization: Skip search for greetings and simple commands
-    if (shouldSkipQuery(userQuery)) {
-      logger.debug(`[Soul Memory] Skipping search for simple query: "${userQuery.substring(0, 50)}"`);
-      return {};
-    }
+    // Fallback: derive from prompt only when user message is unavailable
     if (!lastUserMessage || lastUserMessage.length === 0) {
-      logger.debug('[Soul Memory] Prompt is empty, falling back to messages');
-      const messages = event.messages || [];
-      const cleanedMessages = cleanOldMemoryFromMessages(messages);
-      lastUserMessage = getLastUserMessage(cleanedMessages);
+      querySource = 'prompt_fallback';
+      logger.debug('[Soul Memory] No user message found, falling back to prompt');
+      const prompt = event.prompt || '';
+      let userQuery = prompt.trim();
+      const lastNewlineIndex = userQuery.lastIndexOf('\n');
+      if (lastNewlineIndex >= 0) {
+        userQuery = userQuery.substring(lastNewlineIndex + 1).trim();
+      }
+      lastUserMessage = userQuery;
+    }
+
+    logger.info(`[Soul Memory] Query source: ${querySource}`);
+
+    // v3.6.0 optimization: Skip search for greetings and simple commands
+    if (shouldSkipQuery(lastUserMessage)) {
+      logger.debug(`[Soul Memory] Skipping search for simple query: "${lastUserMessage.substring(0, 50)}"`);
+      return {};
     }
 
     logger.debug(`[Soul Memory] User query length: ${lastUserMessage.length}`);
@@ -359,12 +434,12 @@ export default function register(api: any) {
       return {};
     }
 
-    // Build memory context with marking
+    const auditSummary = buildAuditSummary(results);
+    logger.info(`[Soul Memory] Audit: ${auditSummary}`);
+
     const memoryContext = buildMemoryContext(results);
+    logger.info(`[Soul Memory] ✓ Injected ${results.length} distilled memories into prependContext (${memoryContext.length} chars)`);
 
-    logger.info(`[Soul Memory] ✓ Injected ${results.length} memories with SoulM delimiters (${memoryContext.length} chars)`);
-
-    // Return with prependContext
     return {
       prependContext: memoryContext
     };

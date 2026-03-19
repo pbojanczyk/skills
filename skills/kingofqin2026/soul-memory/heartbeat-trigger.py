@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Soul Memory Heartbeat Auto-Save Trigger
-v3.3.2 - 前置過濾 + 檔案滾動 + 內容摘要 + 模板去重
+v3.5.3 - 超寬鬆模式：強制記錄技術操作（安裝/配置/開發）
 """
 
 import sys
@@ -10,7 +10,15 @@ import json
 import re
 import hashlib
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+# ========== 配置 ==========
+# 時區配置：香港時間 (UTC+8)
+HK_TZ = timezone(timedelta(hours=8))
+
+def get_hk_datetime():
+    """獲取香港時間"""
+    return datetime.now(HK_TZ)
 
 SOUL_MEMORY_PATH = os.environ.get('SOUL_MEMORY_PATH', os.path.dirname(__file__))
 sys.path.insert(0, SOUL_MEMORY_PATH)
@@ -112,65 +120,88 @@ def read_session_messages(session_id, hours=1):
     return messages
 
 def identify_important_content(messages):
-    """識別重要內容（寬鬆模式 v3.2.4）"""
+    """識別重要內容（超寬鬆模式 v3.4.0 - 強制記錄技術操作）"""
     important = []
+    
+    # 強制記錄關鍵詞（必須記錄 [C] Critical）
+    force_record_keywords = [
+        # 安裝/部署
+        '安裝', 'install', 'npm install', 'pip install', 'apt install', 'yarn add',
+        '部署', 'deploy', 'setup', '配置', 'config', 'configure',
+        # 參數修改
+        '參數', 'parameter', '修改', 'change', 'update', '設定', 'setting',
+        'API Key', 'Token', '密鑰', 'key', 'secret', 'password',
+        'provider', '模型', 'model', 'baseUrl', 'endpoint',
+        # 開發程式
+        '開發', 'develop', '編程', 'programming', '代碼', 'code',
+        '創建', 'create', '新增', 'add', '刪除', 'delete', 'remove',
+        '修改', 'modify', 'edit', '更新', 'update',
+        '測試', 'test', 'debug', '調試', '運行', 'run',
+        'git', 'commit', 'push', 'pull', 'clone', 'branch',
+        '文件', 'file', '目錄', 'directory', '路徑', 'path',
+        'skill', '技能', 'clawhub', 'plugin',
+        # 系統操作
+        '重啟', 'restart', '啟動', 'start', '停止', 'stop',
+        '服務', 'service', '進程', 'process', '端口', 'port',
+        # OpenClaw 特定
+        'openclaw', 'gateway', 'agent', 'session',
+    ]
+    
+    # 用戶指令關鍵詞（用戶主動要求 = 重要）
+    user_intent_keywords = [
+        '記住', '保存', '備忘', '提醒', '重要',
+        '做', '執行', '完成', '檢查', '查看',
+    ]
     
     for msg in messages:
         content = msg['content']
         
-        # 排除內容（寬鬆版本）
-        # 1. 太短（降低閾值）
-        if len(content) < 30:
+        # 排除內容（最小化排除）
+        # 1. 太短（降低閾值到 20 字）
+        if len(content) < 20:
             continue
         
-        # 2. 系統指令（僅排除 HEARTBEAT.md）
+        # 2. 系統指令（僅排除 HEARTBEAT.md 相關）
         if 'HEARTBEAT.md' in content or 'Read HEARTBEAT.md' in content:
             continue
         
-        # 識別重要內容（寬鬆啟發式規則）
+        # 識別重要內容
         importance_score = 0
-        priority = 'N'  # 默認 Normal
+        priority = 'I'  # 默認 Important（從 Normal 提升）
+        is_force_record = False
         
-        # 長文本內容（降低閾值 > 100 字）
-        if len(content) > 100:
-            importance_score += 2
-            if len(content) > 200:
-                priority = 'I'
-        
-        # 包含專有名詞或主題詞（擴展列表）
-        topic_keywords = [
-            '劇情', '故事', '設定', '歷史', 'QST', '物理', '公式',
-            '配置', '安裝', 'API', 'Token', '密鑰', 'SSH', 'VPS',
-            '秦王', '陛下', '臣', '記住', '重要', '備份', '連接',
-            '問題', '解決', '完成', '成功', '失敗', '錯誤',
-            '網絡', '防火牆', '封禁', '登錄', '密碼',
-            'GitHub', '倉庫', '推送到', '提交', '版本',
-            'OpenClaw', 'Heartbeat', '記憶', '系統',
-            '任務', '命令', '執行', '重啟', '配置'
-        ]
-        
-        for keyword in topic_keywords:
-            if keyword in content:
-                importance_score += 1
-                if keyword in ['重要', 'QST', '物理', '公式', '配置', '安裝', 'Token', '密鑰', '備份', 'GitHub', 'SSH', 'VPS']:
-                    priority = 'C' if importance_score < 3 else priority
+        # 檢查強制記錄關鍵詞
+        for keyword in force_record_keywords:
+            if keyword.lower() in content.lower():
+                importance_score += 3
+                priority = 'C'
+                is_force_record = True
                 break
         
-        # 定義、說明模式（擴展）
-        if re.search(r'是.*的|定義|屬於|包括|原理|方式|方法|步驟|設置', content):
+        # 長文本內容（降低閾值 > 50 字）
+        if len(content) > 50:
+            importance_score += 1
+        if len(content) > 100:
             importance_score += 1
         
-        # 劇情/故事模式
-        if re.search(r'第.\集|情節|角色|劇中|主角|劇情', content):
-            importance_score += 1
-            priority = 'I'
+        # 檢查用戶意圖關鍵詞
+        for keyword in user_intent_keywords:
+            if keyword in content:
+                importance_score += 2
+                break
         
-        # AI 回應內容（v3.3.2：提高門檻 >= 2）
-        if msg['role'] == 'assistant' and importance_score >= 2:
+        # 用戶消息（用戶說的話更重要）
+        if msg['role'] == 'user':
+            importance_score += 1
+        
+        # v3.4.0: 只要 importance_score >= 1 就記錄（從 2 降低到 1）
+        # 或者是強制記錄類型
+        if importance_score >= 1 or is_force_record:
             important.append({
                 'time': msg['time'],
                 'content': content,
-                'priority': priority
+                'priority': priority,
+                'score': importance_score
             })
     
     return important
@@ -238,8 +269,9 @@ def get_daily_output_file(base_date=None, max_lines=500, max_bytes=50*1024):
     return daily_dir / f"{base_date}-overflow.md"
 
 def save_to_daily_file(content, priority):
-    """保存到 daily file"""
-    today = datetime.now().strftime('%Y-%m-%d')
+    """保存到 daily file（使用香港時間）"""
+    hk_now = get_hk_datetime()
+    today = hk_now.strftime('%Y-%m-%d')
     daily_dir = Path.home() / ".openclaw" / "workspace" / "memory"
     daily_file = daily_dir / f"{today}.md"
     
@@ -247,11 +279,11 @@ def save_to_daily_file(content, priority):
     daily_dir.mkdir(parents=True, exist_ok=True)
     
     # 生成內容
-    timestamp = datetime.now().strftime('%H:%M')
+    timestamp = hk_now.strftime('%H:%M')
     header = "\n\n" + "-" * 50 + "\n"
     header += f"## [{priority}] {timestamp} - Heartbeat 自動提取\n"
     header += f"**來源**：Session 對話回顧\n"
-    header += f"**時區**：UTC\n\n"
+    header += f"**時區**：HKT (UTC+8)\n\n"
     
     # 追加到檔案
     with open(daily_file, 'a', encoding='utf-8') as f:
@@ -290,9 +322,9 @@ def get_content_hash(content):
     return hashlib.md5(normalized.encode('utf-8')).hexdigest()
 
 def get_saved_hashes(today_date=None):
-    """獲取已保存的內容哈希"""
+    """獲取已保存的內容哈希（使用香港時間）"""
     if today_date is None:
-        today_date = datetime.now().strftime('%Y-%m-%d')
+        today_date = get_hk_datetime().strftime('%Y-%m-%d')
 
     if not DEDUP_FILE.exists():
         return {}
@@ -332,8 +364,8 @@ def save_hash(today_date, content_hash):
         print(f"⚠️ 保存去重記錄失敗: {e}")
 
 def check_daily_memory():
-    """檢查今日記憶檔案"""
-    today = datetime.now().strftime('%Y-%m-%d')
+    """檢查今日記憶檔案（使用香港時間）"""
+    today = get_hk_datetime().strftime('%Y-%m-%d')
     daily_file = Path.home() / ".openclaw" / "workspace" / "memory" / f"{today}.md"
     
     if daily_file.exists():
@@ -350,7 +382,7 @@ def check_daily_memory():
 
 def main():
     """Heartbeat 檢查點"""
-    print(f"🧠 初始化 Soul Memory System v3.3.2...")
+    print(f"🧠 初始化 Soul Memory System v3.5.3...")
     system = SoulMemorySystem()
     system.initialize()
     print(f"✅ 記憶系統就緒")
@@ -358,7 +390,8 @@ def main():
     # 步驟 1：檢查現有記憶
     auto_save_count, heartbeat_extract_count = check_daily_memory()
 
-    print(f"\n🩺 Heartbeat 記憶檢查 ({datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC)")
+    hk_now = get_hk_datetime()
+    print(f"\n🩺 Heartbeat 記憶檢查 ({hk_now.strftime('%Y-%m-%d %H:%M:%S')} HKT/UTC+8)")
     print(f"- [Auto-Save] 條目：{auto_save_count} 條")
     print(f"- [Heartbeat 提取] 條目：{heartbeat_extract_count} 條")
 
@@ -379,8 +412,8 @@ def main():
         important = identify_important_content(messages)
         print(f"⭐ 識別出 {len(important)} 條重要內容")
 
-        # 去重：獲取已保存的哈希
-        today = datetime.now().strftime('%Y-%m-%d')
+        # 去重：獲取已保存的哈希（使用香港時間）
+        today = get_hk_datetime().strftime('%Y-%m-%d')
         saved_hashes = get_saved_hashes(today)
         print(f"🔒 已有 {len(saved_hashes)} 條今日記憶")
 
