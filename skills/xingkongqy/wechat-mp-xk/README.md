@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![ClawHub](https://img.shields.io/badge/clawhub-wechat--mp--xk-green.svg)](https://clawhub.ai)
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/xingkongqy/wechat-mp-xk)
+[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](https://github.com/xingkongqy/wechat-mp-xk)
 **一键将 Markdown 文章发布到微信公众号草稿箱**
 
 ---
@@ -73,7 +73,7 @@ chmod 600 .env
 ### 一键发布
 
 ```bash
-python3 wxgzh_step_by_step.py article article.md \
+python3 wechat_mp_xk.py article article.md \
   --cover cover.jpg \
   --title "文章标题" \
   --author "作者名"
@@ -86,19 +86,19 @@ python3 wxgzh_step_by_step.py article article.md \
 ### Step 1: Markdown 转 HTML
 
 ```bash
-python3 wxgzh_step_by_step.py md2html article.md --output-dir .wxgzh
+python3 wechat_mp_xk.py md2html article.md --output-dir .wxgzh
 ```
 
 ### Step 2: 修复 HTML
 
 ```bash
-python3 wxgzh_step_by_step.py fix .wxgzh/article.html
+python3 wechat_mp_xk.py fix .wxgzh/article.html
 ```
 
 ### Step 3: 上传封面图
 
 ```bash
-python3 wxgzh_step_by_step.py cover \
+python3 wechat_mp_xk.py cover \
   --cover cover.jpg \
   --output .wxgzh/cover.json
 ```
@@ -106,7 +106,7 @@ python3 wxgzh_step_by_step.py cover \
 ### Step 4: 发布到草稿箱
 
 ```bash
-python3 wxgzh_step_by_step.py publish \
+python3 wechat_mp_xk.py publish \
   --article .wxgzh/article.html \
   --cover cover.jpg \
   --title "文章标题"
@@ -132,7 +132,7 @@ python3 wxgzh_step_by_step.py publish \
 
 ```
 wechat-mp-xk/
-├── wxgzh_step_by_step.py    # 主程序（分步流程）
+├── wechat_mp_xk.py          # 主程序（分步流程）
 ├── publish_kb_theme.py       # Knowledge-Base 主题版
 ├── wechat_mp.py              # 核心 API 模块
 ├── wechat_style_template.py  # 排版模板
