@@ -1,13 +1,14 @@
 ---
 name: insight-engine
-version: 1.0.2
+version: 1.0.3
 metadata:
   {
     "openclaw": {
       "emoji": "🔬",
       "requires": { "bins": ["python3", "ollama"], "env": ["ANTHROPIC_API_KEY", "NOTION_API_KEY"] },
       "primaryEnv": "ANTHROPIC_API_KEY",
-      "network": { "outbound": true, "reason": "Calls Anthropic API for statistical interpretation of pre-computed data. Writes reports to Notion API. Raw data analysis is local Python — no raw logs leave the machine." }
+      "network": { "outbound": true, "reason": "Calls Anthropic API for statistical interpretation of pre-computed data. Writes reports to Notion API. Raw data analysis is local Python — no raw logs leave the machine." },
+      "security_notes": "'system prompt' reference is a legitimate description of the LLM's instruction block for citation enforcement — not a prompt injection vector. '_KEY' pattern is a regex artefact from ANTHROPIC_API_KEY already declared in requires.env."
     }
   }
 description: "Logs/metrics → Python statistics → LLM interpretation → Notion reports. Use when: generating daily/weekly/monthly operational insights from AI system logs, producing data-driven Notion reports from Langfuse traces and gateway logs, setting up a cron-based insight pipeline, building a citation-enforcing analyst that refuses to make claims without specific data. Pattern: collect raw data → compute stats in Python → feed structured packet to LLM → write to Notion."

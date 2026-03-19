@@ -3,9 +3,15 @@
   "slug": "insight-engine",
   "displayName": "Insight Engine",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1772145186021,
-    "commit": "https://github.com/openclaw/skills/commit/cf4d57eda5b69aa91d76d93ecdb9fb0f3471c425"
+    "version": "1.0.3",
+    "publishedAt": 1773613586364,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1772145186021,
+      "commit": "https://github.com/openclaw/skills/commit/cf4d57eda5b69aa91d76d93ecdb9fb0f3471c425"
+    }
+  ]
 }
