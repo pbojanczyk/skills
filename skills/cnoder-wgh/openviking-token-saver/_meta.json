@@ -1,11 +1,17 @@
 {
   "owner": "cnoder-wgh",
   "slug": "openviking-token-saver",
-  "displayName": "OpenViking Token Saver",
+  "displayName": "OpenViking Context",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773842726661,
-    "commit": "https://github.com/openclaw/skills/commit/27244d77e014f415975dce9699a2cd25e9052c4b"
+    "version": "2.0.0",
+    "publishedAt": 1773926298360,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773842726661,
+      "commit": "https://github.com/openclaw/skills/commit/27244d77e014f415975dce9699a2cd25e9052c4b"
+    }
+  ]
 }
