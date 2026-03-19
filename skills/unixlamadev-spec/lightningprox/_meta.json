@@ -3,11 +3,16 @@
   "slug": "lightningprox",
   "displayName": "Lightningprox",
   "latest": {
-    "version": "1.2.0",
-    "publishedAt": 1773478179381,
-    "commit": "https://github.com/openclaw/skills/commit/14b6f5ef8e18615340e56300f8e0ec3158d3d0b1"
+    "version": "1.3.2",
+    "publishedAt": 1773808544168,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.2.0",
+      "publishedAt": 1773478179381,
+      "commit": "https://github.com/openclaw/skills/commit/14b6f5ef8e18615340e56300f8e0ec3158d3d0b1"
+    },
     {
       "version": "4.0.1",
       "publishedAt": 1772130673536,
