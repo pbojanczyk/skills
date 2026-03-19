@@ -3,11 +3,16 @@
   "slug": "stanley-druckenmiller-workflow",
   "displayName": "Stanley Druckenmiller Workflow",
   "latest": {
-    "version": "1.0.17",
-    "publishedAt": 1773806100988,
-    "commit": "https://github.com/openclaw/skills/commit/ce0b7e9a141ba4c04ceef048aa6b0b9575f8a0ee"
+    "version": "1.1.1",
+    "publishedAt": 1773905421695,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.17",
+      "publishedAt": 1773806100988,
+      "commit": "https://github.com/openclaw/skills/commit/ce0b7e9a141ba4c04ceef048aa6b0b9575f8a0ee"
+    },
     {
       "version": "1.0.8",
       "publishedAt": 1773760752222,

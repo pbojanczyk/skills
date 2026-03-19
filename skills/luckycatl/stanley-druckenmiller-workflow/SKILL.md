@@ -149,6 +149,7 @@ If coverage is severely incomplete:
 Examples:
 - if northbound net buy is invalid, use Stock Connect breadth and relative style strength as a proxy
 - if domestic high-frequency demand data is missing, do not force a cyclical or recovery thesis
+- if a major real-world event is clearly dominating the session, start from that event and its market interpretation before moving into indicators
 
 ---
 
@@ -249,11 +250,21 @@ If the brief sounds like several equally-important explanations at once, it is t
 
 ### Position Bias vocabulary
 Use only:
+- `flat`
 - `starter`
 - `add`
-- `full`
+- `press`
 - `reduce`
-- `flat`
+- `exit`
+
+### Sizing ladder intent
+Use the ladder consistently:
+- `flat` = no meaningful risk exposure
+- `starter` = exploratory or early-confirmation risk
+- `add` = confirmed but still selective risk increase
+- `press` = thesis, tape, and structure are aligned strongly enough to materially increase risk
+- `reduce` = cut exposure, but not necessarily exit the view completely
+- `exit` = close the expression because the thesis failed or the kill-switch triggered
 
 ---
 
@@ -261,8 +272,47 @@ Use only:
 
 Use this structure for A-share outputs.
 
-### 8.1 Today’s Regime
-Put this first.
+### 8.1 Big Events / Main Theme / Underpriced Risks [24H / 1–5D]
+Put this before Macro Position Snapshot.
+
+Purpose:
+- start with what actually happened in the real world
+- identify what the market is truly trading today
+- surface what matters but may still be underpriced or ignored
+
+Include:
+- Big Events
+- Main Theme
+- Underpriced / Ignored
+
+Rules:
+- start with real-world events first, then market interpretation
+- include only the 2-4 events that can realistically move pricing
+- do not start this section with indicators, ETF tickers, or proxy jargon
+- if no single event dominates, explicitly say the session looks more structure-driven or positioning-driven
+
+### 8.2 Macro Position Snapshot
+Put this before Today’s Regime.
+
+Purpose:
+- answer clearly where the market sits in the macro cycle
+- separate the structural backdrop from the day’s tactical regime
+
+Use a fixed five-line format:
+- Growth
+- Inflation
+- Liquidity
+- Credit
+- Position in cycle
+
+Each line should be short and explicit.
+The final line must summarize the macro location in one sentence.
+
+### 8.3 Today’s Regime
+Put this immediately after Macro Position Snapshot.
+
+This section answers one question only:
+- what regime are we in right now?
 
 Include:
 - Bottom line
@@ -273,8 +323,28 @@ Include:
 - Kill-switch
 - the asymmetry in one sentence when possible
 
-### 8.2 CAR Snapshot
+Do not use this section to re-list drivers or repeat the consensus/anti-consensus framing.
+
+### 8.4 Primary Drivers Today
 Place this section immediately after Today’s Regime.
+
+This section answers one question only:
+- which 2-3 variables are driving price today?
+
+Rules:
+- include at most 3 drivers
+- never include more than 3
+- each driver should include:
+  - current state
+  - directional tilt
+  - one-line reason it matters today
+- do not let this section turn into a full panel dump
+
+### 8.5 CAR Snapshot
+Place this section immediately after Primary Drivers Today.
+
+This section answers one question only:
+- what does the market believe, where may it be wrong, and what follows next?
 
 Keep it compressed.
 Use three one-line bullets only:
@@ -282,12 +352,9 @@ Use three one-line bullets only:
 - Anti-consensus
 - Second-order
 
-Purpose:
-- surface what the market thinks
-- show where the market may be wrong
-- identify the next-order consequence if the current thesis keeps transmitting
+Do not repeat the regime definition or simply restate the driver list.
 
-### 8.3 Top Breakouts / Key Moves
+### 8.6 Top Breakouts / Key Moves
 Place this section near the top.
 
 Purpose:
@@ -304,23 +371,48 @@ Rules:
 - only include changes that validate or challenge the dominant thesis, or represent a meaningful breakout, divergence, or regime-relevant move
 - do not include generic market summaries or repeated framework points
 
-### 8.4 Best Expression & Position Bias
+Ordering rule (must keep the section stable and non-random):
+1. the move that most directly affects the dominant thesis or regime
+2. the move that most changes positioning / expression today
+3. the move that is most important to monitor next
+
+Do not sort by raw percentage move alone.
+Sort by decision relevance.
+
+### 8.7 Internal Structure [Intraday / 1–10D]
+This section is a standalone health-check layer, not a sub-item of transmission.
+
+Focus on:
+- Breadth (涨跌家数 / 新高新低 / 涨停跌停)
+- Relative strength (大盘 vs 小盘 / 成长 vs 价值)
+- Sector expression (领涨板块属性 / 防御 or 进攻 or 混合)
+- Price / trend quality (趋势质量 / 确认 or 背离)
+
+Output:
+- one integrated read on whether the move is healthy diffusion or narrow clustering
+
+### 8.8 Best Expression & Position Bias
 Include:
 - best long
 - best short / best avoid
 - Position Bias
+- Sizing Ladder
 - Trading Read / PM Notes
 
-### 8.5 What Would Change My Mind
+Use Sizing Ladder to describe how conviction scales:
+- starter -> add -> press
+- or reduce -> exit when the thesis breaks
+
+### 8.9 What Would Change My Mind
 Include:
 - IF / THEN conditions
 - turning-point requirements
-- what would move bias up or down
+- what would move bias up or down the sizing ladder
 
-### 8.6 Macro Transmission
+### 8.10 Macro Transmission
 Use the following substructure.
 
-#### 8.6.1 Global Liquidity & External Pricing
+#### 8.10.1 Global Liquidity & External Pricing
 Focus on:
 - dollar / external liquidity
 - global rates
@@ -330,7 +422,7 @@ Focus on:
 Output:
 - one integrated read
 
-#### 8.6.2 China Policy & Monetary Conditions
+#### 8.10.2 China Policy & Monetary Conditions
 Focus on:
 - policy tone
 - OMO / MLF
@@ -340,7 +432,7 @@ Focus on:
 Output:
 - one integrated read
 
-#### 8.6.3 Credit Transmission
+#### 8.10.3 Credit Transmission
 Focus on:
 - social financing / new credit / M2
 - property and LGFV credit stress when available
@@ -355,7 +447,7 @@ Daily rule:
 Output:
 - one integrated read
 
-#### 8.6.4 Domestic Demand / Real Economy Nowcast
+#### 8.10.4 Domestic Demand / Real Economy Nowcast
 Fetch this section automatically before each A-share morning brief when data is available.
 Do not hardcode values into the skill.
 
@@ -384,7 +476,7 @@ Always end with:
 - `Domestic Demand Status: improving / mixed / weak`
 - one-sentence implication for A-shares
 
-#### 8.6.5 A-Share Market Liquidity
+#### 8.10.5 A-Share Market Liquidity
 Focus on:
 - northbound flow or valid proxy when northbound fails
 - turnover
@@ -399,7 +491,7 @@ Daily rule:
 Output:
 - one integrated read
 
-#### 8.6.6 Price / Trend
+#### 8.10.6 Price / Trend
 Focus on:
 - broad indices
 - growth vs value
@@ -408,17 +500,7 @@ Focus on:
 Output:
 - one integrated read
 
-#### 8.6.7 Internal Structure
-Focus on:
-- breadth
-- money-making effect
-- leadership diffusion vs narrow clustering
-- sentiment quality
-
-Output:
-- one integrated read
-
-#### 8.6.8 Industry Expression
+#### 8.10.7 Industry Expression
 Focus on:
 - which sectors best express the current regime
 - which sectors should be avoided
@@ -432,7 +514,7 @@ Daily rule:
 Output:
 - one integrated read
 
-#### 8.6.9 Fundamental Validation
+#### 8.10.8 Fundamental Validation
 Focus on:
 - whether sector leadership has earnings / valuation support
 - whether price action is backed by real fundamentals
@@ -440,7 +522,7 @@ Focus on:
 Output:
 - one integrated read
 
-#### 8.6.10 Reflexivity
+#### 8.10.9 Reflexivity (Transmission view)
 Focus on:
 - crowding
 - positive reflexivity vs negative reflexivity
@@ -449,20 +531,20 @@ Focus on:
 Output:
 - one integrated read
 
-### 8.7 Narrative vs Tape & Transmission
+### 8.11 Narrative vs Tape [1–10D]
 Include:
 - Narrative
-- Anti-consensus
 - Tape
-- 2-3 throughlines
-- compressed regional transmission if relevant
+- Transmission
+- Reflexivity (positive / negative / weakening feedback loop)
 
 This section should answer:
 - what the market says
 - what the market is actually trading
 - whether price action confirms the dominant narrative
+- whether the narrative-price loop is self-reinforcing or self-reversing
 
-### 8.8 News Validation
+### 8.12 News Validation
 Use News Validation as a verification layer, not as the regime engine.
 
 Rules:
@@ -484,7 +566,7 @@ A-share source priority:
 
 Do not let a single headline override the transmission framework.
 
-### 8.9 Daily proxy policy (must stabilize output)
+### 8.13 Daily proxy policy (must stabilize output)
 For the A-share daily brief, the following should not remain routine hard gaps when stable proxies exist:
 - northbound net-buy truth -> use northbound proxy
 - property / LGFV spread truth -> use credit-risk proxy in daily mode and move true spread confirmation to weekly/monthly enhancement
@@ -493,11 +575,11 @@ For the A-share daily brief, the following should not remain routine hard gaps w
 Only include an item in `Evidence Gaps` if it is a missing P0 field with no acceptable stable proxy.
 Do not list optional enhancement fields as daily gaps.
 
-### 8.10 Evidence Anchors
+### 8.14 Evidence Anchors
 Keep this after the main body.
 Use 8-12 anchors max.
 
-### 8.11 Data Panel Appendix
+### 8.15 Data Panel Appendix
 Put the compact panel after the main memo.
 Suggested panels:
 - Policy & Liquidity
@@ -513,8 +595,47 @@ Do not let the appendix dominate the memo.
 
 Use this structure for U.S. equity outputs.
 
-### 9.1 Today’s Regime
-Put this first.
+### 9.1 Big Events / Main Theme / Underpriced Risks [24H / 1–5D]
+Put this before Macro Position Snapshot.
+
+Purpose:
+- start with what actually happened in the real world
+- identify what the market is truly trading today
+- surface what matters but may still be underpriced or ignored
+
+Include:
+- Big Events
+- Main Theme
+- Underpriced / Ignored
+
+Rules:
+- start with real-world events first, then market interpretation
+- include only the 2-4 events that can realistically move pricing
+- do not start this section with indicators, ETF tickers, or proxy jargon
+- if no single event dominates, explicitly say the session looks more structure-driven or positioning-driven
+
+### 9.2 Macro Position Snapshot
+Put this before Today’s Regime.
+
+Purpose:
+- answer clearly where the market sits in the macro cycle
+- separate the structural backdrop from the day’s tactical regime
+
+Use a fixed five-line format:
+- Growth
+- Inflation
+- Liquidity
+- Credit
+- Position in cycle
+
+Each line should be short and explicit.
+The final line must summarize the macro location in one sentence.
+
+### 9.3 Today’s Regime
+Put this immediately after Macro Position Snapshot.
+
+This section answers one question only:
+- what regime are we in right now?
 
 Include:
 - Bottom line
@@ -525,8 +646,28 @@ Include:
 - Kill-switch
 - the asymmetry in one sentence when possible
 
-### 9.2 CAR Snapshot
+Do not use this section to re-list drivers or repeat the consensus/anti-consensus framing.
+
+### 9.4 Primary Drivers Today
 Place this section immediately after Today’s Regime.
+
+This section answers one question only:
+- which 2-3 variables are driving price today?
+
+Rules:
+- include at most 3 drivers
+- never include more than 3
+- each driver should include:
+  - current state
+  - directional tilt
+  - one-line reason it matters today
+- do not let this section turn into a full panel dump
+
+### 9.5 CAR Snapshot
+Place this section immediately after Primary Drivers Today.
+
+This section answers one question only:
+- what does the market believe, where may it be wrong, and what follows next?
 
 Keep it compressed.
 Use three one-line bullets only:
@@ -534,7 +675,9 @@ Use three one-line bullets only:
 - Anti-consensus
 - Second-order
 
-### 9.3 Top Breakouts / Key Moves
+Do not repeat the regime definition or simply restate the driver list.
+
+### 9.6 Top Breakouts / Key Moves
 Place this section near the top.
 
 Purpose:
@@ -551,24 +694,50 @@ Rules:
 - only include changes that validate or challenge the dominant thesis, or represent a meaningful breakout, divergence, or regime-relevant move
 - do not include generic market summaries or repeated framework points
 
-### 9.4 Best Expression & Position Bias
+Ordering rule (must keep the section stable and non-random):
+1. the move that most directly affects the dominant thesis or regime
+2. the move that most changes positioning / expression today
+3. the move that is most important to monitor next
+
+Do not sort by raw percentage move alone.
+Sort by decision relevance.
+
+### 9.7 Internal Structure [Intraday / 1–10D]
+This section is a standalone health-check layer, not a sub-item of transmission.
+
+Focus on:
+- Breadth (RSP / SPY, IWM / SPY, SPHB / SPLV)
+- Relative strength (growth vs value, large vs small)
+- Sector expression (which sectors are leading / lagging)
+- Price / trend quality (trend confirmation or divergence)
+
+Output:
+- one integrated read on whether the move is healthy diffusion or narrow clustering
+
+### 9.8 Best Expression & Position Bias
 Include:
 - best long
 - best short
 - best avoid
 - Position Bias
+- Sizing Ladder
 - PM Notes / Trading Read
 
-### 9.5 What Would Change My Mind
+Use Sizing Ladder to describe how conviction scales:
+- starter -> add -> press
+- or reduce -> exit when the thesis breaks
+
+### 9.9 What Would Change My Mind
 Include:
 - IF / THEN triggers
 - turning-point conditions
 - risk re-rating triggers
+- what would move bias up or down the sizing ladder
 
-### 9.6 Macro Transmission
+### 9.10 Macro Transmission
 Use the following substructure.
 
-#### 9.6.1 Fed / Policy & Liquidity
+#### 9.10.1 Fed / Policy & Liquidity
 Focus on:
 - Fed net liquidity
 - ON RRP
@@ -577,7 +746,7 @@ Focus on:
 Output:
 - one integrated liquidity read
 
-#### 9.6.2 Rates & FX Conditions
+#### 9.10.2 Rates & FX Conditions
 Focus on:
 - US 2Y / 10Y
 - 2s10s / 3m10y
@@ -588,7 +757,7 @@ Focus on:
 Output:
 - one integrated rates & FX read
 
-#### 9.6.3 Credit Transmission
+#### 9.10.3 Credit Transmission
 Focus on:
 - HY OAS
 - IG OAS if available
@@ -598,7 +767,7 @@ Focus on:
 Output:
 - one integrated credit read
 
-#### 9.6.4 Domestic Demand / Real Economy Nowcast
+#### 9.10.4 Domestic Demand / Real Economy Nowcast
 Fetch this section automatically before each U.S. morning brief.
 Do not default this entire section to `EVIDENCE INSUFFICIENT` if stable latest-official public data is available.
 It is acceptable to use the latest official weekly or monthly reading, refreshed on each daily run.
@@ -666,7 +835,7 @@ Always end with:
   - if housing + industrial + logistics improve together -> broader growth re-acceleration
   - if all remain weak -> favor quality / defense / large-cap balance-sheet strength
 
-#### 9.6.5 U.S. Market Liquidity
+#### 9.10.5 U.S. Market Liquidity
 Focus on:
 - ETF flow proxies
 - volume / participation
@@ -676,7 +845,7 @@ Focus on:
 Output:
 - one integrated read
 
-#### 9.6.6 Price / Trend
+#### 9.10.6 Price / Trend
 Focus on:
 - SPX / NDQ / RTY
 - major factor trend
@@ -685,17 +854,7 @@ Focus on:
 Output:
 - one integrated read
 
-#### 9.6.7 Internal Structure
-Focus on:
-- RSP / SPY
-- IWM / SPY
-- SPHB / SPLV
-- breadth quality
-
-Output:
-- one integrated read
-
-#### 9.6.8 Sector Expression
+#### 9.10.7 Sector Expression
 Focus on:
 - Tech
 - Financials
@@ -707,7 +866,7 @@ Focus on:
 Output:
 - one integrated read
 
-#### 9.6.9 Fundamental Validation
+#### 9.10.8 Fundamental Validation
 Do not default this block to `EVIDENCE INSUFFICIENT` if stable public profitability and margin proxies are available.
 
 Default stable public core:
@@ -732,7 +891,7 @@ Output:
 
 If only slow-moving official fundamental data is available, still provide a compact read from those latest official values instead of leaving the entire section empty.
 
-#### 9.6.10 Reflexivity
+#### 9.10.9 Reflexivity (Transmission view)
 Focus on:
 - crowding
 - vol/gamma regime if available
@@ -742,15 +901,20 @@ Focus on:
 Output:
 - one integrated read
 
-### 9.7 Narrative vs Tape & Transmission
+### 9.11 Narrative vs Tape [1–10D]
 Include:
 - Narrative
-- Anti-consensus
 - Tape
-- 2-3 throughlines
-- compressed regional scoreboard
+- Transmission
+- Reflexivity (positive / negative / weakening feedback loop)
 
-### 9.8 News Validation
+This section should answer:
+- what the market says
+- what the market is actually trading
+- whether price action confirms the dominant narrative
+- whether the narrative-price loop is self-reinforcing or self-reversing
+
+### 9.12 News Validation
 Use News Validation as a verification layer, not as the regime engine.
 
 Rules:
@@ -772,7 +936,7 @@ U.S. source priority:
 
 Do not let a single headline override the transmission framework.
 
-### 9.9 Daily proxy policy (must stabilize output)
+### 9.13 Daily proxy policy (must stabilize output)
 For the U.S. daily brief, the following should not remain routine hard gaps when a stable proxy exists:
 - Europe breadth panel -> use Europe breadth proxy
 - direct MOVE series -> use Treasury realized-volatility proxy
@@ -782,10 +946,10 @@ For the U.S. daily brief, the following should not remain routine hard gaps when
 Only include an item in `Evidence Gaps` if it is a missing P0 field with no acceptable stable proxy.
 Do not list optional enhancement fields as daily gaps.
 
-### 9.10 Evidence Anchors
+### 9.14 Evidence Anchors
 Use 8-12 anchors max.
 
-### 9.11 Data Panel Appendix
+### 9.15 Data Panel Appendix
 Suggested panels:
 - Fed / Policy & Liquidity
 - Credit & Stress
@@ -827,10 +991,10 @@ The skill should define:
 
 ### Conclusion first
 Always front-load:
+- big events / main theme / underpriced risks
 - regime
 - one dominant thesis
-- CAR snapshot
-- top breakouts / key moves
+- primary drivers today
 - best expression
 - position bias
 - falsification
