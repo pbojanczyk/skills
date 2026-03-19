@@ -3,18 +3,24 @@
 ## GPU Specifications
 
 ### NVIDIA RTX 5090 (Blackwell)
-- **Architecture**: Blackwell (SM 120)
+- **Architecture**: Blackwell (SM 100/120)
 - **VRAM**: 32 GB GDDR7
 - **Memory Bandwidth**: 1,792 GB/s
-- **Tensor Cores**: 5th Generation
+- **Tensor Cores**: 5th Generation (native FP8 support)
 - **TDP**: 575W
 - **Idle Power**: ~22W
 - **Use Case**: Consumer flagship, single-GPU inference
-- **Software**: PyTorch 2.6.0, CUDA 12.6, transformers 4.48.0, bitsandbytes 0.45.3, Driver 570.86.15
+- **Software (five-precision study)**: PyTorch 2.12.0.dev20260315+cu128, CUDA 12.8, transformers 4.50.0, bitsandbytes 0.45.3, torchao 0.17.0.dev20260316+cu128, Driver 580.105.08
+- **Software (earlier NF4/FP16 study)**: PyTorch 2.6.0, CUDA 12.6, transformers 4.48.0, bitsandbytes 0.45.3, Driver 570.86.15
 
-**Tested Models**: Qwen2-1.5B, Phi-3-mini-3.8B (FP16, NF4)
+**Tested Models (five-precision)**: Qwen2.5-0.5B, Qwen2.5-1.5B, Qwen2.5-3B, Qwen2.5-7B (FP16, FP8, NF4, INT8-mixed, INT8-pure)
+**Tested Models (earlier)**: Qwen2-1.5B, Phi-3-mini-3.8B (FP16, NF4)
 
-**Key Finding**: NF4 wastes 11–29% energy on models ≤3B. FP16 is always better for small models on this GPU.
+**Key Findings**:
+- NF4 wastes 20–55% energy on models ≤3B; saves 11.5% at 7B (crossover confirmed at ~5B)
+- FP8 (torchao eager) is worst method: +158% to +701% penalty (escalating with model size)
+- Energy ranking: NF4 > INT8-pure > FP16 > INT8-mixed > FP8
+- torchao FP8 C++ extensions disabled in nightly build → Python fallback causes high-power idle state
 
 ### NVIDIA RTX 4090D (Ada Lovelace)
 - **Architecture**: Ada Lovelace (SM 89)
@@ -26,7 +32,7 @@
 - **Use Case**: Consumer high-end, most common enthusiast GPU
 - **Software**: PyTorch 2.4.1, CUDA 12.1, transformers 4.47.0, bitsandbytes 0.45.0, Driver 560.35.03
 
-**Tested Models**: Yi-1.5-6B, Mistral-7B, Phi-3-mini, Qwen2.5-7B (FP16, NF4, INT8 default, INT8 pure)
+**Tested Models**: TinyLlama-1.1B, Yi-1.5-6B, Mistral-7B, Phi-3-mini, Qwen2.5-3B, Qwen2.5-7B (FP16, NF4, INT8 default, INT8 pure)
 
 **Key Finding**: Default INT8 increases energy by 17–33%. Pure INT8 (threshold=0.0) saves 3–8% vs FP16.
 

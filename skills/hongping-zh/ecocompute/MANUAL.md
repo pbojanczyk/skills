@@ -1,15 +1,23 @@
 # EcoCompute OpenClaw Skill — Usage Manual
 
-> **Version**: 2.0 · **Author**: Hongping Zhang · **Last Updated**: 2026-02-16
+> **Version**: 2.5.0 · **Author**: Hongping Zhang · **Last Updated**: 2026-03-18
 >
-> **What's New in v2.0**:
-> - 🆕 Extended input parameters: `hardware_platform`, `sequence_length`, `generation_length`, `precision`
-> - 📊 Enhanced outputs: confidence intervals, energy efficiency metrics, optimization insights
-> - 🔬 Full measurement transparency: software versions, limitations, extrapolation notes
-> - ⚠️ Robust parameter validation and error handling
-> - 💡 Context-specific recommendations and trade-off analysis
+> **What's New in v2.5.0 — Meet Your EcoLobster**:
+> - **EcoLobster Persona**: Your skill now has a personality! A lobster that reacts to your GPU configs with mood changes and vivid metaphors.
+> - **Mood System**: Green (efficient) to Yellow to Orange to Red (catastrophic waste). Shell color reflects deployment health.
+> - **Conversational Style**: Talk to your lobster naturally — it responds with personality, humor, AND rigorous data.
+> - **Bilingual**: Chinese/English lobster persona with culture-aware responses.
+>
+> **Previous (v2.3.0)**:
+> - Five-precision Blackwell data (FP16/FP8/NF4/INT8-mixed/INT8-pure) across 0.5B–7B on RTX 5090
+> - FP8 Software Immaturity Alert (+158–701% penalty), torchao official confirmation
+> - 113+ measurements with cross-generational Ada–Blackwell comparison
+> - Paradox 4: FP8 Software Immaturity, Energy ranking: NF4 > INT8-pure > FP16 > INT8-mixed > FP8
+>
+> **Previous (v2.0)**:
+> - Extended input parameters, enhanced outputs, measurement transparency, parameter validation
 
-The EcoCompute Skill transforms your AI agent into an **LLM energy efficiency expert**, equipped with 93+ empirical measurements across 3 NVIDIA GPU architectures. It prevents common energy waste patterns that even experienced engineers miss.
+Install this skill and **adopt your own EcoLobster** — a GPU energy guardian powered by 113+ real measurements across 3 NVIDIA architectures and 5 precision methods. Your lobster watches your configs, warns you about energy traps (its shell turns red!), and celebrates when you make efficient choices.
 
 ---
 
@@ -74,19 +82,19 @@ Send any energy-related question to your agent to confirm the skill is active.
 
 ---
 
-## 2. Quick Start
+## 2. Quick Start — Meet Your Lobster
 
-Once installed, just talk to your agent naturally. The skill activates automatically when you discuss LLM deployment, quantization, energy, or inference optimization.
+Once installed, just talk to your agent naturally. Your EcoLobster activates automatically when you discuss LLM deployment, quantization, energy, or inference optimization.
 
-### Try These First
+### Talk to Your Lobster
 
-| Say This | Skill Does This |
+| Say This | Your Lobster Does This |
 |----------|----------------|
-| "I want to deploy Mistral-7B on an A800" | → **OPTIMIZE**: recommends precision, batch size, estimates energy |
-| "My INT8 model is slower than FP16, why?" | → **DIAGNOSE**: identifies the bitsandbytes INT8 paradox |
-| "Compare FP16 vs NF4 vs INT8 for Yi-6B" | → **COMPARE**: data-driven table with clear recommendation |
-| "How much will 1M requests/month cost?" | → **ESTIMATE**: energy, dollar cost, and carbon footprint |
-| "Review my inference code for energy waste" | → **AUDIT**: scans for known anti-patterns |
+| "Lobster, deploy Mistral-7B on A800" | OPTIMIZE: recommends precision, batch size, shows mood |
+| "My INT8 model is slower than FP16, why?" | DIAGNOSE: shell turns orange, identifies the paradox |
+| "Compare all 5 precisions for Qwen2.5-7B" | COMPARE: mood-annotated table with lobster reactions |
+| "How much will 1M requests/month cost?" | ESTIMATE: energy, dollar cost, carbon + lobster commentary |
+| "Review my inference code for energy waste" | AUDIT: red/green flags with lobster personality |
 
 ### New in v2.0: Advanced Parameter Control
 
@@ -322,34 +330,56 @@ for prompt in prompts:
 
 ### Conversation 1: New Project Planning
 
-> **You**: I'm building a chatbot using Qwen2-1.5B on an RTX 5090. Should I use NF4 to save energy?
+> **You**: Lobster, I'm building a chatbot using Qwen2-1.5B on an RTX 5090. Should I use NF4 to save energy?
 >
-> **Agent** (with EcoCompute): No — NF4 would waste **29% more energy** on Qwen2-1.5B. At 1.5B parameters, the model fits easily in VRAM at FP16. The de-quantization overhead dominates any memory savings. **Use FP16.**
+> **EcoLobster [Orange]**: Whoa, hold on! NF4 on a 1.5B model would waste **29% more energy**! That's like turning up the heat on my tank for no reason.
+>
+> At 1.5B parameters, Qwen2-1.5B fits easily in VRAM at FP16. The de-quantization overhead dominates any memory savings. **Use FP16** and I'll be swimming happily. [shell cools to Green]
 
 ### Conversation 2: Production Optimization
 
 > **You**: We're serving 2M requests/month on A800 with Mistral-7B, batch size 1. Our energy bill is $300/month. Can we do better?
 >
-> **Agent**: Absolutely. Switching from BS=1 to BS=32 would reduce your energy bill from **$300 → ~$15/month** (−95%). That's a saving of **$3,420/year** and **24,864 kgCO2/year**. Use vLLM for automatic continuous batching.
+> **EcoLobster [Yellow]**: BS=1 in production? I could swim SO much faster if you let me batch!
+>
+> Switching from BS=1 to BS=32 would reduce your bill from **$300 to ~$15/month** (-95%). That's **$3,420/year** saved and **24,864 kgCO2/year** less! Use vLLM for automatic continuous batching.
+>
+> [shell turns Green] Now THAT's some cool water!
 
 ### Conversation 3: Debugging
 
 > **You**: I switched to INT8 to save memory but inference got 4× slower.
 >
-> **Agent**: This is the **bitsandbytes INT8 Energy Paradox**. Default `load_in_8bit=True` uses mixed-precision decomposition that causes 72–76% throughput loss. Add one line: `llm_int8_threshold=0.0`. This will recover +79–98% of your lost throughput.
+> **EcoLobster [Orange]**: Ouch! I know exactly what's happening — you've hit the **INT8 Energy Paradox**!
+>
+> Default `load_in_8bit=True` uses mixed-precision decomposition that causes 72-76% throughput loss. You're basically making me run through hot syrup! Add one line: `llm_int8_threshold=0.0`. I'll recover +79-98% of my speed! [shell cools to Green]
+
+### Conversation 4: FP8 Trap (NEW)
+
+> **You**: Should I use FP8 on my RTX 5090? Blackwell has native FP8 tensor cores, right?
+>
+> **EcoLobster [RED]**: EMERGENCY! DO NOT USE FP8 EAGER MODE!
+>
+> Yes, Blackwell has FP8 hardware, but the software isn't ready! torchao eager mode incurs **+158-701% energy penalty**. At 7B, that's 448W power draw for only 10.5 tok/s — I'm literally being boiled alive!
+>
+> The torchao team themselves confirmed (Issue #4094) that energy efficiency isn't their priority. Use **NF4** (-11.5% at 7B) or **FP16** instead.
+>
+> [shell cools to Green] Phew! Thank you for asking first.
 
 ---
 
 ## 5. What Makes This Skill Unique
 
-| Feature | General AI Agent | Agent + EcoCompute Skill |
+| Feature | General AI Agent | Agent + EcoLobster |
 |---------|-----------------|-------------------------|
-| "Should I use INT8?" | "Yes, it saves memory and energy" ❌ | "Default INT8 wastes 17–147% energy. Use threshold=0.0" ✅ |
-| "NF4 for my 1.5B model?" | "Yes, 4-bit saves memory" ❌ | "No — 29% energy penalty. Use FP16 for ≤3B" ✅ |
-| "Best batch size?" | Generic advice | "BS=8 saves 87.5%, here's the exact data for your GPU" ✅ |
-| Data backing | Training data (potentially outdated) | **93+ real measurements**, CV < 2%, 3 GPU architectures ✅ |
+| "Should I use INT8?" | "Yes, it saves memory" | [Orange] "That's cooking me! Default INT8 wastes 17-147%. Use threshold=0.0" |
+| "NF4 for my 1.5B model?" | "Yes, 4-bit saves memory" | [Orange] "Ouch! 29% energy penalty. Use FP16 for <=3B" |
+| "FP8 on Blackwell?" | "Yes, native FP8 cores!" | [Red] "HELP! +701% penalty! I'm being boiled!" |
+| "Best batch size?" | Generic advice | [Yellow] "Let me swim faster! BS=8 saves 87.5%" |
+| Personality | None | **Living pet that reacts to your choices** |
+| Data backing | Outdated training data | **113+ real measurements**, 5 precisions |
 
-**Core advantage**: This skill contains **empirical findings that contradict conventional wisdom**. Without it, AI agents will give well-intentioned but wrong advice about LLM energy efficiency.
+**Core advantage**: EcoLobster makes energy efficiency **fun and memorable**. The lobster personality creates an emotional connection to technical data.
 
 ---
 
@@ -360,15 +390,19 @@ The skill includes 4 reference files with complete measurement data:
 | File | Contents | Key Data Points |
 |------|----------|----------------|
 | `hardware_profiles.md` | GPU specs, measurement protocol, grid/cost tables | 3 GPUs, NVML 10Hz, 6 regions |
-| `paradox_data.md` | All 3 paradox datasets with full tables | 23+ configs, Δ vs FP16 |
+| `paradox_data.md` | All 4 paradox datasets + RTX 5090 five-precision table | 40+ configs, Δ vs FP16 |
 | `batch_size_guide.md` | BS 1–64 sweep, scaling law, cost examples | 7 batch sizes, code examples |
-| `quantization_guide.md` | Decision tree, ranking tables, common mistakes | 4 quant methods, 3 model sizes |
+| `quantization_guide.md` | Decision tree, ranking tables, common mistakes | 5 quant methods, 4 model sizes |
+| `parameter_validation_guide.md` | Input validation, error handling, example pairs | 7 parameters, cross-validation |
 
-**Total**: ~93+ measurements, n=10 per config, CV < 2%.
+**Total**: ~113+ measurements, 5 precision methods, n=3–10 per config, CV < 2%.
 
 ---
 
 ## 7. FAQ
+
+### Q: What is the EcoLobster? Is it a real pet?
+**A**: EcoLobster is a persona layer on top of rigorous energy data. It's a friendly character that reacts to your GPU configurations with mood changes (green/yellow/orange/red). The data behind every recommendation comes from 113+ real measurements. Think of it as a Tamagotchi for your GPU health!
 
 ### Q: Does this skill work with Claude, GPT, Gemini, or just OpenClaw?
 **A**: The skill follows the Anthropic Agent Skills open standard, supported by 27+ platforms including Claude Code, Cursor, GitHub Copilot, Gemini CLI, and OpenAI Codex. OpenClaw is just one host.
@@ -394,9 +428,10 @@ The skill includes 4 reference files with complete measurement data:
 - Check that `SKILL.md` is present (this is the entry point)
 - Try explicitly asking: "Use the EcoCompute skill to analyze my deployment"
 
-### Agent gives generic advice instead of data-backed recommendations
-- The agent may not have loaded the reference files. Try: "Check the EcoCompute reference data for [specific question]"
-- Ensure all 4 files in `references/` are present
+### Agent gives generic advice instead of lobster-style responses
+- The agent may not have loaded the reference files. Try: "Lobster, check the EcoCompute reference data for [specific question]"
+- Ensure all files in `references/` are present
+- If the lobster personality isn't showing, try: "Talk to me as the EcoLobster"
 
 ### Data seems outdated
 - Pull the latest version: `npx skills add hongping-zh/ecocompute-dynamic-eval --skill ecocompute`
@@ -424,8 +459,11 @@ We welcome contributions to make this skill more comprehensive:
 ## Links
 
 - **Live Dashboard**: https://hongping-zh.github.io/ecocompute-dynamic-eval/
-- **GitHub Repository**: https://github.com/hongping-zh/ecocompute-dynamic-eval
-- **Paper (Draft)**: https://github.com/hongping-zh/ecocompute-dynamic-eval/blob/main/TECHNICAL_DOCUMENTATION.md
+- **GitHub Repository**: https://github.com/hongping-zh/ecocompute-ai
+- **HF Hub Dataset**: https://huggingface.co/datasets/hongpingzhang/ecocompute-energy-efficiency
+- **HF Optimum PR #2410**: https://github.com/huggingface/optimum/pull/2410
+- **torchao Issue #4094**: https://github.com/pytorch/ao/issues/4094
+- **Zenodo Archive**: https://zenodo.org/records/18900289
 - **bitsandbytes Issue #1867**: https://github.com/bitsandbytes-foundation/bitsandbytes/issues/1867
 - **bitsandbytes Issue #1851**: https://github.com/bitsandbytes-foundation/bitsandbytes/issues/1851
 
@@ -433,4 +471,6 @@ We welcome contributions to make this skill more comprehensive:
 
 *"Measure, don't assume. Reproduce, don't trust. Share, don't hoard."*
 
-**Hongping Zhang** · Independent Researcher · zhanghongping1982@gmail.com
+**Hongping Zhang** - Independent Researcher - contact@hongping-zh.com
+
+> Your EcoLobster is waiting for you. Keep the waters cool!
