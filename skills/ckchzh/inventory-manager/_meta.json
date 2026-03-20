@@ -3,11 +3,16 @@
   "slug": "inventory-manager",
   "displayName": "Inventory Manager",
   "latest": {
-    "version": "2.3.6",
-    "publishedAt": 1773666262638,
-    "commit": "https://github.com/openclaw/skills/commit/8a2586f220776a686ef85300e0e95d75b4bb34fc"
+    "version": "3.0.0",
+    "publishedAt": 1773922199506,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.3.6",
+      "publishedAt": 1773666262638,
+      "commit": "https://github.com/openclaw/skills/commit/8a2586f220776a686ef85300e0e95d75b4bb34fc"
+    },
     {
       "version": "2.3.2",
       "publishedAt": 1773575683371,
