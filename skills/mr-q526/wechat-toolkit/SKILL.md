@@ -317,13 +317,40 @@ node {baseDir}/scripts/publisher/publish_with_video.js /path/to/article.md
 
 ## 主题选项
 
-**内置主题**：`default`、`lapis`（推荐）、`phycat`
-
-**代码高亮**：`atom-one-dark`、`dracula`、`github`、`monokai`、`solarized-light`（推荐）、`xcode`
+先查看 wechat-toolkit 已整理好的主题目录：
 
 ```bash
-wenyan publish -f article.md -t lapis -h solarized-light
-wenyan theme -l  # 查看所有主题
+node {baseDir}/scripts/publisher/publish.js --list-themes
+```
+
+**Bundled 主题（12 个）**
+
+- 内置：`default`、`orangeheart`、`rainbow`、`lapis`、`pie`、`maize`、`purple`、`phycat`
+- 自定义：`aurora`、`newsroom`、`sage`、`ember`
+
+**代码高亮**：`atom-one-dark`、`atom-one-light`、`dracula`、`github`、`github-dark`、`monokai`、`solarized-dark`、`solarized-light`、`xcode`
+
+**主题预览（ClawHub 版本说明）**
+
+- ClawHub 发布包默认**不包含 PNG 预览图**，避免触发非文本文件限制和体积限制
+- 如果你本地想生成参考图，请运行：
+
+```bash
+node {baseDir}/scripts/publisher/publish.js --generate-theme-previews
+```
+
+- 生成目录：`{baseDir}/scripts/publisher/theme_previews/`
+
+```bash
+# 使用 bundled 主题发布
+node {baseDir}/scripts/publisher/publish.js article.md lapis
+node {baseDir}/scripts/publisher/publish.js article.md aurora
+
+# 指定高亮主题
+node {baseDir}/scripts/publisher/publish.js article.md newsroom github
+
+# 重新生成全部参考图
+node {baseDir}/scripts/publisher/publish.js --generate-theme-previews
 ```
 
 ## 视频嵌入（关键）

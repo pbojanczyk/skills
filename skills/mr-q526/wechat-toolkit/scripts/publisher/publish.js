@@ -4,7 +4,8 @@
  * wechat-publisher: 发布 Markdown 到微信公众号草稿箱
  *
  * 用法:
- *   node publish.js <markdown-file> [theme] [highlight]
+ *   node publish.js <markdown-file> [theme-id] [highlight]
+ *   node publish.js --list-themes
  *
  * 跨平台支持: macOS / Linux / Windows
  */
@@ -13,9 +14,16 @@ const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const {
+    DEFAULT_THEME_ID,
+    GALLERY_HTML_PATH,
+    buildPublishArgs,
+    generatePreviews,
+    printThemeList,
+    resolveTheme,
+} = require('./theme_catalog');
 
 // ─── 默认配置 ─────────────────────────────────────────────────
-const DEFAULT_THEME = 'lapis';
 const DEFAULT_HIGHLIGHT = 'solarized-light';
 const TOOLS_MD_PATHS = [
     path.join(os.homedir(), '.openclaw', 'workspace-xina-gongzhonghao', 'TOOLS.md'),
@@ -92,17 +100,20 @@ function checkEnv() {
 }
 
 // ─── 发布函数 ────────────────────────────────────────────────
-function publish(file, theme, highlight, appId, secret) {
+function publish(file, theme, appId, secret) {
     console.log(color.green('📝 准备发布文章...'));
     console.log(`  文件: ${file}`);
-    console.log(`  主题: ${theme}`);
-    console.log(`  代码高亮: ${highlight}`);
+    console.log(`  主题 ID: ${theme.id}`);
+    console.log(`  主题名称: ${theme.label}${theme.name_zh ? ` / ${theme.name_zh}` : ''}`);
+    console.log(`  主题来源: ${theme.source}`);
+    console.log(`  代码高亮: ${theme.resolved_highlight}`);
+    console.log(`  预览图: ${theme.preview_path}`);
     console.log('');
 
     const env = { ...process.env, WECHAT_APP_ID: appId, WECHAT_APP_SECRET: secret };
 
     try {
-        execFileSync('wenyan', ['publish', '-f', file, '-t', theme, '-h', highlight], {
+        execFileSync('wenyan', buildPublishArgs(file, theme), {
             env,
             stdio: 'inherit',
         });
@@ -124,20 +135,26 @@ function publish(file, theme, highlight, appId, secret) {
 
 // ─── 帮助 ────────────────────────────────────────────────────
 function showHelp() {
-    console.log(`Usage: node publish.js <markdown-file> [theme] [highlight]
+    console.log(`Usage: node publish.js <markdown-file> [theme-id] [highlight]
 
 Examples:
   node publish.js article.md
   node publish.js article.md lapis
-  node publish.js article.md lapis solarized-light
+  node publish.js article.md aurora
+  node publish.js article.md newsroom github
+  node publish.js --list-themes
+  node publish.js --generate-theme-previews
 
-Available themes:
-  default, lapis, phycat, ...
-  Run 'wenyan theme -l' to see all themes
+Bundled themes:
+  default, orangeheart, rainbow, lapis, pie, maize, purple, phycat
+  aurora, newsroom, sage, ember
 
 Available highlights:
   atom-one-dark, atom-one-light, dracula, github-dark, github,
-  monokai, solarized-dark, solarized-light, xcode`);
+  monokai, solarized-dark, solarized-light, xcode
+
+Preview gallery:
+  ${GALLERY_HTML_PATH}`);
 }
 
 // ─── 主函数 ──────────────────────────────────────────────────
@@ -149,9 +166,23 @@ function main() {
         process.exit(0);
     }
 
+    if (args[0] === '--list-themes') {
+        checkWenyan();
+        printThemeList();
+        process.exit(0);
+    }
+
+    if (args[0] === '--generate-theme-previews') {
+        checkWenyan();
+        for (const outputPath of generatePreviews(args.slice(1))) {
+            console.log(outputPath);
+        }
+        console.log(GALLERY_HTML_PATH);
+        process.exit(0);
+    }
+
     const file = args[0];
-    const theme = args[1] || DEFAULT_THEME;
-    const highlight = args[2] || DEFAULT_HIGHLIGHT;
+    const theme = resolveTheme(args[1] || DEFAULT_THEME_ID, args[2] || undefined);
 
     // 检查文件
     if (!fs.existsSync(file)) {
@@ -161,7 +192,7 @@ function main() {
 
     checkWenyan();
     const { appId, secret } = checkEnv();
-    publish(file, theme, highlight, appId, secret);
+    publish(file, theme, appId, secret);
 }
 
 main();

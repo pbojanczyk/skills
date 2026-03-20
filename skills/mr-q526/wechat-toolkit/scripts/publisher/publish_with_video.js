@@ -13,7 +13,8 @@
  * 7. 更新草稿
  *
  * 用法：
- *   node publish_with_video.js <markdown-file> [theme] [highlight]
+ *   node publish_with_video.js <markdown-file> [theme-id] [highlight]
+ *   node publish_with_video.js --list-themes
  *
  * 跨平台支持: macOS / Linux / Windows
  *
@@ -28,6 +29,13 @@ const os = require('os');
 const https = require('https');
 const http = require('http');
 const { execFileSync } = require('child_process');
+const {
+    DEFAULT_THEME_ID,
+    buildPublishArgs,
+    generatePreviews,
+    printThemeList,
+    resolveTheme,
+} = require('./theme_catalog');
 
 // ─── 配置 ─────────────────────────────────────────────────────
 const TOOLS_MD_PATHS = [
@@ -35,8 +43,6 @@ const TOOLS_MD_PATHS = [
     path.join(os.homedir(), '.openclaw', 'workspace', 'TOOLS.md'),
 ];
 const WENYAN_TOKEN_CACHE = path.join(os.homedir(), '.config', 'wenyan-md', 'token.json');
-const DEFAULT_THEME = 'lapis';
-const DEFAULT_HIGHLIGHT = 'solarized-light';
 
 // ─── 工具函数 ─────────────────────────────────────────────────
 
@@ -314,12 +320,12 @@ async function processVideos(content, articleDir, token) {
 
 // ─── Wenyan 发布 ──────────────────────────────────────────────
 
-function publishWithWenyan(mdPath, theme, highlight, appId, secret) {
+function publishWithWenyan(mdPath, themeConfig, appId, secret) {
     const env = { ...process.env, WECHAT_APP_ID: appId, WECHAT_APP_SECRET: secret };
 
     let stdout;
     try {
-        stdout = execFileSync('wenyan', ['publish', '-f', mdPath, '-t', theme, '-h', highlight], {
+        stdout = execFileSync('wenyan', buildPublishArgs(mdPath, themeConfig), {
             env,
             encoding: 'utf-8',
             timeout: 120000,
@@ -407,12 +413,25 @@ async function patchDraftWithVideos(token, draftMediaId, placeholderMap) {
 async function main() {
     const args = process.argv.slice(2);
 
+    if (args[0] === '--list-themes') {
+        printThemeList();
+        process.exit(0);
+    }
+
+    if (args[0] === '--generate-theme-previews') {
+        for (const outputPath of generatePreviews(args.slice(1))) {
+            console.log(outputPath);
+        }
+        process.exit(0);
+    }
+
     if (args.length < 1 || args[0] === '-h' || args[0] === '--help') {
         console.log(`
 publish_with_video.js - 发布含视频的 Markdown 文章到微信公众号草稿箱
 
 用法:
-    node publish_with_video.js <markdown-file> [theme] [highlight]
+    node publish_with_video.js <markdown-file> [theme-id] [highlight]
+    node publish_with_video.js --list-themes
 
 环境变量（或从 TOOLS.md 自动读取）:
     WECHAT_APP_ID
@@ -421,8 +440,7 @@ publish_with_video.js - 发布含视频的 Markdown 文章到微信公众号草�
     }
 
     const articlePath = path.resolve(args[0]);
-    const theme = args[1] || DEFAULT_THEME;
-    const highlight = args[2] || DEFAULT_HIGHLIGHT;
+    const themeConfig = resolveTheme(args[1] || DEFAULT_THEME_ID, args[2] || undefined);
 
     if (!fs.existsSync(articlePath)) {
         console.error(`❌ 文件不存在: ${articlePath}`);
@@ -431,7 +449,10 @@ publish_with_video.js - 发布含视频的 Markdown 文章到微信公众号草�
 
     const articleDir = path.dirname(articlePath);
     console.log(`📄 文章: ${articlePath}`);
-    console.log(`🎨 主题: ${theme} / ${highlight}\n`);
+    console.log(
+        `🎨 主题: ${themeConfig.id} / ${themeConfig.label} / ${themeConfig.resolved_highlight}`
+    );
+    console.log(`🖼️  预览图: ${themeConfig.preview_path}\n`);
 
     // 1. 读取凭证
     const { appId, secret } = loadCredentials();
@@ -456,7 +477,7 @@ publish_with_video.js - 发布含视频的 Markdown 文章到微信公众号草�
 
         // 6. wenyan 发布
         console.log('\n🚀 发布草稿中...');
-        const draftMediaId = publishWithWenyan(tmpMd, theme, highlight, appId, secret);
+        const draftMediaId = publishWithWenyan(tmpMd, themeConfig, appId, secret);
         if (draftMediaId) {
             console.log(`✅ 草稿发布成功！Media ID: ${draftMediaId}`);
         } else {

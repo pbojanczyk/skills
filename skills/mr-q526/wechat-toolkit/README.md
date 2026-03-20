@@ -124,6 +124,24 @@ cover: /absolute/path/to/cover.jpg（必填，使用绝对路径）
 
 ---
 
+## 🖼️ 主题预览
+
+ClawHub 发布包默认**不包含 PNG 预览图**，这样可以避免非文本文件限制和 50MB 体积限制。
+
+如果你本地想看每个主题的效果图，请在 skill 目录运行：
+
+```bash
+node scripts/publisher/publish.js --generate-theme-previews
+```
+
+生成后会输出到：
+
+```bash
+scripts/publisher/theme_previews/
+```
+
+---
+
 ## 📁 项目结构
 
 ```
@@ -169,4 +187,6 @@ wechat-toolkit/
 
 ## 📄 License
 
-MIT
+MIT-0
+
+> 发布到 ClawHub 时，请在上传界面接受 MIT-0 许可条款。

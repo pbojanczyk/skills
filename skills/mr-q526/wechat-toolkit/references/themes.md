@@ -1,119 +1,102 @@
-# wenyan-cli 主题列表
+# wechat-toolkit 主题参考
 
-wenyan-cli 支持多种内置主题，也支持自定义主题。
+wechat-toolkit 现在不只暴露 wenyan 的少数几个主题，而是维护了一份统一主题目录，发布、视频发布、参考图都走同一套配置。
 
-## 内置主题
+## 快速查看
 
-查看所有内置主题：
 ```bash
-wenyan theme -l
+node scripts/publisher/publish.js --list-themes
+node scripts/publisher/theme_catalog.js list
 ```
 
-**常用主题：**
+## 参考图
 
-1. **default** - 默认主题
-   - 简洁、通用
-   - 适合大部分文章
+ClawHub 发布包默认**不附带 PNG 预览图**，避免非文本文件限制和 50MB 上传限制。
 
-2. **lapis** - 青金石（推荐）
-   - 优雅的蓝色调
-   - 适合技术文章
+如果你本地想生成主题预览，请运行：
 
-3. **phycat** - 物理猫
-   - 轻量、现代
-   - 适合科技类内容
+```bash
+node scripts/publisher/publish.js --generate-theme-previews
+```
 
-**完整主题列表：** https://github.com/caol64/wenyan-core/tree/main/src/assets/themes
+生成后会得到：
+
+```bash
+scripts/publisher/theme_previews/theme-gallery.html
+scripts/publisher/theme_previews/theme-gallery.png
+scripts/publisher/theme_previews/<theme-id>.png
+```
+
+## Bundled 主题
+
+### 内置主题
+
+- `default` - 简洁稳妥，适合资讯、总结、日报
+- `orangeheart` - 暖色杂志感，适合人物、品牌、案例文章
+- `rainbow` - 色彩活泼，适合活动、清单、创意内容
+- `lapis` - 冷调科技蓝，适合教程、评测、工具介绍
+- `pie` - 现代锐利，适合观点、方法论、深度分析
+- `maize` - 浅暖纸感，适合教程、拆解、轻阅读
+- `purple` - 柔和优雅，适合专栏、随笔、访谈
+- `phycat` - 薄荷清新，适合科技资讯、产品上手、工具流
+
+### 自定义主题
+
+- `aurora` - 渐变标题和清爽层次，适合 AI 趋势、产品观察
+- `newsroom` - 报刊专栏风，适合评论、行业观察、长文
+- `sage` - 柔和笔记感，适合经验总结、个人成长、复盘
+- `ember` - 暖调杂志封面感，适合故事、案例、品牌内容
+
+## 推荐命令
+
+```bash
+# 默认稳妥
+node scripts/publisher/publish.js article.md default
+
+# 技术/工具类
+node scripts/publisher/publish.js article.md lapis
+node scripts/publisher/publish.js article.md aurora
+
+# 长文/评论
+node scripts/publisher/publish.js article.md pie
+node scripts/publisher/publish.js article.md newsroom
+
+# 个人表达/复盘
+node scripts/publisher/publish.js article.md purple
+node scripts/publisher/publish.js article.md sage
+
+# 暖色案例/品牌文
+node scripts/publisher/publish.js article.md orangeheart
+node scripts/publisher/publish.js article.md ember
+```
 
 ## 代码高亮主题
 
-### 亮色主题
-- `atom-one-light` - Atom 编辑器亮色
-- `github` - GitHub 风格
-- `solarized-light` - Solarized 亮色（推荐）
-- `xcode` - Xcode 默认
+- `atom-one-dark`
+- `atom-one-light`
+- `dracula`
+- `github`
+- `github-dark`
+- `monokai`
+- `solarized-dark`
+- `solarized-light`
+- `xcode`
 
-### 暗色主题
-- `atom-one-dark` - Atom 编辑器暗色
-- `dracula` - Dracula 主题
-- `github-dark` - GitHub 暗色
-- `monokai` - Monokai 经典
-- `solarized-dark` - Solarized 暗色
+## 自定义 CSS 主题
 
-## 自定义主题
+除了 bundled 主题外，也支持直接传 CSS 路径：
 
-### 临时使用
 ```bash
-wenyan publish -f article.md -c /path/to/theme.css
+node scripts/publisher/publish.js article.md /absolute/path/to/theme.css
+node scripts/publisher/publish_with_video.js article.md /absolute/path/to/theme.css
 ```
 
-### 永久安装
+## 原生 wenyan 能力
+
+如果你要管理 wenyan 自己安装的主题：
+
 ```bash
-# 从本地文件
+wenyan theme -l
 wenyan theme --add --name my-theme --path /path/to/theme.css
-
-# 从网络
-wenyan theme --add --name my-theme --path https://example.com/theme.css
-```
-
-### 使用已安装主题
-```bash
-wenyan publish -f article.md -t my-theme
-```
-
-### 删除主题
-```bash
 wenyan theme --rm my-theme
-```
-
-## 主题定制
-
-如果你想创建自己的主题，可以参考：
-
-1. **查看现有主题源码：** https://github.com/caol64/wenyan-core/tree/main/src/assets/themes
-2. **CSS 变量参考：** wenyan 使用 CSS 变量定制样式
-3. **测试主题：** 使用 `wenyan render` 命令仅渲染不发布
-
-**示例：**
-```bash
-# 渲染测试（不发布）
-wenyan render -f article.md -t my-theme -h github
-```
-
-## 推荐组合
-
-### 技术文章
-```bash
-wenyan publish -f article.md -t lapis -h solarized-light
-```
-
-### 深色风格
-```bash
-wenyan publish -f article.md -t phycat -h dracula
-```
-
-### 简洁风格
-```bash
-wenyan publish -f article.md -t default -h github
-```
-
-## 更多选项
-
-### 关闭 Mac 风格代码块
-```bash
-wenyan publish -f article.md -t lapis --no-mac-style
-```
-
-### 关闭链接转脚注
-```bash
-wenyan publish -f article.md -t lapis --no-footnote
-```
-
-### 组合所有选项
-```bash
-wenyan publish -f article.md \
-  -t lapis \
-  -h solarized-light \
-  --no-mac-style \
-  --no-footnote
 ```
