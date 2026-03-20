@@ -1,7 +1,7 @@
 # Server酱推送配置完成 ✅
 
 **配置时间**: 2026-03-03
-**SendKey**: SCT318129TjbbZCb4uk6oCF42SQEHefQ6Y
+**SendKey**: SCT_your_sendkey_here
 **状态**: ✅ 已启用
 
 ---
@@ -13,7 +13,7 @@
   "push_config": {
     "enabled": true,
     "serverchan_enabled": true,
-    "serverchan_key": "SCT318129TjbbZCb4uk6oCF42SQEHefQ6Y"
+    "serverchan_key": "SCT_your_sendkey_here"
   }
 }
 ```
@@ -64,7 +64,7 @@
 ### **方法1：运行监控脚本（带推送）**
 
 ```bash
-cd /root/.openclaw/workspace/skills/wool-gathering/scripts
+cd $(pwd)/skills/wool-gathering/scripts
 python3 price_monitor_with_push.py
 ```
 
@@ -80,7 +80,7 @@ python3 push_notification.py --title "标题" --content "内容" --method server
 
 编辑配置文件：
 ```bash
-vi /root/.openclaw/workspace/skills/wool-gathering/assets/config_template.json
+vi $(pwd)/skills/wool-gathering/assets/config_template.json
 ```
 
 添加商品：
@@ -129,7 +129,7 @@ vi /root/.openclaw/workspace/skills/wool-gathering/assets/config_template.json
 docker exec -it qinglong /bin/sh
 
 # 添加定时任务（每小时检查一次价格）
-echo "0 * * * * python3 /root/.openclaw/workspace/skills/wool-gathering/scripts/price_monitor_with_push.py" >> /ql/data/config/crontab.list
+echo "0 * * * * python3 $(pwd)/skills/wool-gathering/scripts/price_monitor_with_push.py" >> /ql/data/config/crontab.list
 ```
 
 ---
@@ -182,8 +182,8 @@ A：设置 `push_config.enabled = false`
 
 ---
 
-**配置文件**: `/root/.openclaw/workspace/skills/wool-gathering/assets/config_template.json`
-**监控脚本**: `/root/.openclaw/workspace/skills/wool-gathering/scripts/price_monitor_with_push.py`
+**配置文件**: `$(pwd)/skills/wool-gathering/assets/config_template.json`
+**监控脚本**: `$(pwd)/skills/wool-gathering/scripts/price_monitor_with_push.py`
 
 ---
 

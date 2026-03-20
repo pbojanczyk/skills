@@ -107,7 +107,7 @@
 ### **方法1：直接修改配置文件**
 
 ```bash
-vi /root/.openclaw/workspace/skills/wool-gathering/assets/config_template.json
+vi $(pwd)/skills/wool-gathering/assets/config_template.json
 ```
 
 修改 `push_config` 部分，填入你的 API Key。
@@ -135,7 +135,7 @@ export DINGTALK_SECRET="SECxxxxxxxx"
 ### **测试命令**
 
 ```bash
-cd /root/.openclaw/workspace/skills/wool-gathering/scripts
+cd $(pwd)/skills/wool-gathering/scripts
 
 # 测试Server酱
 python3 push_notification.py --title "测试推送" --content "这是一条测试消息" --method serverchan

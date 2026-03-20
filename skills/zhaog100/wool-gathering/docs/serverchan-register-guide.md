@@ -54,7 +54,7 @@ SCT12345
 ### **方法2：自己配置**
 编辑配置文件：
 ```bash
-vi /root/.openclaw/workspace/skills/wool-gathering/assets/config_template.json
+vi $(pwd)/skills/wool-gathering/assets/config_template.json
 ```
 
 修改这部分：
@@ -74,7 +74,7 @@ vi /root/.openclaw/workspace/skills/wool-gathering/assets/config_template.json
 配置完成后，运行测试：
 
 ```bash
-cd /root/.openclaw/workspace/skills/wool-gathering/scripts
+cd $(pwd)/skills/wool-gathering/scripts
 python3 push_notification.py --title "测试推送" --content "Server酱配置成功！" --method serverchan
 ```
 
