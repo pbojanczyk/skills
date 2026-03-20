@@ -31,31 +31,44 @@ This skill trades:
 
 ## Signal Logic
 
-### Default Signal: Spotify Charts Momentum + Market Mispricing
+### Default Signal: Conviction-Based Sizing with Sentiment Bias
 
 1. Discover active music/entertainment markets on Polymarket
-2. Query Spotify Charts data for relevant artists (daily streams, velocity)
-3. Compare stream trajectory with market's implied probability for milestone markets
-4. Fade fan-driven overbetting: when an artist's market is at >80% despite weak streaming velocity, go NO
-5. Identify underpriced breakout: artist trending +200% week-over-week with market at <60% for chart milestone
+2. Compute base conviction from distance to threshold (0% at boundary → 100% at p=0/p=1)
+3. Apply `sentiment_bias()` multiplier based on market type and artist category
+4. Size = `max(MIN_TRADE, conviction × bias × MAX_POSITION)` — capped at MAX_POSITION
+5. Skip markets with spread > MAX_SPREAD or fewer than MIN_DAYS to resolution
+
+### Sentiment Bias (built-in, no API required)
+
+Different market types have systematic mispricing patterns in music. `sentiment_bias()` adjusts conviction based on known retail behavior:
+
+| Market type | Bias | Why |
+|---|---|---|
+| Megastar fan markets (Taylor Swift, Beyoncé, BTS) | **0.75x** | Fan bias inflates YES; emotionally driven, high noise |
+| Awards ceremonies (Grammy, Oscar, VMA) | **0.85x** | Fan voting + label politics = hard to model reliably |
+| Streaming / chart milestones (Spotify, Billboard) | **1.15x** | Data available before market reprices — lean in |
+| Emerging global genres (Afrobeats, K-pop, Latin) | **1.20x** | Systematically underweighted by US-centric retail traders |
+| Other | **1.00x** | No systematic bias detected |
+
+Example: Afrobeats streaming milestone at 25% → conviction 34% × 1.2x = 41% → $6 position. Same market for a Beyoncé milestone → 34% × 0.75x = 26% → $5 (floor, trade cautiously).
 
 ### Remix Ideas
 
-- **TikTok Trending**: Viral audio discovery as leading indicator for streaming momentum
-- **Ticketmaster/StubHub data**: Secondary market ticket prices as proxy for tour gross markets
-- **RIAA certification API**: Monitor certifications approaching milestone thresholds
-- **Twitter engagement velocity**: Tweet impressions per hour as sentiment gauge
-- **Chartmetric API**: Multi-platform streaming intelligence for informed positioning
+- **Spotify Charts API / Chartmetric**: Replace `market.current_probability` with stream velocity-implied probability — trade the divergence between real-time data and market price
+- **TikTok Trending**: Viral audio as leading indicator for streaming momentum (48–72h lag to market)
+- **Ticketmaster/StubHub**: Secondary ticket prices as proxy for tour gross markets
+- **RIAA certification tracker**: Monitor certifications approaching milestone thresholds
 
 ## Market Categories Tracked
 
 ```python
-MUSIC_KEYWORDS = [
-    "Taylor Swift", "Bad Bunny", "Beyoncé", "Drake", "Kendrick",
-    "Spotify", "Billboard", "Grammy", "streaming", "album",
-    "chart", "tour", "concert", "sales", "certification",
-    "K-pop", "Afrobeats", "Latin music", "country",
-    "music industry", "catalog", "NFT music", "TikTok"
+KEYWORDS = [
+    'Taylor Swift', 'Bad Bunny', 'Beyoncé', 'Drake', 'Kendrick',
+    'Spotify', 'Billboard', 'Grammy', 'streaming', 'album',
+    'chart', 'tour', 'concert', 'certification', 'RIAA',
+    'K-pop', 'Afrobeats', 'Latin music', 'country', 'TikTok music',
+    'music catalog', 'record label', 'music deal',
 ]
 ```
 
@@ -120,11 +133,14 @@ All risk parameters are declared in `clawhub.json` as `tunables` and adjustable 
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `SIMMER_MUSIC_MAX_POSITION` | `15` | Max USDC per trade |
-| `SIMMER_MUSIC_MIN_VOLUME` | `2000` | Min market volume filter (USD) |
-| `SIMMER_MUSIC_MAX_SPREAD` | `0.15` | Max bid-ask spread (0.10 = 10%) |
-| `SIMMER_MUSIC_MIN_DAYS` | `7` | Min days until market resolves |
-| `SIMMER_MUSIC_MAX_POSITIONS` | `10` | Max concurrent open positions |
+| `SIMMER_MAX_POSITION` | `15` | Max USDC per trade (reached at 100% conviction) |
+| `SIMMER_MIN_VOLUME` | `2000` | Min market volume filter (USD) |
+| `SIMMER_MAX_SPREAD` | `0.15` | Max bid-ask spread (0.15 = 15%) |
+| `SIMMER_MIN_DAYS` | `7` | Min days until market resolves |
+| `SIMMER_MAX_POSITIONS` | `10` | Max concurrent open positions |
+| `SIMMER_YES_THRESHOLD` | `0.38` | Buy YES if market price ≤ this value |
+| `SIMMER_NO_THRESHOLD` | `0.62` | Sell NO if market price ≥ this value |
+| `SIMMER_MIN_TRADE` | `5` | Floor for any trade (min USDC regardless of conviction) |
 
 ## Dependency
 

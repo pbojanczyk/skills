@@ -3,9 +3,15 @@
   "slug": "polymarket-music-entertainment-trader",
   "displayName": "Music & Entertainment Trader",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773429104157,
-    "commit": "https://github.com/openclaw/skills/commit/9ff7e419bf626f338bbf8f677ec94b9d7e05ddd7"
+    "version": "1.0.1",
+    "publishedAt": 1773779902707,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773429104157,
+      "commit": "https://github.com/openclaw/skills/commit/9ff7e419bf626f338bbf8f677ec94b9d7e05ddd7"
+    }
+  ]
 }
