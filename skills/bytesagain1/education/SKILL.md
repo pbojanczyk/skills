@@ -1,7 +1,7 @@
 ---
 name: education
-description: "Generate study plans, quizzes, flashcards, and review checklists. Track learning progress by topic."
-version: "3.2.0"
+description: "Generate study materials. Use when creating study plans, quizzes, flashcards, tracking progress, or scheduling review sessions."
+version: "3.4.0"
 author: BytesAgain
 homepage: https://bytesagain.com
 source: https://github.com/bytesagain/ai-skills
