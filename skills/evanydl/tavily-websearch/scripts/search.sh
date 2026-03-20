@@ -57,20 +57,9 @@ if [ -z "$JSON_INPUT" ]; then
     exit 1
 fi
 
-# --- validate JSON ------------------------------------------------------
-if ! echo "$JSON_INPUT" | jq empty 2>/dev/null; then
-    echo "Error: Invalid JSON input" >&2
-    exit 1
-fi
-
-if ! echo "$JSON_INPUT" | jq -e '.query' >/dev/null 2>&1; then
-    echo "Error: 'query' field is required" >&2
-    exit 1
-fi
-
 # --- call Tavily REST API -----------------------------------------------
-curl -s --request POST \
+printf '%s' "$JSON_INPUT" | curl -s --request POST \
     --url "https://api.tavily.com/search" \
     --header "Authorization: Bearer $TAVILY_API_KEY" \
     --header 'Content-Type: application/json' \
-    --data "$JSON_INPUT" | jq .
+    --data @-

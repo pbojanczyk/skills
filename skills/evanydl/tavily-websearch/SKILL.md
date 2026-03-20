@@ -1,6 +1,8 @@
 ---
 name: search
 description: "Search the web using Tavily's Search API. Returns relevant, accurate results with content snippets, scores, and metadata. Use when the user asks to search the web, look up sources, find links, or research a topic."
+homepage: https://docs.tavily.com/documentation
+metadata: {"openclaw": {"homepage": "https://docs.tavily.com/documentation", "primaryEnv": "TAVILY_API_KEY", "requires": {"bins": ["curl"], "env": ["TAVILY_API_KEY"]}}}
 ---
 
 # Search Skill
@@ -116,6 +118,12 @@ POST https://api.tavily.com/search
 **When to use each:**
 - `basic`: General-purpose, balanced
 - `advanced`: Precision matters (default recommendation)
+
+## Data Handling
+**Never include in the JSON body:**
+- Secrets, API keys, or credentials
+- Personal or sensitive user data
+
 
 ## Tips
 
