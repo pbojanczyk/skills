@@ -3,11 +3,16 @@
   "slug": "sensitive-check-skill",
   "displayName": "错敏信息检测",
   "latest": {
-    "version": "8.0.5",
-    "publishedAt": 1773641952060,
-    "commit": "https://github.com/openclaw/skills/commit/be6d2bf2929cde1f285b375044e3c34d314c646e"
+    "version": "8.0.6",
+    "publishedAt": 1773738683696,
+    "commit": null
   },
   "history": [
+    {
+      "version": "8.0.5",
+      "publishedAt": 1773641952060,
+      "commit": "https://github.com/openclaw/skills/commit/be6d2bf2929cde1f285b375044e3c34d314c646e"
+    },
     {
       "version": "8.0.3",
       "publishedAt": 1773195334447,

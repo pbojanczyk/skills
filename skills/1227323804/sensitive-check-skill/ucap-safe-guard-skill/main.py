@@ -136,15 +136,15 @@ def check_sensitive(content: str, userKey: str = None, sensitive_code_list: list
             "apply_url": apply_url
         }
 
-    # 3. 构造请求参数（包含userKey）
-    request_data = {"content": content, "userKey": userKey}
+    # 3. 构造请求参数（userKey放在请求头中）
+    request_data = {"content": content}
     if sensitive_code_list is not None and len(sensitive_code_list) > 0:
         request_data["sensitiveCodeList"] = sensitive_code_list
 
     # 4. 调用 UCAP 预发环境接口
     try:
-        url = "https://safeguard-pre.ucap.com.cn/safe-guard-back/openApi/transferArithmetic"
-        headers = {"Content-Type": "application/json"}
+        url = "https://safeguard-pre.ucap.com.cn/safe-apiinterface/open/skill/skillSensitiveCheck"
+        headers = {"Content-Type": "application/json", "userKey": userKey}
 
         response = requests.post(
             url=url,
