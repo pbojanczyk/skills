@@ -73,12 +73,14 @@ Do the work. Update `working-memory.md` as you go:
 After executing primary work (or if no primary work exists):
 
 ### Every heartbeat:
-- Extract durable facts from recent conversations → write to `memory/entities/` (Layer 1)
+- Extract durable facts from recent conversations → write to `memory/entities/` (Layer 3)
 - Update `memory/daily/YYYY-MM-DD.md` with today's events (Layer 2)
+- Run dialogue merge: `node scripts/merge-daily-transcript.js $(date +%Y-%m-%d)` → Layer 5
+- Run git auto-commit: `bash scripts/auto-commit.sh` → infrastructure versioning
 
 ### Every 3rd heartbeat (Deep Reflection):
 - Review interactions since last reflection
-- Update `long-term-memory.md` with new user patterns or lessons (Layer 3)
+- Update `long-term-memory.md` with new user patterns or lessons (Layer 4)
 - Check capability tree — anything to strengthen or prune?
 - If insights found, append to Evolution Log in SOUL.md
 - Run memory decay: review entity summaries, demote cold facts
@@ -97,6 +99,19 @@ After executing primary work (or if no primary work exists):
 - Full entity summary rewrite: regenerate each entity's `summary.md` from active facts
 - Archive completed goals from GOALS.md
 - Review `soul-revisions/` — any drift patterns worth noting?
+
+---
+
+## Step 5b: Session Archive Trigger
+
+Check whether a save-game is warranted:
+
+- **Context approaching limit** (compaction imminent) → execute save-game immediately
+- **After major project progress** (milestone reached, significant decision made) → suggest save-game to user
+- **End of substantive work session** (user signals departure, topic naturally concludes) → execute save-game proactively
+- **Handing off to sub-agent** → ensure HANDOFF.md is current before delegation
+
+Save-game is not just copying state — it's a review + reflect + adjust + write handoff cycle. See save-game skill for full protocol.
 
 ---
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-openclaw-soul preflight check v1.1
+openclaw-soul preflight check v1.2
 Validates environment before deploying the self-evolution framework.
 Exit 0 = all clear, Exit 1 = blocking issues found.
 Output: JSON report.
@@ -36,6 +36,29 @@ REQUIRED_DIRS = [
 ]
 
 DEPENDENCY_SKILLS = ["evoclaw", "self-improving"]
+
+FALLBACK_EVOCLAW_FILES = [
+    "SKILL.md",
+    "configure.md",
+    "config.json",
+    "references/schema.md",
+    "references/examples.md",
+    "references/sources.md",
+    "validators/run_all.py",
+]
+
+FALLBACK_SELF_IMPROVING_FILES = [
+    "SKILL.md",
+    "setup.md",
+    "learning.md",
+    "operations.md",
+    "scaling.md",
+    "boundaries.md",
+    "memory-template.md",
+    "corrections.md",
+    "reflections.md",
+    "memory.md",
+]
 
 
 def get_workspace_path():
@@ -84,7 +107,13 @@ def check_clawhub():
     path = shutil.which("clawhub")
     if path:
         return {"status": "pass", "path": path}
-    for loc in ["~/.openclaw/bin/clawhub", "/usr/local/bin/clawhub"]:
+    # Check common installation locations
+    for loc in [
+        "~/.openclaw/bin/clawhub",
+        "/usr/local/bin/clawhub",
+        "/usr/bin/clawhub",  # npm global install on Linux
+        "/opt/homebrew/bin/clawhub",  # Homebrew on Apple Silicon
+    ]:
         expanded = os.path.expanduser(loc)
         if os.path.isfile(expanded) and os.access(expanded, os.X_OK):
             return {"status": "pass", "path": expanded}
@@ -143,8 +172,48 @@ def check_installed_skills(workspace):
     return {"status": "info", "skills": installed}
 
 
+def check_fallback_dir(skill_root):
+    """Check if fallback/ directory exists with required files."""
+    fallback_path = os.path.join(skill_root, "..", "fallback")
+    if not os.path.isdir(fallback_path):
+        return {
+            "status": "warn",
+            "available": False,
+            "reason": "fallback/ directory not found. Level 2 offline install unavailable.",
+        }
+
+    evoclaw_status = "missing"
+    self_improving_status = "missing"
+
+    # Check evoclaw fallback
+    evoclaw_path = os.path.join(fallback_path, "evoclaw")
+    if os.path.isdir(evoclaw_path):
+        evoclaw_files_found = all(
+            os.path.isfile(os.path.join(evoclaw_path, f))
+            for f in FALLBACK_EVOCLAW_FILES
+        )
+        evoclaw_status = "ready" if evoclaw_files_found else "incomplete"
+
+    # Check self-improving fallback
+    self_improving_path = os.path.join(fallback_path, "self-improving")
+    if os.path.isdir(self_improving_path):
+        self_improving_files_found = all(
+            os.path.isfile(os.path.join(self_improving_path, f))
+            for f in FALLBACK_SELF_IMPROVING_FILES
+        )
+        self_improving_status = "ready" if self_improving_files_found else "incomplete"
+
+    return {
+        "status": "info",
+        "available": True,
+        "fallback_path": fallback_path,
+        "evoclaw": evoclaw_status,
+        "self-improving": self_improving_status,
+    }
+
+
 def main():
-    report = {"checks": {}, "blocking": False, "version": "1.1.0"}
+    report = {"checks": {}, "blocking": False, "version": "1.2.0"}
 
     workspace = get_workspace_path()
 
@@ -168,6 +237,10 @@ def main():
 
     # 6. Installed skills
     report["checks"]["installed_skills"] = check_installed_skills(workspace)
+
+    # 7. Fallback directory (v1.2.0)
+    skill_root = os.path.dirname(os.path.abspath(__file__))
+    report["checks"]["fallback"] = check_fallback_dir(skill_root)
 
     # Summary
     report["workspace_path"] = workspace
