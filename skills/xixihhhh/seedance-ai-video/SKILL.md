@@ -3,10 +3,12 @@ name: seedance
 description: "Generate AI videos using ByteDance's Seedance 1.5 Pro — a native audio-visual joint generation model with cinematic camera control, multi-language lip-sync, and synchronized audio generation. Supports text-to-video and image-to-video, up to 720p resolution, and 5-12 second duration. Available via Atlas Cloud API. Use this skill whenever the user wants to generate AI videos, create video clips, animate images, produce short films, make video content with audio, or mentions Seedance, ByteDance video, Jimeng, or Dreamina. Also trigger when users ask to create product demos, marketing videos, social media reels, animated scenes, cinematic clips, talking head videos, or any video content using AI."
 source: "https://github.com/AtlasCloudAI/nano-banana-2-skill"
 homepage: "https://github.com/AtlasCloudAI/nano-banana-2-skill"
-env_vars:
-  ATLASCLOUD_API_KEY:
-    description: "Atlas Cloud API key for accessing Seedance video generation models"
-    required: true
+metadata:
+  openclaw:
+    requires:
+      env:
+        - ATLASCLOUD_API_KEY
+    primaryEnv: ATLASCLOUD_API_KEY
 ---
 
 # Seedance — AI Video Generation by ByteDance
@@ -37,6 +39,36 @@ Seedance excels at creating cinematic short clips with realistic motion, facial 
 1. Sign up at https://www.atlascloud.ai
 2. Console → API Keys → Create new key
 3. Set env: `export ATLASCLOUD_API_KEY="your-key"`
+
+---
+
+## Script Usage
+
+This skill includes a Python script for video generation. Zero external dependencies required.
+
+### List available video models
+```bash
+python scripts/generate_video.py list-models
+```
+
+### Generate a video
+```bash
+python scripts/generate_video.py generate \
+  --model "bytedance/seedance-v1.5-pro/text-to-video" \
+  --prompt "Your prompt" \
+  --output ./output
+```
+
+### Image-to-video
+```bash
+python scripts/generate_video.py generate \
+  --model "bytedance/seedance-v1.5-pro/image-to-video" \
+  --image "https://example.com/photo.jpg" \
+  --prompt "Animate" \
+  --output ./output
+```
+
+Run `python scripts/generate_video.py generate --help` for all options.
 
 ---
 
@@ -117,7 +149,7 @@ curl -s -X POST "https://api.atlascloud.ai/api/v1/model/generateVideo" \
 # Returns: { "code": 200, "data": { "id": "prediction-id" } }
 
 # Step 2: Poll (every 5 seconds until "completed" or "succeeded")
-curl -s "https://api.atlascloud.ai/api/v1/model/result/{prediction-id}" \
+curl -s "https://api.atlascloud.ai/api/v1/model/prediction/{prediction-id}" \
   -H "Authorization: Bearer $ATLASCLOUD_API_KEY"
 # Returns: { "code": 200, "data": { "status": "completed", "outputs": ["https://...video-url..."] } }
 

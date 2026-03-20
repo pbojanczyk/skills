@@ -3,9 +3,15 @@
   "slug": "seedance-ai-video",
   "displayName": "Seedance 2.0 — AI Video by ByteDance",
   "latest": {
-    "version": "1.1.0",
-    "publishedAt": 1773046744138,
-    "commit": "https://github.com/openclaw/skills/commit/f05545eaab956aff62edc6dbbdc452629b24fbba"
+    "version": "1.1.2",
+    "publishedAt": 1773808054060,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.1.0",
+      "publishedAt": 1773046744138,
+      "commit": "https://github.com/openclaw/skills/commit/f05545eaab956aff62edc6dbbdc452629b24fbba"
+    }
+  ]
 }
