@@ -12,6 +12,24 @@ homepage: https://clawhub.ai/halfmoon82/openclaw-health-audit
 
 OpenClaw 系统健康审计与自动修复工具。发现并修复 prompt 体积漂移、Cron Job 违规、孤儿 Session 积累、Token 消耗异常等隐性成本问题。
 
+## ⚠️ Security & Permissions Declaration
+
+**Privileged operations performed by this skill (all user-initiated):**
+
+| Operation | Purpose | Scope |
+|-----------|---------|-------|
+| Read `~/.openclaw/openclaw.json` | Inspect config for health issues | Read-only |
+| Read OpenClaw logs | Detect anomalies and cost spikes | Local files only |
+| List and inspect Cron Jobs | Check isolation compliance | Local OpenClaw API |
+| Run local Python health-check scripts | Analyze system state | No network required |
+| Update Cron Job `sessionTarget` | Auto-fix isolation violations | OpenClaw sessions only |
+
+**What this skill does NOT do:**
+- Does NOT delete or modify user data
+- Does NOT access API keys directly
+- Does NOT send data to external servers
+- Does NOT run with elevated (sudo/root) privileges
+
 ## 首次安装
 
 ```bash

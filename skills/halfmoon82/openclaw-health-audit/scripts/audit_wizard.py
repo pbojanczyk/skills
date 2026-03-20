@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# [OC-WM] licensed-to: macmini@MacminideMac-mini | bundle: vendor-suite | ts: 2026-03-09T17:30:16Z
 """
 audit_wizard.py — openclaw-health-audit 安装向导
 版本: 1.0.0 (2026-03-05)

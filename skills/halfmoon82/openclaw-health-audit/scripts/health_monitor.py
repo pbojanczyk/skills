@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# [OC-WM] licensed-to: macmini@MacminideMac-mini | bundle: vendor-suite | ts: 2026-03-09T17:30:16Z
 """
 health_monitor.py — OpenClaw 48h 健康监控脚本
 版本: 1.4.0 (2026-03-06)
@@ -197,6 +198,49 @@ def check_cron_jobs() -> list[Issue]:
             fix_cmd=None,
             fix_description=f'修复 {len(violations)} 个违规 Job: sessionKey=null, timeoutSeconds=120, model=gemini-2.5-flash',
         ))
+
+
+def check_cron_model_config() -> list[Issue]:
+    """B2: 检查 Cron Job 模型配置是否正确（provider ID 格式）"""
+    issues = []
+    if not CRON_JOBS.exists():
+        return issues
+
+    with open(CRON_JOBS) as f:
+        jobs_data = json.load(f)
+
+    jobs = jobs_data if isinstance(jobs_data, list) else jobs_data.get('jobs', [])
+
+    invalid_models = []
+    for job in jobs:
+        name = job.get('name', '')
+        payload = job.get('payload', {})
+        
+        # 只检查保活/heartbeat 类型的任务
+        if '保活' not in name and 'heartbeat' not in name.lower():
+            continue
+            
+        model = payload.get('model', '')
+        
+        # 检查无效的 provider ID
+        if model.startswith('ollama/'):
+            invalid_models.append((name, model, 'ollama/ 应改为 local/'))
+        elif 'local/' in model and 'qwen' in model.lower():
+            # 正确的 local 模型格式
+            pass
+
+    if invalid_models:
+        detail_lines = [f'- {name}: {model} ({reason})' for name, model, reason in invalid_models]
+        issues.append(Issue(
+            idx=0, category='B', severity='warn',
+            title=f'Cron 模型配置错误: {len(invalid_models)} 个',
+            detail='\n'.join(detail_lines) + '\n注意: ollama/ 应改为 local/',
+            fix_cmd=None,
+            fix_description='将 ollama/ 改为 local/',
+        ))
+
+    return issues
+
 
     return issues
 
@@ -520,6 +564,7 @@ def collect_all_issues() -> list[Issue]:
     all_issues = []
     all_issues.extend(check_prompt_drift())
     all_issues.extend(check_cron_jobs())
+    all_issues.extend(check_cron_model_config())
     all_issues.extend(check_orphan_sessions())
     all_issues.extend(check_token_trend())
     all_issues.extend(check_cache_config())
