@@ -3,11 +3,16 @@
   "slug": "comic-script",
   "displayName": "Comic Script",
   "latest": {
-    "version": "2.3.4",
-    "publishedAt": 1773665294309,
-    "commit": "https://github.com/openclaw/skills/commit/55500af5f8d9d776ac15e36d8cedd5dfbafcca8b"
+    "version": "2.0.1",
+    "publishedAt": 1773830316414,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.3.4",
+      "publishedAt": 1773665294309,
+      "commit": "https://github.com/openclaw/skills/commit/55500af5f8d9d776ac15e36d8cedd5dfbafcca8b"
+    },
     {
       "version": "2.3.0",
       "publishedAt": 1773447543758,
