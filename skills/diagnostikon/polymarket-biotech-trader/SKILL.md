@@ -119,11 +119,14 @@ All risk parameters are declared in `clawhub.json` as `tunables` and adjustable 
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `SIMMER_BIOTECH_MAX_POSITION` | `35` | Max USDC per trade |
-| `SIMMER_BIOTECH_MIN_VOLUME` | `5000` | Min market volume filter (USD) |
-| `SIMMER_BIOTECH_MAX_SPREAD` | `0.10` | Max bid-ask spread (0.10 = 10%) |
-| `SIMMER_BIOTECH_MIN_DAYS` | `7` | Min days until market resolves |
-| `SIMMER_BIOTECH_MAX_POSITIONS` | `6` | Max concurrent open positions |
+| `SIMMER_MAX_POSITION` | `35` | Max USDC per trade (reached at 100% conviction) |
+| `SIMMER_MIN_VOLUME` | `5000` | Min market volume filter (USD) |
+| `SIMMER_MAX_SPREAD` | `0.10` | Max bid-ask spread (0.10 = 10%) |
+| `SIMMER_MIN_DAYS` | `7` | Min days until market resolves |
+| `SIMMER_MAX_POSITIONS` | `6` | Max concurrent open positions |
+| `SIMMER_YES_THRESHOLD` | `0.38` | Buy YES if market price ≤ this value |
+| `SIMMER_NO_THRESHOLD` | `0.62` | Sell NO if market price ≥ this value |
+| `SIMMER_MIN_TRADE` | `5` | Floor for any trade (min USDC regardless of conviction) |
 
 ## Dependency
 

@@ -3,9 +3,15 @@
   "slug": "polymarket-biotech-trader",
   "displayName": "Biotech & FDA Trader",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773438997684,
-    "commit": "https://github.com/openclaw/skills/commit/71d448e64c1712f6cf421cc175bcd03772c755b9"
+    "version": "1.0.1",
+    "publishedAt": 1773778658392,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773438997684,
+      "commit": "https://github.com/openclaw/skills/commit/71d448e64c1712f6cf421cc175bcd03772c755b9"
+    }
+  ]
 }

@@ -24,6 +24,9 @@ MIN_VOLUME     = float(os.environ.get("SIMMER_MIN_VOLUME",    "5000"))
 MAX_SPREAD     = float(os.environ.get("SIMMER_MAX_SPREAD",    "0.1"))
 MIN_DAYS       = int(os.environ.get(  "SIMMER_MIN_DAYS",      "7"))
 MAX_POSITIONS  = int(os.environ.get(  "SIMMER_MAX_POSITIONS", "6"))
+YES_THRESHOLD  = float(os.environ.get("SIMMER_YES_THRESHOLD", "0.38"))
+NO_THRESHOLD   = float(os.environ.get("SIMMER_NO_THRESHOLD",  "0.62"))
+MIN_TRADE      = float(os.environ.get("SIMMER_MIN_TRADE",     "5"))
 
 _client: SimmerClient | None = None
 
@@ -33,7 +36,7 @@ def get_client(live: bool = False) -> SimmerClient:
     live=False → venue="sim"  (paper trades — safe default).
     live=True  → venue="polymarket" (real trades, only with --live flag).
     """
-    global _client, MAX_POSITION, MIN_VOLUME, MAX_SPREAD, MIN_DAYS, MAX_POSITIONS
+    global _client, MAX_POSITION, MIN_VOLUME, MAX_SPREAD, MIN_DAYS, MAX_POSITIONS, YES_THRESHOLD, NO_THRESHOLD, MIN_TRADE
     if _client is None:
         venue = "polymarket" if live else "sim"
         _client = SimmerClient(
@@ -48,6 +51,9 @@ def get_client(live: bool = False) -> SimmerClient:
         MAX_SPREAD     = float(os.environ.get("SIMMER_MAX_SPREAD",    str(MAX_SPREAD)))
         MIN_DAYS       = int(os.environ.get(  "SIMMER_MIN_DAYS",      str(MIN_DAYS)))
         MAX_POSITIONS  = int(os.environ.get(  "SIMMER_MAX_POSITIONS", str(MAX_POSITIONS)))
+        YES_THRESHOLD  = float(os.environ.get("SIMMER_YES_THRESHOLD", str(YES_THRESHOLD)))
+        NO_THRESHOLD   = float(os.environ.get("SIMMER_NO_THRESHOLD",  str(NO_THRESHOLD)))
+        MIN_TRADE      = float(os.environ.get("SIMMER_MIN_TRADE",     str(MIN_TRADE)))
     return _client
 
 
@@ -65,9 +71,10 @@ def find_markets(client: SimmerClient) -> list:
     return unique
 
 
-def compute_signal(market) -> tuple[str | None, str]:
+def compute_signal(market) -> tuple[str | None, float, str]:
     """
-    Returns (side, reasoning) or (None, skip_reason).
+    Returns (side, size, reasoning) or (None, 0, skip_reason).
+    Conviction-based sizing: larger edge → larger position, up to MAX_POSITION.
     FDA base rate calibration vs market price. Remix: ClinicalTrials.gov API, BioMedTracker, short interest.
     """
     p = market.current_probability
@@ -75,7 +82,7 @@ def compute_signal(market) -> tuple[str | None, str]:
 
     # Spread gate
     if market.spread_cents is not None and market.spread_cents / 100 > MAX_SPREAD:
-        return None, f"Spread {market.spread_cents/100:.1%} > {MAX_SPREAD:.1%}"
+        return None, 0, f"Spread {market.spread_cents/100:.1%} > {MAX_SPREAD:.1%}"
 
     # Days-to-resolution gate
     if market.resolves_at:
@@ -83,15 +90,23 @@ def compute_signal(market) -> tuple[str | None, str]:
             resolves = datetime.fromisoformat(market.resolves_at.replace("Z", "+00:00"))
             days = (resolves - datetime.now(timezone.utc)).days
             if days < MIN_DAYS:
-                return None, f"Only {days} days to resolve"
+                return None, 0, f"Only {days} days to resolve"
         except Exception:
             pass
 
-    if p < 0.2:
-        return "yes", f"YES at {p:.0%} — {q[:80]}"
-    if p > 0.8:
-        return "no",  f"NO (YES={p:.0%}) — {q[:80]}"
-    return None, f"Neutral at {p:.1%}"
+    if p <= YES_THRESHOLD:
+        conviction = (YES_THRESHOLD - p) / YES_THRESHOLD
+        size = max(MIN_TRADE, round(conviction * MAX_POSITION, 2))
+        edge = YES_THRESHOLD - p
+        return "yes", size, f"YES {p:.0%} edge={edge:.0%} size=${size} — {q[:70]}"
+
+    if p >= NO_THRESHOLD:
+        conviction = (p - NO_THRESHOLD) / (1 - NO_THRESHOLD)
+        size = max(MIN_TRADE, round(conviction * MAX_POSITION, 2))
+        edge = p - NO_THRESHOLD
+        return "no", size, f"NO YES={p:.0%} edge={edge:.0%} size=${size} — {q[:70]}"
+
+    return None, 0, f"Neutral at {p:.1%} (outside {YES_THRESHOLD:.0%}/{NO_THRESHOLD:.0%} bands)"
 
 
 def context_ok(client: SimmerClient, market_id: str) -> tuple[bool, str]:
@@ -126,7 +141,7 @@ def run(live: bool = False) -> None:
         if placed >= MAX_POSITIONS:
             break
 
-        side, reasoning = compute_signal(m)
+        side, size, reasoning = compute_signal(m)
         if not side:
             print(f"  [skip] {reasoning}")
             continue
@@ -140,14 +155,14 @@ def run(live: bool = False) -> None:
             r = client.trade(
                 market_id=m.id,
                 side=side,
-                amount=MAX_POSITION,
+                amount=size,
                 source=TRADE_SOURCE,
                 skill_slug=SKILL_SLUG,
                 reasoning=reasoning,
             )
             tag = "(sim)" if r.simulated else "(live)"
             status = "OK" if r.success else f"FAIL:{r.error}"
-            print(f"  [trade] {side.upper()} ${MAX_POSITION} {tag} {status} — {reasoning[:70]}")
+            print(f"  [trade] {side.upper()} ${size} {tag} {status} — {reasoning[:70]}")
             if r.success:
                 placed += 1
         except Exception as e:
