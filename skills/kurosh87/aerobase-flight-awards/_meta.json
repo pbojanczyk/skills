@@ -3,11 +3,16 @@
   "slug": "aerobase-flight-awards",
   "displayName": "Aerobase Flight Awards",
   "latest": {
-    "version": "3.0.8",
-    "publishedAt": 1773443400922,
-    "commit": "https://github.com/openclaw/skills/commit/292c62dc9fff9f0b9fc7da7a652642b5885452b6"
+    "version": "3.2.0",
+    "publishedAt": 1773946187739,
+    "commit": null
   },
   "history": [
+    {
+      "version": "3.0.8",
+      "publishedAt": 1773443400922,
+      "commit": "https://github.com/openclaw/skills/commit/292c62dc9fff9f0b9fc7da7a652642b5885452b6"
+    },
     {
       "version": "3.0.2",
       "publishedAt": 1772858420394,
