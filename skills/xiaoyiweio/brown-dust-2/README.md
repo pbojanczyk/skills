@@ -1,95 +1,112 @@
-# Brown Dust 2 Automation Tool ⭐
+# 🎮 Brown Dust 2 Automation
 
-[![GitHub Stars](https://img.shields.io/github/stars/XiaoYiWeio/openclaw-skill-brown-dust-2)](https://github.com/XiaoYiWeio/openclaw-skill-brown-dust-2)
+[![ClawHub](https://img.shields.io/badge/ClawHub-brown--dust--2-blue)](https://clawhub.ai)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-brightgreen)](https://python.org)
+[![Zero Dependencies](https://img.shields.io/badge/dependencies-zero-orange)]()
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-An OpenClaw Skill to help Brown Dust 2 players automate daily sign-in and gift code redemption.
+Brown Dust 2 全自动签到 + 兑换码一键兑换 for [OpenClaw](https://openclaw.ai).
 
 ## Features
 
-- Daily automatic sign-in (Web Shop)
-- Automatically check and redeem latest gift codes (BD2Pulse)
+### Web Shop Sign-in (API-based)
 
-## Installation
+- Daily attendance reward (free item every day)
+- Weekly attendance reward
+- Event attendance (7-day login event)
+- All via direct API calls — no browser automation needed
 
-### Via ClawHub (Recommended) ⭐
+### Gift Code Redemption (API-based)
+
+- Auto-scrape latest codes from [BD2Pulse](https://thebd2pulse.com)
+- One-click redeem all codes via official API
+- Reports: new success / already redeemed / expired
+
+## Install
+
 ```bash
 clawhub install brown-dust-2
 ```
 
-### Via GitHub
+Or clone:
+
 ```bash
-git clone https://github.com/XiaoYiWeio/openclaw-skill-brown-dust-2.git ~/.openclaw/workspace/skills/browndust2
+git clone https://github.com/XiaoYiWeio/brown-dust-2.git ~/.openclaw/workspace/skills/brown-dust-2
 ```
 
----
+## Setup
 
-⭐ If you like this skill, please star our GitHub repo!
+### Sign-in (one-time token setup)
 
-### Manual Install
-```bash
-git clone https://github.com/your-repo/openclaw-skill-brown-dust-2.git ~/.openclaw/workspace/skills/browndust2
-```
-
-## Prerequisites
-
-1. **Login to Chrome once** (first time only):
-   ```bash
-   browser start --profile chrome
+1. Log in to [BD2 Web Shop](https://webshop.browndust2.global/CT/) with Google
+2. Press F12 → Console → paste:
+   ```js
+   JSON.parse(localStorage.getItem("session-storage")).state.session.accessToken
    ```
-   
-2. Visit and login to:
-   - [Web Shop](https://webshop.browndust2.global/CT/)
-   - [BD2Pulse](https://thebd2pulse.com/zh-CN/)
+3. Save the token:
+   ```bash
+   python3 scripts/signin.py --save-token "YOUR_TOKEN"
+   ```
 
-3. Keep browser logged in (don't clear cache)
+### Gift Code (one-time nickname setup)
+
+```bash
+python3 scripts/redeem.py --save-nickname "YourNickname"
+```
 
 ## Usage
 
-### Sign-in
-Ask the Agent:
-> Please sign in to Brown Dust 2
+### In OpenClaw
 
-### Redeem Gift Codes
-Ask the Agent:
-> Please redeem Brown Dust 2 gift codes, nickname is "your game nickname"
+- "BD2签到" — daily/weekly/event sign-in
+- "BD2兑换码" — auto-redeem all latest codes
+- "BD2全签" — sign-in + redeem codes
 
-## Cron Jobs (Optional)
-
-To run automatically every day:
+### CLI
 
 ```bash
-# Sign-in at 8am daily
-openclaw cron add --name "BD2 Sign-in" --cron "0 8 * * *" --message "Please sign in to Brown Dust 2" --channel discord --to "your-id" --expect-final
+# Sign-in (daily + weekly + event)
+python3 scripts/signin.py
 
-# Redeem codes at 8:30am daily
-openclaw cron add --name "BD2 Redeem" --cron "30 8 * * *" --message "Please redeem Brown Dust 2 gift codes, nickname is your nickname" --channel discord --to "your-id" --expect-final
+# Check event info
+python3 scripts/signin.py --event-info
+
+# Daily only
+python3 scripts/signin.py --daily-only
+
+# Redeem all codes
+python3 scripts/redeem.py
+
+# List codes without redeeming
+python3 scripts/redeem.py --list
+
+# JSON output (both scripts support --json)
+python3 scripts/signin.py --json
 ```
 
-## Troubleshooting
+## Architecture
 
-- Login expired: Please login in browser again
-- Redemption failed: Some codes may already be redeemed, this is normal
-
-## Changelog
-
-### v0.2.0 (2026-03-13)
-- ✅ Auto login support: Click Sign In → Wait 10s → Select Google account → Wait 30s → Auto check-in
-- ✅ Handle popup new windows for Google login
-- ✅ Multiple account selection support
-
-### v0.1.0 (2026-03-12)
-- Initial release
-- Basic sign-in functionality (requires manual login)
-
-## Publish Update
-
-```bash
-cd ~/.openclaw/workspace/skills/browndust2
-git add .
-git commit -m "Update description"
-git push
-clawhub publish
 ```
+brown-dust-2/
+├── SKILL.md          # OpenClaw skill definition
+├── persona.md        # Agent interaction guide
+├── README.md
+└── scripts/
+    ├── signin.py     # Web shop sign-in (daily/weekly/event)
+    └── redeem.py     # Gift code scraper + redeemer
+```
+
+## How It Works
+
+This skill reverse-engineered the official BD2 Web Shop API:
+
+| Function | API | Auth |
+|----------|-----|------|
+| Daily attend | `POST /api/user/attend {type:0}` | Bearer token |
+| Weekly attend | `POST /api/user/attend {type:1}` | Bearer token |
+| Event attend | `POST /api/event/attend-reward` | Bearer token |
+| Event info | `GET /api/event/event-info` | None |
+| Gift code redeem | `POST coupon API` | None (nickname only) |
 
 ## License
 

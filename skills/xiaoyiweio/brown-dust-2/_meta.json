@@ -1,11 +1,17 @@
 {
   "owner": "xiaoyiweio",
   "slug": "brown-dust-2",
-  "displayName": "Brown Dust 2 Automation",
+  "displayName": "Brown Dust 2",
   "latest": {
-    "version": "0.2.0",
-    "publishedAt": 1773393128368,
-    "commit": "https://github.com/openclaw/skills/commit/dc9766816bd6600d3f875a4464be7fde180ec1d1"
+    "version": "1.1.1",
+    "publishedAt": 1773902617428,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.2.0",
+      "publishedAt": 1773393128368,
+      "commit": "https://github.com/openclaw/skills/commit/dc9766816bd6600d3f875a4464be7fde180ec1d1"
+    }
+  ]
 }
