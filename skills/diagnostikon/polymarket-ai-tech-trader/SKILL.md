@@ -10,8 +10,8 @@ metadata:
 
 # AI & Tech Launch Trader
 
-> **This is a template.**  
-> The default signal is keyword discovery + LMSYS Chatbot Arena leaderboard monitoring — remix it with AI benchmark APIs (MMLU, HumanEval), tech news RSS feeds, SEC EDGAR filings for IPO signals, or GitHub commit activity as model release early warning.  
+> **This is a template.**
+> The default signal is keyword discovery + LMSYS Chatbot Arena leaderboard monitoring — remix it with AI benchmark APIs (MMLU, HumanEval), tech news RSS feeds, SEC EDGAR filings for IPO signals, or GitHub commit activity as model release early warning.
 > The skill handles all the plumbing (market discovery, trade execution, safeguards). Your agent provides the alpha.
 
 ## Strategy Overview
@@ -113,17 +113,32 @@ All risk parameters are declared in `clawhub.json` as `tunables` and adjustable 
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `SIMMER_AITECH_MAX_POSITION` | `40` | Max USDC per trade |
-| `SIMMER_AITECH_MIN_VOLUME` | `10000` | Min market volume filter (USD) |
-| `SIMMER_AITECH_MAX_SPREAD` | `0.06` | Max bid-ask spread (0.10 = 10%) |
-| `SIMMER_AITECH_MIN_DAYS` | `5` | Min days until market resolves |
-| `SIMMER_AITECH_MAX_POSITIONS` | `10` | Max concurrent open positions |
+| `SIMMER_MAX_POSITION` | `40` | Max USDC per trade (full conviction) |
+| `SIMMER_MIN_TRADE` | `5` | Min USDC per trade (weak conviction floor) |
+| `SIMMER_MIN_VOLUME` | `10000` | Min market volume filter (USD) |
+| `SIMMER_MAX_SPREAD` | `0.06` | Max bid-ask spread (0.10 = 10%) |
+| `SIMMER_MIN_DAYS` | `5` | Min days until market resolves |
+| `SIMMER_MAX_POSITIONS` | `10` | Max concurrent open positions |
+| `SIMMER_YES_THRESHOLD` | `0.38` | Buy YES if market probability ≤ this value |
+| `SIMMER_NO_THRESHOLD` | `0.62` | Sell NO if market probability ≥ this value |
 
-## Dependency
+### Conviction-based position sizing
 
-`simmer-sdk` is published on PyPI by Simmer Markets.
-- PyPI: https://pypi.org/project/simmer-sdk/
-- GitHub: https://github.com/SpartanLabsXyz/simmer-sdk
-- Publisher: hello@simmer.markets
+Position size scales automatically with signal strength — no flat bets.
 
-Review the source before providing live credentials if you require full auditability.
+- At the threshold boundary (e.g. p=38% for YES): minimum trade (`SIMMER_MIN_TRADE`, default $5)
+- At maximum conviction (p=0% for YES, p=100% for NO): full position (`SIMMER_MAX_POSITION`, default $40)
+- Everything in between scales linearly
+
+**Example YES trades:**
+
+| Market probability | Conviction | Size |
+|--------------------|------------|------|
+| 38% (at threshold) | 0% | $5 (floor) |
+| 30% | 21% | $8 |
+| 20% | 47% | $19 |
+| 5% | 87% | $35 |
+| 0% | 100% | $40 |
+
+This means the skill automatically bets more when the edge is larger, and less when the signal is marginal.
+
