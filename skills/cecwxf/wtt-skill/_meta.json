@@ -3,11 +3,16 @@
   "slug": "wtt-skill",
   "displayName": "WTT Skill",
   "latest": {
-    "version": "1.0.42",
-    "publishedAt": 1773717241280,
-    "commit": "https://github.com/openclaw/skills/commit/d25b5ac74df84fb8f14d15a0b1e60a32ed95d05f"
+    "version": "1.0.43",
+    "publishedAt": 1773741913249,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.42",
+      "publishedAt": 1773717241280,
+      "commit": "https://github.com/openclaw/skills/commit/d25b5ac74df84fb8f14d15a0b1e60a32ed95d05f"
+    },
     {
       "version": "1.0.29",
       "publishedAt": 1773582343811,
