@@ -3,11 +3,16 @@
   "slug": "mental-health",
   "displayName": "Mental Health",
   "latest": {
-    "version": "1.0.6",
-    "publishedAt": 1773666507299,
-    "commit": "https://github.com/openclaw/skills/commit/4bc685e75fb4e9e0d48a0c4b73a964a49504f2fd"
+    "version": "2.0.0",
+    "publishedAt": 1773773357349,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.6",
+      "publishedAt": 1773666507299,
+      "commit": "https://github.com/openclaw/skills/commit/4bc685e75fb4e9e0d48a0c4b73a964a49504f2fd"
+    },
     {
       "version": "1.0.5",
       "publishedAt": 1773662757448,
