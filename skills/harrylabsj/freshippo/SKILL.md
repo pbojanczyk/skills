@@ -1,6 +1,7 @@
 ---
 name: freshippo
-description: "Shop Freshippo (盒马鲜生) with smart grocery guidance, fresh produce selection tips, delivery timing optimization, membership benefits, and weekly meal planning. Use when the user wants help shopping on 盒马鲜生, choosing fresh groceries, planning family meals, understanding X会员 benefits, or optimizing delivery slots. NOT for: placing real orders, handling payments, or scraping live account data."
+version: 2.0.0
+description: "Shop Freshippo (Hema) with browser automation for search, fresh produce selection, cart operations, and smart grocery guidance. Supports logged-in workflows for browsing, adding to cart, and order preview while keeping checkout/payment for user control. Use when the user wants help shopping on Freshippo, choosing fresh groceries, planning family meals, or optimizing delivery slots."
 metadata:
   clawdbot:
     emoji: "🦛"
@@ -9,21 +10,71 @@ metadata:
     os: ["linux", "darwin", "win32"]
 ---
 
-# Freshippo (盒马鲜生)
+# Freshippo (Hema Fresh)
 
 ## Overview
 
 Use this skill to help users shop smartly on Freshippo (盒马鲜生), Alibaba's premium fresh grocery platform. Get guidance on fresh produce selection, delivery timing, membership benefits, and weekly meal planning.
 
-## Scope
+## Capabilities
 
-Keep this skill guidance-only unless live shopping tools are explicitly available and verified.
+### v2.0 - Browser Automation Support
 
-- Give shopping strategy, selection tips, delivery timing advice, and meal-planning help.
-- Do not claim to browse a live Freshippo account, place orders, or confirm exact inventory unless the required tools are actually available.
-- When the user wants a reusable shopping list or meal plan, provide it directly in the reply unless a separate first-class tool is available.
+| Operation | Auth Required | Description |
+|-----------|---------------|-------------|
+| **Search** | Optional | Search products, filter by category/freshness |
+| **Product Detail** | Optional | View specs, prices, freshness indicators |
+| **Fresh Produce Guide** | Optional | Read selection tips, origin info, reviews |
+| **Price Compare** | Optional | Compare prices across categories |
+| **Add to Cart** | ✅ Required | Add items to shopping cart |
+| **View Cart** | ✅ Required | Review cart contents, quantities |
+| **Apply Coupons** | ✅ Required | Check and apply X会员 discounts |
+| **Delivery Slot Check** | ✅ Required | View available 30-min delivery slots |
+| **Generate Order Preview** | ✅ Required | Calculate total with delivery fee |
+| **Payment** | ❌ Blocked | User must complete payment manually |
+
+**Safety Rule**: Agent stops before payment. User retains full control over final purchase.
+
+### Legacy: Guidance-Only Mode (No Browser)
+
+- Shopping strategy and selection tips
+- Delivery timing advice
+- X会员 membership guidance
+- Weekly meal planning
+- Shopping list templates
 
 ## Workflow
+
+### Phase 1: Discovery (Agent-Assisted)
+1. **Search** - Agent searches Freshippo for target products
+2. **Filter & Sort** - Apply filters (category, freshness, origin)
+3. **Compare** - Agent compares top options across categories
+4. **Freshness Check** - Agent reads harvest dates, origin info, traceability codes
+5. **Price Analysis** - Agent checks current price, X会员 discounts
+
+### Phase 2: Selection (Agent-Assisted)
+1. **Product Detail** - Agent opens selected product page
+2. **Fresh Produce Tips** - Show selection indicators (日日鲜, 产地直采, 鲜活)
+3. **Quantity Selection** - Confirm amount, weight
+4. **Final Price Check** - Calculate price with X会员 discount if applicable
+
+### Phase 3: Cart & Pre-Order (Agent-Assisted with Login)
+1. **Add to Cart** - Agent adds item to cart (requires login)
+2. **Cart Review** - Agent shows cart contents, quantities, subtotal
+3. **Coupon Application** - Agent checks X会员 benefits and coupons
+4. **Delivery Slot** - Agent checks available 30-min delivery slots
+5. **Address Selection** - Agent confirms delivery address
+6. **Order Summary** - Agent generates complete order preview
+
+### Phase 4: Checkout (User-Controlled)
+1. **Handoff** - Agent presents final order details
+2. **User Review** - User confirms all details are correct
+3. **Payment** - ⚠️ **User completes payment manually**
+4. **Confirmation** - User shares order confirmation with agent if desired
+
+**Agent Boundary**: Stops at Phase 3. Never executes payment or final order submission.
+
+### Legacy: Guidance-Only Mode (No Browser)
 
 1. Determine the user's goal:
    - browse categories and get product recommendations
@@ -31,12 +82,9 @@ Keep this skill guidance-only unless live shopping tools are explicitly availabl
    - understand delivery slots and timing strategies
    - learn about X会员 membership benefits
    - get fresh produce selection tips
-   - review or clear local shopping lists/history/privacy data
-2. Ask for only the missing essentials, such as dietary preferences, family size, or delivery preferences.
-3. Give the most practical answer first.
-4. If exact prices or availability cannot be confirmed, provide cautious estimates and state assumptions.
-5. If exact prices, availability, or store coverage cannot be verified, say so clearly and give cautious, practical guidance instead.
-6. Do not claim to complete real purchase actions unless live tools are available and confirmed.
+2. Ask for only the missing essentials
+3. Give the most practical answer first
+4. Provide cautious estimates if exact data unavailable
 
 ## Quick Reference
 
@@ -47,6 +95,97 @@ Keep this skill guidance-only unless live shopping tools are explicitly availabl
 | X会员 Benefits | 盒马X会员权益详解 |
 | Weekly Planning | 一周买菜规划 |
 | Shopping Lists | 购物清单管理 |
+| Browser Automation | 搜索/加购/订单预览 |
+
+## Agent Execution Guide
+
+### When User Says "帮我买..." / "帮我下单..."
+
+```
+User: "帮我买盒马的三文鱼"
+  ↓
+Step 1: Confirm Intent
+  "我来帮你搜索盒马的三文鱼，对比选项，加入购物车。
+   最后需要你确认订单并完成支付。可以吗？"
+  ↓
+Step 2: Discovery Phase (No login required)
+  - Search Freshippo for "三文鱼"
+  - Filter: 鲜活, 产地, 价格区间
+  - Compare top 3 options
+  - Check freshness indicators (溯源码, 产地直采)
+  - Present comparison table
+  ↓
+Step 3: Selection Phase (No login required)
+  - User picks one option
+  - Agent opens product page
+  - Confirm quantity/weight
+  - Show final price (X会员价 if applicable)
+  ↓
+Step 4: Cart Phase (⚠️ Requires login)
+  "接下来需要登录你的盒马账号才能加入购物车，
+   请确认是否继续？"
+  - If yes: proceed with browser automation
+  - If no: provide manual instructions
+  ↓
+Step 5: Order Generation (Requires login)
+  - Add to cart
+  - Check X会员 discounts
+  - Select delivery slot (30-min window)
+  - Calculate final price (delivery fee if applicable)
+  - Generate order preview
+  ↓
+Step 6: Handoff (User-controlled)
+  "订单已准备好，请检查：
+   [订单详情摘要]
+   
+   👉 请手动完成支付：
+   1. 打开盒马 App
+   2. 进入购物车
+   3. 点击结算
+   4. 确认地址和配送时段
+   5. 提交订单并支付"
+```
+
+### Browser Automation Rules
+
+**Always announce before action:**
+- "正在搜索..."
+- "正在打开商品页面..."
+- "正在检查新鲜度信息..."
+- "正在加入购物车..."
+
+**Snapshot key information:**
+- Product name, price, X会员 price
+- Freshness indicators (日日鲜, 产地直采, 鲜活)
+- Origin/traceability info
+- Harvest/pack dates
+- Available delivery slots
+- Cart subtotal and delivery fee
+
+**Stop conditions:**
+- Before any payment screen
+- When CAPTCHA appears (hand to user)
+- When login is required (ask first)
+- When price differs significantly from expected
+
+### Login Handling
+
+**Option A: User already logged in (Chrome profile)**
+```
+browser navigates to Freshippo
+If user profile has active session → proceed
+If session expired → prompt user to login manually first
+```
+
+**Option B: Manual mode (no login)**
+```
+Agent provides:
+- Exact search keywords
+- Product recommendations
+- Freshness selection tips
+- Step-by-step manual instructions
+User executes manually
+```
 
 ## Core Rules
 
@@ -212,11 +351,30 @@ Freshippo's strength is **fresh food and quality groceries**:
 - Traceable origin products
 - Seasonal specialties
 
+## Quality Bar
+
+### Do:
+- ✅ Focus on fresh produce guidance
+- ✅ Explain delivery timing strategies
+- ✅ Use browser automation for search/cart
+- ✅ Add to cart and check X会员 benefits (with user consent)
+- ✅ Generate order preview with delivery slot selection
+- ✅ Stay honest about not doing payment operations
+
+### Do Not:
+- ❌ Pretend to log in (ask first)
+- ❌ Claim to confirm live inventory without checking
+- ❌ Store user data persistently
+- ❌ **Execute payment or final order submission**
+- ❌ Guarantee freshness without evidence
+
 ## Related Skills
 
 Install with `clawhub install <slug>` if user confirms:
 - `home-food-planner` — family meal planning and nutrition
 - `yhd` — YHD.com grocery shopping
+- `jd-shopping` — JD.com shopping with automation
+- `jingdong` — Alternative JD shopping guide
 
 ## Feedback
 
