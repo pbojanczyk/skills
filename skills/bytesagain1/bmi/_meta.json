@@ -3,9 +3,15 @@
   "slug": "bmi",
   "displayName": "Bmi",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773673516937,
-    "commit": "https://github.com/openclaw/skills/commit/b2a228946edecb22b6f199c503a2fab1e43cec0f"
+    "version": "2.0.1",
+    "publishedAt": 1773798294499,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773673516937,
+      "commit": "https://github.com/openclaw/skills/commit/b2a228946edecb22b6f199c503a2fab1e43cec0f"
+    }
+  ]
 }

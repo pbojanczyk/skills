@@ -1,8 +1,10 @@
 ---
 name: "Bmi"
-description: "A focused health & wellness tool built for Bmi. Log entries, review trends, and export reports — all locally."
+description: "Calculate BMI, log weight entries, and chart body composition trends. Use when tracking fitness progress, setting weight goals, or reviewing data."
 version: "2.0.0"
 author: "BytesAgain"
+homepage: https://bytesagain.com
+source: https://github.com/bytesagain/ai-skills
 tags: ["fitness", "bmi", "tracking", "daily", "monitor"]
 ---
 
