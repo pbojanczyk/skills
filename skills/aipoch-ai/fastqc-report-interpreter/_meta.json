@@ -1,0 +1,11 @@
+{
+  "owner": "aipoch-ai",
+  "slug": "fastqc-report-interpreter",
+  "displayName": "Fastqc Report Interpreter",
+  "latest": {
+    "version": "0.1.0",
+    "publishedAt": 1773992699800,
+    "commit": null
+  },
+  "history": []
+}
