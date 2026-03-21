@@ -1,0 +1,11 @@
+{
+  "owner": "sid890-cpu",
+  "slug": "project-ghost",
+  "displayName": "Project Ghost",
+  "latest": {
+    "version": "2.0.0",
+    "publishedAt": 1773931157018,
+    "commit": null
+  },
+  "history": []
+}
