@@ -1,0 +1,11 @@
+{
+  "owner": "wechat-ipad-api",
+  "slug": "wechat-gateway",
+  "displayName": "通过微信控制openclaw",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773926548159,
+    "commit": null
+  },
+  "history": []
+}
