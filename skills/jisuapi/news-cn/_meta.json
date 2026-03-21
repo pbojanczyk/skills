@@ -1,0 +1,11 @@
+{
+  "owner": "jisuapi",
+  "slug": "news-cn",
+  "displayName": "News Brief - 新闻简报",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1773999519972,
+    "commit": null
+  },
+  "history": []
+}
