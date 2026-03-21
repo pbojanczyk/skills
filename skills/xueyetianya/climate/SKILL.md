@@ -2,9 +2,11 @@
 name: climate
 version: "2.0.0"
 author: BytesAgain
+homepage: https://bytesagain.com
+source: https://github.com/bytesagain/ai-skills
 license: MIT-0
 tags: [climate, tool, utility]
-description: "Climate - command-line tool for everyday use"
+description: "Climate - command-line tool for everyday use Use when you need climate."
 ---
 
 # Climate
