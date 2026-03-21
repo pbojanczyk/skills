@@ -1,0 +1,11 @@
+{
+  "owner": "benxiao2026",
+  "slug": "agent-state-backup",
+  "displayName": "Agent State Backup",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774012189603,
+    "commit": null
+  },
+  "history": []
+}
