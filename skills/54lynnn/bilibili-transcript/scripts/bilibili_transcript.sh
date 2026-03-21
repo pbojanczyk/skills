@@ -1,24 +1,64 @@
 #!/bin/bash
-# B站视频字幕智能获取脚本 v2.0
-# 使用 Whisper large 模型 + GPU 加速
-# 输出格式化的 TXT 文件（含元数据、摘要、原文）
+# B站视频字幕智能获取脚本 v2.1
+# 功能：CC字幕 → AI字幕 → Whisper转录（三级降级）
+# 支持：WSL Chromium/Edge Cookie、多语言AI字幕、GPU加速
 
 VIDEO_URL="$1"
 OUTPUT_DIR="${2:-/tmp}"
+COOKIES_FROM_BROWSER="${3:-chromium}"
 
 if [ -z "$VIDEO_URL" ]; then
-    echo "用法: $0 <B站视频链接> [输出目录]"
+    echo "用法: $0 <B站视频链接> [输出目录] [浏览器类型:chromium|edge|firefox]"
     exit 1
 fi
 
 echo "🔍 正在获取视频信息..."
 
+# ===== 检测浏览器Cookie =====
+echo "🔍 检测浏览器Cookie..."
+
+COOKIE_PARAM=""
+FOUND_COOKIE=false
+
+# 1. 尝试 WSL Chromium
+CHROMIUM_PATH="$HOME/snap/chromium/common/chromium"
+if [ -d "$CHROMIUM_PATH" ]; then
+    TEST=$(yt-dlp --list-subs --cookies-from-browser "chromium:$CHROMIUM_PATH" "$VIDEO_URL" 2>&1 | head -1)
+    if echo "$TEST" | grep -q "Extracting"; then
+        echo "   ✅ 使用 WSL Chromium Cookie"
+        COOKIE_PARAM="--cookies-from-browser chromium:$CHROMIUM_PATH"
+        FOUND_COOKIE=true
+    fi
+fi
+
+# 2. 尝试 Windows Edge
+if [ "$FOUND_COOKIE" = false ]; then
+    WIN_USER=$(ls /mnt/c/Users/ 2>/dev/null | grep -v "Public\|Default\|All Users" | head -1)
+    if [ -n "$WIN_USER" ]; then
+        EDGE_PATH="/mnt/c/Users/$WIN_USER/AppData/Local/Microsoft/Edge/User Data"
+        if [ -d "$EDGE_PATH" ]; then
+            echo "   🔑 使用 Windows Edge Cookie"
+            COOKIE_PARAM="--cookies-from-browser edge:C:/Users/$WIN_USER/AppData/Local/Microsoft/Edge/User Data"
+            FOUND_COOKIE=true
+        fi
+    fi
+fi
+
+if [ "$FOUND_COOKIE" = false ]; then
+    echo "   ℹ️ 无可用Cookie，尝试无Cookie模式"
+fi
+echo ""
+
 # 获取视频元数据
-VIDEO_INFO=$(yt-dlp --dump-json "$VIDEO_URL" 2>/dev/null | head -1)
+VIDEO_INFO=$(yt-dlp $COOKIE_PARAM --dump-json "$VIDEO_URL" 2>/dev/null | head -1)
 
 if [ -z "$VIDEO_INFO" ]; then
-    echo "❌ 无法获取视频信息"
-    exit 1
+    # 尝试不用cookie
+    VIDEO_INFO=$(yt-dlp --dump-json "$VIDEO_URL" 2>/dev/null | head -1)
+    if [ -z "$VIDEO_INFO" ]; then
+        echo "❌ 无法获取视频信息"
+        exit 1
+    fi
 fi
 
 # 提取元数据
@@ -40,43 +80,76 @@ echo "👤 作者: $AUTHOR"
 echo "📅 发布: $UPLOAD_DATE_FORMATTED"
 echo "⏱️  时长: $DURATION"
 
-# 检查字幕
+# 检查字幕（带cookie）
 echo ""
 echo "🔍 正在检查字幕..."
-SUB_CHECK=$(yt-dlp --list-subs "$VIDEO_URL" 2>&1)
-HAS_REAL_SUBS=false
+SUB_CHECK=$(yt-dlp $COOKIE_PARAM --list-subs "$VIDEO_URL" 2>&1)
 
-if echo "$SUB_CHECK" | grep -E "^[[:space:]]*(zh|en|ja|ko)-" | grep -v "danmaku" | grep -q "[[:space:]]"; then
-    HAS_REAL_SUBS=true
+# 检查人工字幕
+HAS_CC_SUBS=false
+if echo "$SUB_CHECK" | grep -E "^[[:space:]]*(zh|en|ja|ko|es|ar|pt|de|fr)-" | grep -v "danmaku" | grep -v "^.*ai-" | grep -q "[[:space:]]"; then
+    HAS_CC_SUBS=true
 fi
+
+# 检查AI字幕
+HAS_AI_SUBS=false
+AI_LANG=""
+for lang in "ai-zh" "ai-en" "ai-ja" "zh-CN" "zh" "en" "ja"; do
+    if echo "$SUB_CHECK" | grep -q "$lang"; then
+        HAS_AI_SUBS=true
+        AI_LANG="$lang"
+        break
+    fi
+done
 
 TRANSCRIPT_SOURCE=""
 TRANSCRIPT_TEXT=""
 
-if [ "$HAS_REAL_SUBS" = true ]; then
-    echo "✅ 发现人工字幕，优先下载..."
+# 第1级：人工CC字幕
+if [ "$HAS_CC_SUBS" = true ]; then
+    echo "✅ 发现人工CC字幕，优先下载..."
     
-    yt-dlp --skip-download --write-subs --sub-langs zh-CN,zh-TW,zh-Hans,zh --convert-subs srt \
+    yt-dlp $COOKIE_PARAM --skip-download --write-subs --sub-langs zh-CN,zh-TW,zh-Hans,zh --convert-subs srt \
         -o "${OUTPUT_DIR}/bilibili_subtitle.%(ext)s" "$VIDEO_URL" 2>&1
     
     SUB_FILE=$(find "$OUTPUT_DIR" -maxdepth 1 -name "bilibili_subtitle*.srt" -type f 2>/dev/null | head -1)
     
     if [ -n "$SUB_FILE" ] && [ -s "$SUB_FILE" ]; then
-        echo "✅ 字幕下载成功"
+        echo "✅ CC字幕下载成功"
         TRANSCRIPT_SOURCE="B站CC字幕"
-        # 提取纯文本
         TRANSCRIPT_TEXT=$(sed '/^[0-9][0-9]:[0-9][0-9]:[0-9][0-9]/d' "$SUB_FILE" | sed '/^[0-9]*$/d' | sed '/^$/d')
     else
-        echo "⚠️  字幕下载失败，切换到语音转录..."
-        HAS_REAL_SUBS=false
+        echo "⚠️  CC字幕下载失败..."
+        HAS_CC_SUBS=false
     fi
 fi
 
-if [ "$HAS_REAL_SUBS" = false ]; then
-    echo "🎤 正在使用 Whisper medium 模型转录（GPU加速）..."
+# 第2级：AI字幕
+if [ -z "$TRANSCRIPT_TEXT" ] && [ "$HAS_AI_SUBS" = true ]; then
+    echo "✅ 发现AI字幕（$AI_LANG），正在下载..."
+    
+    yt-dlp $COOKIE_PARAM --skip-download --write-subs --write-auto-subs --sub-langs "$AI_LANG" --convert-subs srt \
+        -o "${OUTPUT_DIR}/bilibili_ai_subtitle.%(ext)s" "$VIDEO_URL" 2>&1
+    
+    SUB_FILE=$(find "$OUTPUT_DIR" -maxdepth 1 -name "bilibili_ai_subtitle*.srt" -type f 2>/dev/null | head -1)
+    
+    if [ -n "$SUB_FILE" ] && [ -s "$SUB_FILE" ]; then
+        echo "✅ AI字幕下载成功"
+        TRANSCRIPT_SOURCE="B站AI字幕 ($AI_LANG)"
+        TRANSCRIPT_TEXT=$(sed '/^[0-9][0-9]:[0-9][0-9]:[0-9][0-9]/d' "$SUB_FILE" | sed '/^[0-9]*$/d' | sed '/^$/d')
+    else
+        echo "⚠️  AI字幕下载失败..."
+        HAS_AI_SUBS=false
+    fi
+fi
+
+# 第3级：Whisper本地转录
+if [ -z "$TRANSCRIPT_TEXT" ]; then
+    echo "🎤 未发现字幕，使用Whisper本地转录（GPU加速）..."
     echo "⏳ 这可能需要一些时间，请耐心等待..."
     
     # 下载音频
+    yt-dlp $COOKIE_PARAM -x --audio-format mp3 -o "${OUTPUT_DIR}/bilibili_audio.%(ext)s" "$VIDEO_URL" 2>&1 || \
     yt-dlp -x --audio-format mp3 -o "${OUTPUT_DIR}/bilibili_audio.%(ext)s" "$VIDEO_URL" 2>&1
     
     AUDIO_FILE=$(find "$OUTPUT_DIR" -maxdepth 1 \( -name "bilibili_audio*.mp3" -o -name "bilibili_audio*.m4a" \) 2>/dev/null | head -1)
@@ -93,9 +166,8 @@ if [ "$HAS_REAL_SUBS" = false ]; then
     
     if [ -n "$TXT_FILE" ] && [ -s "$TXT_FILE" ]; then
         echo "✅ 转录完成"
-        TRANSCRIPT_SOURCE="Whisper large 模型"
+        TRANSCRIPT_SOURCE="Whisper medium 模型"
         TRANSCRIPT_TEXT=$(cat "$TXT_FILE")
-        # 清理临时文件
         rm -f "$TXT_FILE"
     else
         echo "❌ 转录失败"
@@ -103,7 +175,7 @@ if [ "$HAS_REAL_SUBS" = false ]; then
     fi
 fi
 
-# 繁体转简体（使用 opencc 如果可用，否则保留原文）
+# 繁体转简体
 if command -v opencc >/dev/null 2>&1; then
     echo "🔄 正在转换为简体字..."
     TRANSCRIPT_TEXT_SIMPLIFIED=$(echo "$TRANSCRIPT_TEXT" | opencc -c tw2s)
@@ -111,7 +183,7 @@ else
     TRANSCRIPT_TEXT_SIMPLIFIED="$TRANSCRIPT_TEXT"
 fi
 
-# 生成输出文件名（安全文件名）
+# 生成输出文件名
 SAFE_TITLE=$(echo "$TITLE" | sed 's/[^a-zA-Z0-9\u4e00-\u9fa5]/_/g' | cut -c1-50)
 OUTPUT_FILE="${OUTPUT_DIR}/${SAFE_TITLE}_${VIDEO_ID}_transcript.txt"
 
@@ -132,7 +204,7 @@ B站视频转录文档
 ⏰ 转录时间：$(date '+%Y-%m-%d %H:%M:%S')
 
 ================================================================================
-第一部分：视频摘要（AI生成）
+第一部分：视频摘要（请根据原文补充）
 ================================================================================
 
 【请在此处添加视频摘要】
@@ -153,6 +225,4 @@ echo "✅ 转录完成！"
 echo "📄 文件已保存: $OUTPUT_FILE"
 echo ""
 echo "💡 提示：请阅读文件中的摘要部分，并根据完整原文补充详细摘要。"
-
-# 输出文件路径（供调用者使用）
 echo "$OUTPUT_FILE"

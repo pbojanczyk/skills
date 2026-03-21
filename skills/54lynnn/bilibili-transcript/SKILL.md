@@ -1,9 +1,10 @@
 ---
 name: bilibili-transcript
+version: "2.2.0"
 description: "Transcribe Bilibili videos to text with high accuracy using Whisper medium model. Use when the user provides a Bilibili video URL (BVxxxxx) and wants to: (1) Extract the complete audio content as text with high accuracy, (2) Get a detailed summary of the video content, (3) Save the transcript as a formatted TXT file instead of posting long text to Discord. Automatically detects CC subtitles if available, otherwise uses Whisper medium model with GPU acceleration. Output saves to 'Bilibili transcript' folder by default, includes video metadata, summary section, and full transcript in Simplified Chinese."
 ---
 
-# Bilibili Transcript v2.0
+# Bilibili Transcript v2.2
 
 High-accuracy Bilibili video transcription with multi-language AI subtitle support.
 
@@ -17,6 +18,19 @@ This skill provides a **complete transcription workflow** for Bilibili videos:
 4. **Browser Cookie Support** - WSL Chromium or Windows Edge for member-only videos
 5. **Formatted Output** - Saves as structured TXT file with metadata + summary placeholder + full transcript
 6. **Simplified Chinese** - Automatically converts Traditional to Simplified Chinese
+
+## What's New in v2.2
+
+- ✅ **Fixed cookie detection** - Now uses browser config directory instead of SQLite file (avoids encoding errors)
+- ✅ **One-stop solution** - CC subtitles → AI subtitles → Whisper transcription, all in one script
+- ✅ **Better WSL support** - Automatically detects WSL Chromium and Windows Edge cookies
+- ✅ **Smart fallback** - Seamlessly switches between subtitle sources without user intervention
+
+## What's New in v2.1
+
+- ✅ **Improved cookie handling** - Fixed UTF-8 encoding issues with snap Chromium
+- ✅ **Three-tier fallback** - CC subtitles → AI subtitles → Whisper transcription
+- ✅ **Better error handling** - Gracefully degrades when cookie sources fail
 
 ## What's New in v2.0
 
