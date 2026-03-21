@@ -1,9 +1,7 @@
 ---
 name: ocas-scout
-description: >
-  Structured OSINT research on people, companies, and organizations.
-  Provenance-backed briefs using a free-first source waterfall.
-  Escalates to paid sources only with explicit permission.
+description: Structured OSINT research on people, companies, and organizations. Use when the user wants a provenance-backed brief, entity resolution across public sources, background research with cited sources, or a free-first research workflow that escalates to paid sources only with explicit permission. Do not use for topic research without a person/org focus (Sift) or illegal data collection.
+metadata: {"openclaw":{"emoji":"🔍"}}
 ---
 
 # Scout
@@ -26,9 +24,20 @@ Lawful, provenance-backed OSINT research on people, companies, and organizations
 - Speculative doxxing
 - Topic research without a person/org focus — use Sift
 
-## Core promise
+## Responsibility boundary
 
-Scout performs lawful, minimized, provenance-backed OSINT research. Free-first source waterfall. Every finding cites its source. Uncertainty is surfaced, not buried.
+Scout owns lawful OSINT research on people and organizations with provenance-backed output.
+
+Scout does not own: general topic research (Sift), image processing (Look), knowledge graph writes (Elephas), social graph (Weave), communications (Dispatch).
+
+## Commands
+
+- `scout.research.start` — begin a new research request with subject and goal
+- `scout.research.expand --tier <1|2|3>` — escalate to a higher source tier
+- `scout.brief.render` — generate the final markdown brief with findings and sources
+- `scout.brief.render_pdf` — optional PDF brief generation
+- `scout.status` — return current research state
+- `scout.journal` — write journal for the current run; called at end of every run
 
 ## Invariants
 
@@ -38,22 +47,6 @@ Scout performs lawful, minimized, provenance-backed OSINT research. Free-first s
 4. Paid sources require explicit permission — Tier 3 needs a recorded PermissionGrant
 5. No doxxing by default — private details suppressed unless explicitly permitted
 6. Uncertainty must be surfaced — incomplete identity resolution stated clearly
-
-## External interface
-
-Commands:
-- `scout.research.start` — begin a new research request with subject and goal
-- `scout.research.expand --tier <1|2|3>` — escalate to a higher source tier
-- `scout.brief.render` — generate the final markdown brief with findings and sources
-- `scout.brief.render_pdf` — optional PDF brief generation
-- `scout.status` — return current research state
-
-Config: `.scout/config.json`
-- `research.goal_templates` — preset research goal templates
-- `waterfall.enabled_tiers` — which tiers are available
-- `paid_sources.enabled` — whether Tier 3 is available at all
-- `retention.days` — how long to retain research data
-- `brief.format` — default output format
 
 ## Input contract
 
@@ -85,20 +78,20 @@ Read `references/scout_source_waterfall.md` for full tier logic.
 
 ## Output requirements
 
-Markdown brief with: Executive Summary, Identity Resolution Notes, Findings, Risk and Uncertainty, Source Log.
+Markdown brief with: Executive Summary, Identity Resolution Notes, Findings, Risk and Uncertainty, Source Log. Every finding carries source-backed provenance.
 
-Every finding carries source-backed provenance.
+## Inter-skill interfaces
 
-## Support file map
+Scout may write Signal files to Elephas intake: `~/openclaw/db/ocas-elephas/intake/{signal_id}.signal.json`
 
-- `references/scout_schemas.md` — ResearchRequest, Finding, PermissionGrant, BriefRecord, DecisionRecord
-- `references/scout_source_waterfall.md` — tier definitions, escalation rules, permission gating, minimization
-- `references/scout_brief_template.md` — default brief structure and tone
+Signal emission is optional. Elephas decides promotion.
+
+See `spec-ocas-interfaces.md` for signal format.
 
 ## Storage layout
 
 ```
-.scout/
+~/openclaw/data/ocas-scout/
   config.json
   requests.jsonl
   sources.jsonl
@@ -106,11 +99,80 @@ Every finding carries source-backed provenance.
   decisions.jsonl
   briefs/
   reports/
+
+~/openclaw/journals/ocas-scout/
+  YYYY-MM-DD/
+    {run_id}.json
 ```
 
-## Validation rules
+The OCAS_ROOT environment variable overrides `~/openclaw` if set.
 
-- Every finding has at least one source reference
-- Tier 3 cannot run without recorded permission grant
-- When minimize_pii=true, sensitive fields are suppressed
-- Brief contains uncertainty where identity resolution is incomplete
+Default config.json:
+```json
+{
+  "skill_id": "ocas-scout",
+  "skill_version": "2.0.0",
+  "config_version": "1",
+  "created_at": "",
+  "updated_at": "",
+  "waterfall": {
+    "enabled_tiers": [1, 2]
+  },
+  "paid_sources": {
+    "enabled": false
+  },
+  "brief": {
+    "format": "markdown"
+  },
+  "retention": {
+    "days": 90,
+    "max_records": 10000
+  }
+}
+```
+
+## OKRs
+
+Universal OKRs from spec-ocas-journal.md apply to all runs.
+
+```yaml
+skill_okrs:
+  - name: verified_claim_ratio
+    metric: fraction of findings with at least one verified source reference
+    direction: maximize
+    target: 0.70
+    evaluation_window: 30_runs
+  - name: entity_resolution_accuracy
+    metric: fraction of identity resolutions confirmed correct
+    direction: maximize
+    target: 0.90
+    evaluation_window: 30_runs
+  - name: source_diversity
+    metric: median unique source domains per brief
+    direction: maximize
+    target: 6
+    evaluation_window: 30_runs
+```
+
+## Optional skill cooperation
+
+- Weave — read social graph (read-only) for identity context
+- Elephas — optionally emit Signal files for Chronicle promotion
+- Sift — may use Sift for web searches during research
+
+## Journal outputs
+
+- Observation Journal — research runs producing findings
+- Research Journal — structured multi-source research sessions
+
+## Visibility
+
+public
+
+## Support file map
+
+File | When to read
+`references/scout_schemas.md` | Before creating requests, findings, or briefs
+`references/scout_source_waterfall.md` | Before tier selection or escalation decisions
+`references/scout_brief_template.md` | Before rendering briefs
+`references/journal.md` | Before scout.journal; at end of every run
