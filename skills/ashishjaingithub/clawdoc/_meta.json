@@ -1,11 +1,17 @@
 {
   "owner": "ashishjaingithub",
   "slug": "clawdoc",
-  "displayName": "clawdoc",
+  "displayName": "Clawdoc",
   "latest": {
-    "version": "0.11.1",
-    "publishedAt": 1773773336203,
-    "commit": "https://github.com/openclaw/skills/commit/aa52bc6f18fc8e1760a7819360b4746f85960cb0"
+    "version": "0.12.0",
+    "publishedAt": 1773855340502,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.11.1",
+      "publishedAt": 1773773336203,
+      "commit": "https://github.com/openclaw/skills/commit/aa52bc6f18fc8e1760a7819360b4746f85960cb0"
+    }
+  ]
 }
