@@ -1,0 +1,11 @@
+{
+  "owner": "promptingpufferfish",
+  "slug": "gkeep-notes",
+  "displayName": "Manage Google Keep notes",
+  "latest": {
+    "version": "1.0.13",
+    "publishedAt": 1773957121030,
+    "commit": null
+  },
+  "history": []
+}
