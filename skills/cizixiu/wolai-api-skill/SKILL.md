@@ -3,7 +3,7 @@ name: wolai
 description: 通过 wolai Open API 操作 wolai 笔记，支持读取页面/块内容、创建块（写入内容）、获取数据库、向数据库插入数据、获取/刷新 Token。当用户需要读取 wolai 页面、向 wolai 写入内容、操作 wolai 数据库、或与 wolai 进行任何数据交互时使用此 skill。触发场景：「读取 wolai 页面」、「在 wolai 里写入」、「查询 wolai 数据库」、「往 wolai 插入数据」、「获取 wolai token」等。
 ---
 
-# wolai Skill
+# wolai API Skill
 
 通过 wolai Open API（RESTful）操作 wolai 的块、页面、数据库。
 
@@ -32,7 +32,7 @@ openclaw config set env.WOLAI_TOKEN "your_app_token"
 ### 2. 团队空间需添加应用权限
 
 团队空间中，每个页面需单独添加应用：
-页面右上角 → 页面协作 → 应用权限 → 添加应用
+页面右上角 → 页面协作 → 成员协作→应用权限 → 添加应用
 
 个人空间默认拥有全部页面权限，无需此步骤。
 

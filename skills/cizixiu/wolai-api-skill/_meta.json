@@ -1,11 +1,17 @@
 {
   "owner": "cizixiu",
   "slug": "wolai-api-skill",
-  "displayName": "Wolai Skill",
+  "displayName": "Wolai API Skill",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773724960750,
-    "commit": "https://github.com/openclaw/skills/commit/53341f468306b330f95c99160e740a625ac61815"
+    "version": "1.0.1",
+    "publishedAt": 1773811788062,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773724960750,
+      "commit": "https://github.com/openclaw/skills/commit/53341f468306b330f95c99160e740a625ac61815"
+    }
+  ]
 }
