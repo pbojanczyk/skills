@@ -2,7 +2,7 @@
 name: blog-image-embedder
 description: Analyze polished zh-CN blog markdown, generate hero + per-section image prompts, embed image placeholders into the markdown, and save updated version.
 author: Jeff Yang
-version: 1.0.3
+version: 1.0.4
 tags: [openclaw, clawhub, blog, images, prompts, embed, markdown]
 metadata:
   openclaw:
@@ -108,7 +108,7 @@ workflow:
       markdownContent=$(load_state markdownContent)
       imagePaths=$(load_state imagePaths)
       # ...apply embedding, write to file...
-      ts=$(date +"%Y%m%d%H%M")
+      ts=$(date +"%y%m%d%H%M")
       illustratedPath="$outputDir/${ts}-illustrated.md"
       save_state illustratedPath "$illustratedPath"
 
