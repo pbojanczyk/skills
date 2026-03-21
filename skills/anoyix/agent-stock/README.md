@@ -4,37 +4,63 @@
 [![PyPI version](https://img.shields.io/pypi/v/agent-stock.svg)](https://pypi.org/project/agent-stock/)
 [![Python](https://img.shields.io/badge/python-%3E%3D3.10-blue.svg)](https://pypi.org/project/agent-stock/)
 
-股市数据命令行工具，支持个股行情、相关板块涨跌幅与最新资讯查询。
-
-## 功能特性
-
-- 🎯 **个股行情**：按股票代码查询实时价格、涨跌幅、成交额、K 线
-- 🧭 **相关板块涨跌幅**：按股票代码查看地域、行业、概念板块表现
-- 📰 **个股最新资讯**：按股票代码查看最新资讯摘要
+面向 AI Agent 的股市数据命令行工具，提供市场概览、个股行情、板块涨跌、技术指标与资金流向等信息。
 
 ## 安装
 
 ```bash
-# 推荐：uv tool（快速、隔离环境）
-uv tool install agent-stock
+# pipx
+pipx install agent-stock  # 安装
+pipx upgrade agent-stock  # 升级
 
-# 或者：pipx
-pipx install agent-stock
-```
+# uv tool
+uv tool install agent-stock  # 安装
+uv tool upgrade agent-stock  # 升级
 
-升级到最新版本：
-
-```bash
-uv tool upgrade agent-stock
-# 或：pipx upgrade agent-stock
+# pip
+python -m pip install agent-stock     # 安装
+python -m pip install -U agent-stock  # 升级
 ```
 
 ## 快速开始
 
 ```bash
-stock quote 000001
-stock plate 000001
-stock news 000001
+# 市场数据
+stock search 腾讯
+stock chgdiagram --market ab
+stock heatmap --market ab
+
+# 个股数据
+stock kline 000001
+stock fundflow 000001
+
+# 帮助与版本
+stock --help
+stock quote --help
+stock -v
+```
+
+## 命令
+
+全局使用 `--help` 获取命令帮助，或针对特定命令添加 `--help` 获取详细参数说明，示例：`stock --help`。
+
+### 市场数据
+
+```bash
+stock index --market ab             # 大盘主要指数总览
+stock chgdiagram --market ab        # 涨跌分布
+stock heatmap --market ab           # 行业板块热力图
+stock search <keyword>              # 股票搜索
+```
+
+### 个股数据
+
+```bash
+stock quote <symbol>                # 个股实时行情
+stock plate <symbol>                # 个股相关板块涨跌幅（地域/行业/概念）
+stock news <symbol>                 # 个股最新资讯
+stock kline <symbol>                # 日K数据以及技术指标（EMA/BOLL/KDJ/RSI）
+stock fundflow <symbol>             # 资金分布与每日主力/散户净流向
 ```
 
 ## 开发
@@ -60,8 +86,6 @@ uv tool uninstall agent-stock
 
 # 调试
 uv run python -m stock quote 000001
-uv run python -m stock plate 000001
-uv run python -m stock news 000001
 ```
 
 ## License
