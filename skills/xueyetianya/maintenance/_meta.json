@@ -3,9 +3,15 @@
   "slug": "maintenance",
   "displayName": "Maintenance",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773673823999,
-    "commit": "https://github.com/openclaw/skills/commit/7ceb5af2443cadd5f803fd9c0f3d1841f04d2da7"
+    "version": "2.0.1",
+    "publishedAt": 1773798418598,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773673823999,
+      "commit": "https://github.com/openclaw/skills/commit/7ceb5af2443cadd5f803fd9c0f3d1841f04d2da7"
+    }
+  ]
 }

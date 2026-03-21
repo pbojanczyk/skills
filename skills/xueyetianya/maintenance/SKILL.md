@@ -1,8 +1,10 @@
 ---
 name: "Maintenance"
-description: "Maintenance makes home management simple. Record, search, and analyze your data with clear terminal output."
+description: "Log home maintenance tasks, set reminders, and track repair history with checklists. Use when scheduling repairs, tracking appliance upkeep, inventorying."
 version: "2.0.0"
 author: "BytesAgain"
+homepage: https://bytesagain.com
+source: https://github.com/bytesagain/ai-skills
 tags: ["maintenance", "domestic", "smart-home", "inventory", "household"]
 ---
 
