@@ -1,0 +1,11 @@
+{
+  "owner": "brucevanfdm",
+  "slug": "drawio-exporter-skill",
+  "displayName": "Draw.io Diagram Generator And Exporter",
+  "latest": {
+    "version": "3.0.2",
+    "publishedAt": 1773991370293,
+    "commit": null
+  },
+  "history": []
+}
