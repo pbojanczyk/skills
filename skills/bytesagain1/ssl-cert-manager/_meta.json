@@ -1,0 +1,11 @@
+{
+  "owner": "bytesagain1",
+  "slug": "ssl-cert-manager",
+  "displayName": "Ssl Cert Manager",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773962310777,
+    "commit": null
+  },
+  "history": []
+}
