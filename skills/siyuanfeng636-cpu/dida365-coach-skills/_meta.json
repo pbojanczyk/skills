@@ -3,9 +3,15 @@
   "slug": "dida365-coach-skills",
   "displayName": "Dida Coach",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773828487085,
-    "commit": "https://github.com/openclaw/skills/commit/73e68f42cb4572ae61f87ce4ea7a818e17cdfe85"
+    "version": "1.0.6",
+    "publishedAt": 1773893477211,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773828487085,
+      "commit": "https://github.com/openclaw/skills/commit/73e68f42cb4572ae61f87ce4ea7a818e17cdfe85"
+    }
+  ]
 }

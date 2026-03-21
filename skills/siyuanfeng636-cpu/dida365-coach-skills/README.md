@@ -1,56 +1,78 @@
 # Dida Coach
 
-结合滴答清单 MCP 的任务教练 skill，负责：
+[![Stars](https://img.shields.io/github/stars/siyuanfeng636-cpu/dida365-coach-skills?style=social)](https://github.com/siyuanfeng636-cpu/dida365-coach-skills)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/badge/version-v1.0.5-blue.svg)](https://github.com/siyuanfeng636-cpu/dida365-coach-skills/releases)
 
-- 把长期目标拆成阶段计划和可执行任务
-- 把单次任务排成时间盒并设置检查点
-- 做日复盘、周复盘和拖延模式分析
-- 在延期、未完成和取消时提供闭环支持
+把滴答清单变成一个可执行的 AI 任务教练和任务管家。这个 skill 负责目标拆解、时间盒安排、通用任务管理、复盘分析和延期后的闭环跟进，同时尽量保持更自然的对话体验。
 
-## 目录
+## 核心能力
 
-- `skill.yaml`: 兼容 Claude Code 风格的 skill 入口定义
-- `SKILL.md`: 兼容 Codex skill 体系的使用说明
-- `config.yaml`: 默认文风、工作法、提醒和闭环配置
-- `prompts/`: 各场景 prompt 模板
-- `tools/`: 解析、排程、配置和复盘分析工具
+- 长期目标拆解成阶段计划和可执行任务
+- 单次任务拆成带成果定义的时间盒
+- 直接查询、创建、更新、完成、移动和筛选任务
+- 日复盘、周复盘和拖延模式分析
+- 延期、改时间、未完成后的闭环追踪
+- 基于滴答字段语义做优先级、提醒和完成状态校验
 
-## MCP 依赖
+## 一键安装
 
-需要本地配置 `dida365` MCP：
+```bash
+python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
+  --repo siyuanfeng636-cpu/dida365-coach-skills \
+  --path .
+```
+
+安装后重启 Codex、OpenClaw 或兼容客户端，即可通过 `$dida-coach` 调用。
+
+## MCP 接入
+
+滴答清单 MCP 服务地址是：
+
+- `https://mcp.dida365.com`
+
+为了尽量降低上手门槛，当前文档采用“浏览器授权优先”：
+
+- OpenClaw 推荐先把 dida365 写入 `~/.openclaw/openclaw.json` 的 `mcpServers`，配置格式是 `transport.type=http` + `transport.url=https://mcp.dida365.com`，再点一次浏览器授权。
+- 如果页面里已经有 `Connect`、`Authorize`、`Sign in`、`Enable` 之类按钮，直接点击并在浏览器完成 OAuth。
+- 只有当客户端不能自动注册 MCP 时，才手动添加 `dida365`。
+
+不同客户端的最短接入路径见：
+
+- [`references/mcp-client-setup.md`](references/mcp-client-setup.md)
+
+Claude Code 的兜底命令仍然保留：
 
 ```bash
 claude mcp add --transport http dida365 https://mcp.dida365.com
 ```
 
-然后在客户端内执行 `/mcp` 完成授权。
+## 时区与性能说明
 
-## 典型用法
+- 所有“现在 / 今天 / 明天 / 还有多久 / 下午几点前”这类相对时间判断，都应以用户当前本地时区为准；未明确时默认按用户环境时区处理。
+- 在汇报“还有 X 分钟 / 小时”前，先以“当前本地时间 + 任务绝对截止时间”重新核算；如果当前时间不可靠，优先汇报绝对时间，不口算剩余时长。
+- 这类带 MCP 的 skill 往往比纯本地 prompt 慢，因为远程 HTTP MCP 会增加网络往返，而创建、更新、完成任务后还会执行一次回读校验。
+- 想更快时，优先用单次只读请求，例如“我今天有哪些任务”；批量写入时尽量一次说完整，减少多轮来回。
 
-- “我想提高英语口语”
-- “帮我把今天的报告拆成 2 小时时间盒”
-- “复盘今天为什么效率差”
-- “把盒子 2 改到下午 2 点”
+## 常见使用方式
 
-## 本机同步
+- `用 $dida-coach 帮我把“提高英语口语”拆成三个月计划`
+- `用 $dida-coach 告诉我今天有哪些未完成任务`
+- `用 $dida-coach 列出所有清单并把“买牛奶”移到生活清单`
+- `用 $dida-coach 帮我把今天的报告排成 2 小时时间盒`
+- `用 $dida-coach 复盘今天为什么效率差`
+- `用 $dida-coach 把盒子 2 改到下午 2 点`
 
-如果你在本仓库里开发这个 skill，推荐直接软链接到本机技能目录：
+## 仓库结构
 
-```bash
-ln -sfn "$(pwd)/superpowers/dida-coach" ~/.codex/skills/dida-coach
-ln -sfn "$(pwd)/superpowers/dida-coach" ~/.claude/skills/dida-coach
-```
+- [`SKILL.md`](SKILL.md)：技能入口说明
+- [`skill.yaml`](skill.yaml)：技能元数据与触发器
+- [`config.yaml`](config.yaml)：默认人格、工作法和提醒配置
+- [`prompts/`](prompts/)：各场景 prompt
+- [`tools/`](tools/)：MCP 检测、解析、排程和复盘逻辑
+- [`references/`](references/)：滴答字段语义与客户端接入速查
+- [`tests/`](tests/)：回归测试
 
-同步后重启 Codex 或 Claude Code，让新技能被重新加载。
+## 版本
 
-## 对外一键安装
-
-当仓库推到 GitHub 后，其他人可以直接运行：
-
-```bash
-python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
-  --repo siyuanfeng636-cpu/dida365-coach-skills \
-  --path superpowers/dida-coach
-```
-
-安装完成后重启 Codex，即可通过 `$dida-coach` 调用。
+当前稳定版本：`v1.0.5`
