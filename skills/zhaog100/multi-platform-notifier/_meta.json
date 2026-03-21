@@ -3,9 +3,15 @@
   "slug": "multi-platform-notifier",
   "displayName": "Multi Platform Notifier",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773734945462,
-    "commit": "https://github.com/openclaw/skills/commit/59adba9229bc582b61225c06f1f130d2b4a0a697"
+    "version": "1.0.2",
+    "publishedAt": 1773989614639,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773734945462,
+      "commit": "https://github.com/openclaw/skills/commit/59adba9229bc582b61225c06f1f130d2b4a0a697"
+    }
+  ]
 }
