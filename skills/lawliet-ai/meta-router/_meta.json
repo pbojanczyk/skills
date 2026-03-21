@@ -3,9 +3,15 @@
   "slug": "meta-router",
   "displayName": "Meta-Router",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773651289195,
-    "commit": "https://github.com/openclaw/skills/commit/7f67cf5fec0a7660f279e6437f803f1a060c11f6"
+    "version": "1.0.1",
+    "publishedAt": 1774003659089,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773651289195,
+      "commit": "https://github.com/openclaw/skills/commit/7f67cf5fec0a7660f279e6437f803f1a060c11f6"
+    }
+  ]
 }
