@@ -3,15 +3,20 @@ import path from "node:path";
 import process from "node:process";
 import { readdir, readFile, writeFile, access } from "node:fs/promises";
 import { constants } from "node:fs";
+import { fileURLToPath } from "node:url";
 import {
   buildWorkflowNegativePrompt,
   resolveWorkflowStyle,
 } from "./visual-policy.ts";
 
+const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const defaultNamespace = process.env.IMAGE_SKILL_NAMESPACE?.trim() || path.basename(skillDir);
+
 type CliArgs = {
   promptsDir: string | null;
   outputPath: string | null;
   imagesDir: string | null;
+  projectPath: string;
   model: string | null;
   style: string | null;
   aspectRatio: string;
@@ -35,13 +40,14 @@ type PromptMeta = {
 
 function printUsage(): void {
   console.log(`Usage:
-  npx -y bun scripts/build-batch.ts --prompts prompts --output batch.json --images-dir images --model <model>
+  npx -y bun scripts/build-batch.ts --prompts prompts --output batch.json --images-dir images [--model <model>]
 
 Options:
   --prompts <path>      Path to prompts directory
   --output <path>       Path to output batch.json
   --images-dir <path>   Directory for generated images
-  --model <id>          Model key for bundled runtime batch tasks
+  --project <path>      Project directory used for local .image-skills lookup (default: cwd)
+  --model <id>          Model key for bundled runtime batch tasks. Falls back to IMAGE_GEN_DEFAULT_MODEL or .image-skills/${defaultNamespace}/EXTEND.md
   --style <name>        Explicit bundled runtime style override
   --ar <ratio>          Aspect ratio for all tasks (default: 3:4)
   --quality <level>     Quality for all tasks (default: 2k)
@@ -54,6 +60,7 @@ function parseArgs(argv: string[]): CliArgs {
     promptsDir: null,
     outputPath: null,
     imagesDir: null,
+    projectPath: process.cwd(),
     model: null,
     style: null,
     aspectRatio: "3:4",
@@ -67,6 +74,7 @@ function parseArgs(argv: string[]): CliArgs {
     if (current === "--prompts") args.promptsDir = argv[++i] ?? null;
     else if (current === "--output") args.outputPath = argv[++i] ?? null;
     else if (current === "--images-dir") args.imagesDir = argv[++i] ?? null;
+    else if (current === "--project") args.projectPath = argv[++i] ?? args.projectPath;
     else if (current === "--model") args.model = argv[++i] ?? null;
     else if (current === "--style") args.style = argv[++i] ?? null;
     else if (current === "--ar") args.aspectRatio = argv[++i] ?? args.aspectRatio;
@@ -79,6 +87,40 @@ function parseArgs(argv: string[]): CliArgs {
     }
   }
   return args;
+}
+
+type ResolvedModel = {
+  value: string;
+  source: "arg" | "env" | "extend";
+};
+
+function parseDefaultModel(content: string): string | null {
+  const match = content.replace(/\r\n/g, "\n").match(/^default_model:\s*["']?([^"'\n]+)["']?\s*$/m);
+  return match?.[1]?.trim() || null;
+}
+
+async function resolveModel(args: CliArgs): Promise<ResolvedModel | null> {
+  if (args.model?.trim()) {
+    return { value: args.model.trim(), source: "arg" };
+  }
+
+  const envModel = process.env.IMAGE_GEN_DEFAULT_MODEL?.trim();
+  if (envModel) {
+    return { value: envModel, source: "env" };
+  }
+
+  const extendPath = path.resolve(args.projectPath, ".image-skills", defaultNamespace, "EXTEND.md");
+  try {
+    const extendContent = await readFile(extendPath, "utf8");
+    const extendModel = parseDefaultModel(extendContent);
+    if (extendModel) {
+      return { value: extendModel, source: "extend" };
+    }
+  } catch {
+    // Missing local config is fine; callers can still provide --model explicitly.
+  }
+
+  return null;
 }
 
 async function collectPromptEntries(promptsDir: string): Promise<PromptEntry[]> {
@@ -150,8 +192,11 @@ async function main(): Promise<void> {
     console.error("Error: --output is required");
     process.exit(1);
   }
-  if (!args.model) {
-    console.error("Error: --model is required");
+  const resolvedModel = await resolveModel(args);
+  if (!resolvedModel) {
+    console.error(
+      `Error: --model is required unless IMAGE_GEN_DEFAULT_MODEL or .image-skills/${defaultNamespace}/EXTEND.md provides default_model`
+    );
     process.exit(1);
   }
 
@@ -170,7 +215,7 @@ async function main(): Promise<void> {
       id: `rednote-${String(entry.order).padStart(2, "0")}`,
       promptFiles: [entry.promptPath],
       image: path.join(imageDir, entry.imageFilename),
-      model: args.model,
+      model: resolvedModel.value,
       ar: meta.aspect ?? args.aspectRatio,
       quality: args.quality,
       negative_prompt: buildWorkflowNegativePrompt("rednote"),
@@ -189,7 +234,7 @@ async function main(): Promise<void> {
   if (args.jobs) output.jobs = args.jobs;
 
   await writeFile(args.outputPath, JSON.stringify(output, null, 2) + "\n");
-  console.log(`Batch file written: ${args.outputPath} (${tasks.length} tasks)`);
+  console.log(`Batch file written: ${args.outputPath} (${tasks.length} tasks, model: ${resolvedModel.value} via ${resolvedModel.source})`);
 }
 
 main().catch((error) => {

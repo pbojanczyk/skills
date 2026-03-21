@@ -17,5 +17,13 @@ if (projectIndex === -1) argv.push("--project", process.cwd());
 const dryRun = argv.includes("--dry-run");
 const bootstrap = bootstrapSuite({ dir: skillDir, dryRun });
 if (!bootstrap.ok) process.exit(1);
-const result = spawnSync(process.execPath, [setupScript, ...argv], { stdio: "inherit" });
+const skillNamespace = process.env.IMAGE_SKILL_NAMESPACE?.trim() || path.basename(skillDir);
+const result = spawnSync(process.execPath, [setupScript, ...argv], {
+  stdio: "inherit",
+  env: {
+    ...process.env,
+    IMAGE_SKILL_NAMESPACE: skillNamespace,
+    IMAGE_SKILL_LABEL: process.env.IMAGE_SKILL_LABEL?.trim() || skillNamespace,
+  },
+});
 process.exit(result.status ?? 1);

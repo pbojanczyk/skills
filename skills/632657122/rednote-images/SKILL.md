@@ -1,7 +1,7 @@
 ---
 name: rednote-images
 description: Generate RedNote image series with structured style and layout choices and bundled generation tooling. Use when the user asks to create RedNote image cards, RedNote cover cards, or social infographic series.
-metadata: { "pattern": ["generator", "pipeline"], "openclaw": { "emoji": "📱", "primaryEnv": "WERYAI_API_KEY", "requires": { "env": ["WERYAI_API_KEY"], "anyBins": ["bun", "npx"], "bins": ["node", "npm"] } } }
+metadata: { "pattern": ["generator", "pipeline"], "openclaw": { "emoji": "📱", "primaryEnv": "IMAGE_GEN_API_KEY", "requires": { "env": ["IMAGE_GEN_API_KEY"], "anyBins": ["bun", "npx"], "bins": ["node", "npm"] } } }
 ---
 
 # RedNote Image Series (`rednote-images`)
@@ -19,7 +19,7 @@ Generate RedNote image cards, RedNote cover cards, and social infographic series
 
 This RedNote image skill turns a RedNote image-series request into a more stable set of card prompts and generates the resulting sequence. Use it to create RedNote image cards, RedNote cover cards, or a social infographic series from one topic.
 
-**Dependencies:** `scripts/scaffold.ts`, `scripts/build-prompts.ts`, `scripts/build-batch.ts`, the bundled runtime under `scripts/vendor/`, `WERYAI_API_KEY`, and Node.js + npm. No other skills are required.
+**Dependencies:** `scripts/scaffold.ts`, `scripts/build-prompts.ts`, `scripts/build-batch.ts`, the bundled runtime under `scripts/vendor/`, `IMAGE_GEN_API_KEY`, and Node.js + npm. No other skills are required.
 
 ## Authentication and first-time setup
 
@@ -28,17 +28,17 @@ Before the first real generation run:
 1. Create a WeryAI account.
 2. Open the API key page at `https://www.weryai.com/api/keys`.
 3. Create a new API key and copy the secret value.
-4. Add it to the required environment variable `WERYAI_API_KEY`, or let the setup flow persist it under `.image-skills/rednote-images/.env`.
+4. Add it to the required environment variable `IMAGE_GEN_API_KEY`, or let the setup flow persist it under `.image-skills/rednote-images/.env`.
 5. Make sure the WeryAI account has available balance or credits before paid generation.
 
 ### OpenClaw-friendly setup
 
-- This skill already declares `WERYAI_API_KEY` in `metadata.openclaw.requires.env` and `primaryEnv`.
-- After installation, if the installer or runtime asks for required environment variables, paste the key into `WERYAI_API_KEY`.
+- This skill already declares `IMAGE_GEN_API_KEY` in `metadata.openclaw.requires.env` and `primaryEnv`.
+- After installation, if the installer or runtime asks for required environment variables, paste the key into `IMAGE_GEN_API_KEY`.
 - If you are configuring the runtime manually, export it before running commands:
 
 ```sh
-export WERYAI_API_KEY="your_api_key_here"
+export IMAGE_GEN_API_KEY="your_api_key_here"
 ```
 
 ### Quick verification
@@ -64,8 +64,8 @@ Script:
 ## Safety & Scope
 
 - **Network**: This skill calls the WeryAI gateway over HTTPS (`https://api.weryai.com`).
-- **Auth**: Uses `WERYAI_API_KEY`. The key is never printed. It may be persisted **only** when you explicitly run `npm run setup -- --persist-api-key`.
-- **Secret handling**: Treat `WERYAI_API_KEY` as a runtime secret. Do not commit it into the repository or paste it into generated prompt/output files.
+- **Auth**: Uses `IMAGE_GEN_API_KEY`. The key is never printed. It may be persisted **only** when you explicitly run `npm run setup -- --persist-api-key`.
+- **Secret handling**: Treat `IMAGE_GEN_API_KEY` as a runtime secret. Do not commit it into the repository or paste it into generated prompt/output files.
 - **Reference images**: Must be public URLs (`https://` recommended). `http://` may work but is insecure. Local file paths and `data:` URLs are rejected.
 - **No arbitrary shell**: The generation runtime does not execute arbitrary shell commands.
 - **Files written**: Output images and optional local config under `.image-skills/rednote-images/` (project) and/or `~/.image-skills/rednote-images/` (home).
@@ -110,7 +110,7 @@ See:
 | `scripts/build-prompts.ts` | Regenerate prompts from `outline.md` |
 | `scripts/build-batch.ts` | Generate `batch.json` from card prompts |
 | `npm run generate` | Generate card images |
-| `scripts/./scripts/vendor/compression-runtime/scripts/main.ts` | Compress output for delivery |
+| `scripts/vendor/compression-runtime/scripts/main.ts` | Compress output for delivery |
 
 ## Workflow
 
@@ -242,7 +242,7 @@ ${BUN_X} {baseDir}/scripts/build-batch.ts \
 
 Then run the bundled image generator:
 
-On first use in a new project, run `cd {baseDir} && npm run ensure-ready -- --project <your-project> --workflow rednote` before generation. This reads the doctor report and auto-runs `bootstrap` if local script dependencies are still missing. If the report shows a missing `WERYAI_API_KEY` and the user approves, run `cd {baseDir} && npm run setup -- --project <your-project> --workflow rednote --persist-api-key` when the key is already in env, or persist it to `.image-skills/rednote-images/.env` on the user's behalf, then continue without leaving this workflow.
+On first use in a new project, run `cd {baseDir} && npm run ensure-ready -- --project <your-project> --workflow rednote` before generation. This reads the doctor report and auto-runs `bootstrap` if local script dependencies are still missing. If the report shows a missing `IMAGE_GEN_API_KEY` and the user approves, run `cd {baseDir} && npm run setup -- --project <your-project> --workflow rednote --persist-api-key` when the key is already in env, or persist it to `.image-skills/rednote-images/.env` on the user's behalf, then continue without leaving this workflow.
 
 When this skill is first connected, tell the user that the default generation model is **Nano Banana 2** (`GEMINI_3_1_FLASH_IMAGE`). Also tell them it can be switched later whenever another model fits the task better.
 
@@ -325,7 +325,7 @@ When the card series is ready:
 4. **Auto-compress**: once confirmed, run the bundled compression runtime on the output directory to produce webp versions for social upload.
 
 ```bash
-${BUN_X} {baseDir}/scripts/./scripts/vendor/compression-runtime/scripts/main.ts rednote-images/topic-slug/ -r -f webp -q 80
+${BUN_X} {baseDir}/scripts/vendor/compression-runtime/scripts/main.ts rednote-images/topic-slug/ -r -f webp -q 80
 ```
 
 For series with many cards, show the first 2-3 immediately as they complete, then batch-show the rest.
