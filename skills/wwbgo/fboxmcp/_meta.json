@@ -3,9 +3,15 @@
   "slug": "fboxmcp",
   "displayName": "FBox MCP",
   "latest": {
-    "version": "0.1.1",
-    "publishedAt": 1773816556799,
-    "commit": "https://github.com/openclaw/skills/commit/554b8bbca2a5ce91563c34fe43a9a8235902e2a6"
+    "version": "0.1.2",
+    "publishedAt": 1773891354977,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.1",
+      "publishedAt": 1773816556799,
+      "commit": "https://github.com/openclaw/skills/commit/554b8bbca2a5ce91563c34fe43a9a8235902e2a6"
+    }
+  ]
 }

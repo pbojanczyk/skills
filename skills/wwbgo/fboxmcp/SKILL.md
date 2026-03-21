@@ -9,7 +9,7 @@ compatibility: >
   Requires network access to FBox MCP Server (Streamable HTTP).
   Requires FBOXMCP_API_KEY environment variable.
 metadata:
-  version: "1.0.0"
+  version: "0.1.2"
   author: flexem
   homepage: https://fbox360.com
   openclaw:
@@ -40,7 +40,7 @@ FBox MCP Server 使用 Streamable HTTP 传输协议，端点地址为 `POST /`�
     "fboxmcp": {
       "description": "FBox MCP Server",
       "transport": "streamable-http",
-      "baseUrl": "https://<your-fboxmcp-host>",
+      "baseUrl": "https://fboxmcp.fbox360.com",
       "headers": {
         "Authorization": "Bearer ${FBOXMCP_API_KEY}"
       }
