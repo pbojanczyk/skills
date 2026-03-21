@@ -40,12 +40,11 @@ npm install
 ### 2. Configure
 
 ```bash
-# Copy config file
+# (可选) 复制配置文件进行自定义
 cp config.js config.local.js
 
-# Edit config, fill in Gateway Token
-# Get token from ~/.openclaw/openclaw.json:
-# cat ~/.openclaw/openclaw.json | jq '.gateway.auth.token'
+# Gateway Token 会自动从 ~/.openclaw/openclaw.json 读取
+# 无需手动配置，直接启动即可
 ```
 
 Config options:
@@ -55,7 +54,7 @@ module.exports = {
   server: { port: 3100, host: '0.0.0.0' },
   gateway: {
     url: 'http://127.0.0.1:18789',
-    token: 'YOUR_GATEWAY_TOKEN'
+    token: ''  // 留空自动从 openclaw.json 读取
   },
   openclaw: { homeDir: '.openclaw', configFilename: 'openclaw.json' },
   refreshInterval: 60000,

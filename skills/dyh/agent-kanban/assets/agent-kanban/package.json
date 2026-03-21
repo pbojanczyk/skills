@@ -1,6 +1,6 @@
 {
   "name": "agent-dashboard",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "description": "OpenClaw Agent Dashboard - 静态文件服务",
   "main": "server.js",
   "scripts": {
