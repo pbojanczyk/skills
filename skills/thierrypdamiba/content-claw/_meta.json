@@ -3,11 +3,16 @@
   "slug": "content-claw",
   "displayName": "Content Claw",
   "latest": {
-    "version": "3.0.2",
-    "publishedAt": 1773827599836,
-    "commit": "https://github.com/openclaw/skills/commit/7be720958ca435a15bfb395cd44983d62cade59c"
+    "version": "3.3.2",
+    "publishedAt": 1773836079958,
+    "commit": null
   },
   "history": [
+    {
+      "version": "3.0.2",
+      "publishedAt": 1773827599836,
+      "commit": "https://github.com/openclaw/skills/commit/7be720958ca435a15bfb395cd44983d62cade59c"
+    },
     {
       "version": "2.0.3",
       "publishedAt": 1773824025707,
