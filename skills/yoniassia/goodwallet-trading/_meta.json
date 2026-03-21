@@ -1,11 +1,17 @@
 {
   "owner": "yoniassia",
   "slug": "goodwallet-trading",
-  "displayName": "GoodWallet Trading",
+  "displayName": "Goodwallet Trading",
   "latest": {
-    "version": "0.1.0",
-    "publishedAt": 1773827553356,
-    "commit": "https://github.com/openclaw/skills/commit/116588d2bdf1d1b830fcb8d601a36ae0c0ec8b5b"
+    "version": "0.2.1",
+    "publishedAt": 1773857785588,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.0",
+      "publishedAt": 1773827553356,
+      "commit": "https://github.com/openclaw/skills/commit/116588d2bdf1d1b830fcb8d601a36ae0c0ec8b5b"
+    }
+  ]
 }

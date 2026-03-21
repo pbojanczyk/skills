@@ -1,151 +1,146 @@
 ---
 name: goodwallet-trading
 description: >
-  Blockchain trading and DeFi tools for GoodWallet MPC agentic wallets.
-  Extends the base goodwallet skill with ERC20 transfers, token approvals,
-  balance checking, DEX swaps, and arbitrary smart contract calls.
-  Trigger when the user mentions "send tokens", "ERC20", "swap", "trade",
-  "approve", "allowance", "token balance", "contract call", "DeFi",
-  or wants to interact with smart contracts using their MPC wallet.
+  Blockchain trading tools extending GoodWallet MPC agentic wallets. Adds ERC20 transfers,
+  token approvals, DEX swaps (Uniswap V2), arbitrary contract calls, balance checking, and
+  token info queries — all MPC-signed via Sodot threshold ECDSA.
+  Trigger when the user mentions "trade", "swap tokens", "send ERC20", "approve tokens",
+  "token balance", "contract call", "DEX", "Uniswap", or wants to interact with DeFi
+  using their GoodWallet.
 ---
 
 # GoodWallet Trading
 
-Blockchain trading tools for GoodWallet MPC wallets. Extends `goodwallet` with ERC20 transfers, token approvals, balance checking, DEX swaps, and arbitrary contract calls — all using real Sodot MPC signing.
+Extends the `goodwallet` skill with blockchain trading capabilities. All transactions are MPC-signed via the same Sodot threshold ECDSA signing service.
 
-**Requires:** `goodwallet` must be installed and configured first (`npx goodwallet auth`).
+**Prerequisite:** The user must first authorize via the `goodwallet` skill (`auth` + `pair`). Credentials are shared via `~/.config/goodwallet/config.json`.
+
+All commands are run via `npx goodwallet-trading@0.2.0`.
+
+**Important:** Do not share technical details (key types, signature formats, internal paths). Run commands and report outcomes in plain language.
+
+## Setup
+
+If the user hasn't authorized yet, run the goodwallet auth flow first:
+
+```bash
+npx goodwallet@0.2.0 auth
+# Show the URL to the user, then immediately:
+npx goodwallet@0.2.0 pair
+```
+
+Once paired, all goodwallet-trading commands will work automatically.
 
 ## Commands
-
-All commands use `goodwallet-trading` CLI. Credentials are read from `~/.config/goodwallet/config.json` (shared with `goodwallet`).
 
 ### balance — Check ETH and ERC20 balances
 
 ```bash
-goodwallet-trading balance
-goodwallet-trading balance --token 0x<erc20-address>
+npx goodwallet-trading@0.2.0 balance
+npx goodwallet-trading@0.2.0 balance --token <erc20-address>
 ```
-
-| Flag | Required | Description |
-|------|----------|-------------|
-| `--token <address>` | No | ERC20 token contract to check |
-| `--rpc <url>` | No | Override RPC URL |
 
 ### erc20-send — Send ERC20 tokens
 
 ```bash
-goodwallet-trading erc20-send --to <recipient> --amount <amount> --token <token-address>
+npx goodwallet-trading@0.2.0 erc20-send --to <address> --amount <amount> --token <erc20-address>
 ```
 
-| Flag | Required | Description |
-|------|----------|-------------|
-| `--to <address>` | Yes | Recipient address |
-| `--amount <amount>` | Yes | Human-readable amount (e.g. `10.5`) |
-| `--token <address>` | Yes | ERC20 token contract |
+| Flag | Short | Required | Description |
+|------|-------|----------|-------------|
+| `--to <address>` | `-t` | Yes | Recipient address |
+| `--amount <amount>` | `-a` | Yes | Amount (human-readable, e.g. `10.5`) |
+| `--token <address>` | | Yes | ERC20 token contract |
 
 ### approve — Approve token spending
 
 ```bash
-goodwallet-trading approve --token <token-address> --spender <spender-address>
-goodwallet-trading approve --token <token-address> --spender <spender-address> --amount 100
+npx goodwallet-trading@0.2.0 approve --token <erc20-address> --spender <address>
+npx goodwallet-trading@0.2.0 approve --token <erc20-address> --spender <address> --amount 100
 ```
 
-| Flag | Required | Description |
-|------|----------|-------------|
-| `--token <address>` | Yes | ERC20 token contract |
-| `--spender <address>` | Yes | Address to approve (e.g. DEX router) |
-| `--amount <amount>` | No | Amount to approve (default: unlimited) |
+Without `--amount`, approves unlimited spending.
 
-### contract-call — Execute any smart contract function
+### contract-call — Call any smart contract
+
+The most powerful command — execute arbitrary contract calls with MPC signing.
 
 ```bash
-goodwallet-trading contract-call --to <contract> --data <calldata> --value <eth-amount>
+npx goodwallet-trading@0.2.0 contract-call --to <contract> --data <calldata-hex>
+npx goodwallet-trading@0.2.0 contract-call --to <contract> --data <calldata-hex> --value 0.1
 ```
 
 | Flag | Required | Description |
 |------|----------|-------------|
 | `--to <address>` | Yes | Contract address |
-| `--data <hex>` | Yes | ABI-encoded calldata (0x-prefixed) |
+| `--data <hex>` | Yes | Calldata (hex with 0x prefix) |
 | `--value <ether>` | No | ETH to send with call (default: 0) |
 
-This is the most powerful command — it lets you call ANY smart contract function. Construct the calldata using ABI encoding tools, then sign and broadcast via MPC.
-
-### swap — DEX swap via Uniswap V2 router
+### swap — Uniswap V2 DEX swap
 
 ```bash
-goodwallet-trading swap --router <router-address> --from-token ETH --to-token <token> --amount 0.1
-goodwallet-trading swap --router <router-address> --from-token <tokenA> --to-token <tokenB> --amount 100
+npx goodwallet-trading@0.2.0 swap --router <router-address> --from-token ETH --to-token <token-address> --amount 0.1
+npx goodwallet-trading@0.2.0 swap --router <router-address> --from-token <token-a> --to-token <token-b> --amount 100
 ```
 
 | Flag | Required | Description |
 |------|----------|-------------|
-| `--router <address>` | Yes | Uniswap V2 router contract |
-| `--from-token <addr>` | Yes | Token to sell (or `ETH`) |
-| `--to-token <addr>` | Yes | Token to buy (or `ETH`) |
+| `--router <address>` | Yes | Uniswap V2 router address |
+| `--from-token <address\|ETH>` | Yes | Token to sell (or "ETH") |
+| `--to-token <address\|ETH>` | Yes | Token to buy (or "ETH") |
 | `--amount <amount>` | Yes | Amount to swap |
 | `--slippage <percent>` | No | Slippage tolerance (default: 1%) |
 
 ### token-info — Get ERC20 token details
 
 ```bash
-goodwallet-trading token-info --token <token-address>
+npx goodwallet-trading@0.2.0 token-info --token <erc20-address>
 ```
+
+Returns: name, symbol, decimals, total supply, your balance.
 
 ### allowance — Check approved spending
 
 ```bash
-goodwallet-trading allowance --token <token-address> --spender <spender-address>
+npx goodwallet-trading@0.2.0 allowance --token <erc20-address> --spender <address>
 ```
 
 ## Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `SIGN_URL` | `sign.goodwallet.dev` | MPC signing service |
-| `RPC_URL` | Hoodi Alchemy endpoint | Override RPC endpoint |
+| `SIGN_URL` | `sign.goodwallet.dev` | Signing service endpoint |
+| `RPC_URL` | Alchemy Hoodi endpoint | Override RPC URL |
 
-## Typical DeFi Workflow
+## Network
 
-```bash
-# 1. Check balance
-goodwallet-trading balance
+Currently configured for **Hoodi testnet** (chain ID 560048). Explorer: https://hoodi.etherscan.io/
 
-# 2. Check token balance
-goodwallet-trading balance --token 0x<token>
+## File Locations
 
-# 3. Approve DEX router to spend tokens
-goodwallet-trading approve --token 0x<token> --spender 0x<router>
+| File | Purpose |
+|------|---------|
+| `~/.config/goodwallet/config.json` | Shared credentials from goodwallet auth |
 
-# 4. Swap tokens
-goodwallet-trading swap --router 0x<router> --from-token 0x<tokenA> --to-token 0x<tokenB> --amount 10
-
-# 5. Send tokens to another address
-goodwallet-trading erc20-send --to 0x<recipient> --amount 5 --token 0x<token>
-```
-
-## How It Works
-
-1. Reads MPC credentials from `~/.config/goodwallet/config.json` (API key, ECDSA key share, EVM address)
-2. Constructs unsigned transaction with viem (gas estimation, nonce, calldata encoding)
-3. Hashes the serialized unsigned transaction (keccak256)
-4. Sends hash to `sign.goodwallet.dev/agent/sign/ecdsa` to initiate MPC signing room
-5. Performs client-side MPC signing using Sodot native SDK (the user's key share)
-6. Broadcasts the signed transaction via RPC
-
-All signing is 2-of-3 threshold ECDSA — the user's share never leaves the machine.
-
-## Installation
-
-The `goodwallet-trading` CLI is pre-installed on this machine. If you need to install it elsewhere:
+## Typical Workflow
 
 ```bash
-cd /home/quant/.openclaw/workspace-agentwallet/goodwallet-trading
-npm install
-npm link
+# 1. Auth (if not already done)
+npx goodwallet@0.2.0 auth
+npx goodwallet@0.2.0 pair
+
+# 2. Check balance
+npx goodwallet-trading@0.2.0 balance
+
+# 3. Send ERC20 tokens
+npx goodwallet-trading@0.2.0 erc20-send --to 0x... --amount 10 --token 0x...
+
+# 4. Approve DEX router
+npx goodwallet-trading@0.2.0 approve --token 0x... --spender 0x...
+
+# 5. Swap on DEX
+npx goodwallet-trading@0.2.0 swap --router 0x... --from-token ETH --to-token 0x... --amount 0.1
+
+# 6. Arbitrary contract call
+npx goodwallet-trading@0.2.0 contract-call --to 0x... --data 0xabcdef... --value 0.05
 ```
-
-## Notes
-
-- Currently configured for **Hoodi testnet** (chain ID 560048). For mainnet, set `--rpc` to a mainnet RPC URL.
-- The `swap` command uses Uniswap V2 ABI. For V3, use `contract-call` with the appropriate calldata.
-- Always check `allowance` before swapping — DEX routers need token approval first.
