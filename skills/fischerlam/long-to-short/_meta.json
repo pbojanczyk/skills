@@ -3,9 +3,15 @@
   "slug": "long-to-short",
   "displayName": "Long to Short",
   "latest": {
-    "version": "1.0.6",
-    "publishedAt": 1773760041800,
-    "commit": "https://github.com/openclaw/skills/commit/f4e4fa7c51d71e2a996be955853f69df27f9b5f3"
+    "version": "1.0.8",
+    "publishedAt": 1773825839279,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.6",
+      "publishedAt": 1773760041800,
+      "commit": "https://github.com/openclaw/skills/commit/f4e4fa7c51d71e2a996be955853f69df27f9b5f3"
+    }
+  ]
 }
