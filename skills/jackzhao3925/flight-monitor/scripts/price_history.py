@@ -18,12 +18,55 @@ Usage:
 
 import argparse
 import json
-import os
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
 
 HISTORY_DIR = Path.home() / ".workbuddy" / "flight-monitor"
+
+# ── Input validators (whitelist approach) ───────────────────────────────────
+_CITY_CODE_RE = re.compile(r'^[A-Za-z]{2,4}$')
+_DATE_RE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+
+
+def _validate_city_code(code: str) -> bool:
+    """Only allow 2-4 letter IATA city/airport codes."""
+    return bool(_CITY_CODE_RE.match(code))
+
+
+def _validate_date(date: str) -> bool:
+    """Only allow dates in YYYY-MM-DD format with plausible values."""
+    if not _DATE_RE.match(date):
+        return False
+    try:
+        datetime.strptime(date, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
+
+
+def _validate_inputs(dep: str, arr: str, date: str) -> str | None:
+    """
+    Validate all three route parameters. Returns an error message string if
+    validation fails, or None if all inputs are safe.
+    """
+    if not _validate_city_code(dep):
+        return f"❌ 无效的出发城市代码 `{dep}`（只允许 2-4 位字母 IATA 代码，如 BJS、SHA）"
+    if not _validate_city_code(arr):
+        return f"❌ 无效的到达城市代码 `{arr}`（只允许 2-4 位字母 IATA 代码，如 SYX、CTU）"
+    if not _validate_date(date):
+        return f"❌ 无效的日期 `{date}`（格式应为 YYYY-MM-DD，如 2026-04-10）"
+    return None
+
+
+def _safe_resolve_under(path: Path, base: Path) -> bool:
+    """Return True only if the resolved path is strictly under base directory."""
+    try:
+        path.resolve().relative_to(base.resolve())
+        return True
+    except ValueError:
+        return False
 
 
 def _route_key(dep: str, arr: str, date: str) -> str:
@@ -32,10 +75,16 @@ def _route_key(dep: str, arr: str, date: str) -> str:
 
 def _history_file(dep: str, arr: str, date: str) -> Path:
     HISTORY_DIR.mkdir(parents=True, exist_ok=True)
-    return HISTORY_DIR / f"{_route_key(dep, arr, date)}.json"
+    target = HISTORY_DIR / f"{_route_key(dep, arr, date)}.json"
+    if not _safe_resolve_under(target, HISTORY_DIR):
+        raise ValueError(f"安全错误：路径 `{target}` 超出允许的存储目录范围")
+    return target
 
 
 def load_history(dep: str, arr: str, date: str) -> dict:
+    err = _validate_inputs(dep, arr, date)
+    if err:
+        raise ValueError(err)
     f = _history_file(dep, arr, date)
     if f.exists():
         return json.loads(f.read_text(encoding="utf-8"))
@@ -48,12 +97,18 @@ def load_history(dep: str, arr: str, date: str) -> dict:
 
 
 def save_history(dep: str, arr: str, date: str, data: dict):
+    err = _validate_inputs(dep, arr, date)
+    if err:
+        raise ValueError(err)
     f = _history_file(dep, arr, date)
     f.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def append_record(dep: str, arr: str, date: str, price: float,
                   flight: str = "", threshold: float = None) -> dict:
+    err = _validate_inputs(dep, arr, date)
+    if err:
+        raise ValueError(err)
     data = load_history(dep, arr, date)
     if threshold is not None:
         data["threshold"] = threshold
@@ -167,12 +222,20 @@ def main():
     args = parser.parse_args()
 
     if args.cmd == "append":
-        data = append_record(args.dep, args.arr, args.date, args.price,
-                             args.flight, args.threshold)
-        print(format_history(data))
+        try:
+            data = append_record(args.dep, args.arr, args.date, args.price,
+                                 args.flight, args.threshold)
+            print(format_history(data))
+        except ValueError as e:
+            print(str(e))
+            sys.exit(1)
     elif args.cmd == "show":
-        data = load_history(args.dep, args.arr, args.date)
-        print(format_history(data))
+        try:
+            data = load_history(args.dep, args.arr, args.date)
+            print(format_history(data))
+        except ValueError as e:
+            print(str(e))
+            sys.exit(1)
     elif args.cmd == "list":
         print(list_routes())
     else:

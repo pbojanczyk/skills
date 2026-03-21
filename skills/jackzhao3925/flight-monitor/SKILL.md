@@ -163,9 +163,17 @@ python scripts/monitor_manager.py pause --id flight-KOW-HRB-2026-04-10
 
 # Remove a monitor
 python scripts/monitor_manager.py remove --id flight-KOW-HRB-2026-04-10
+
+# Show details / manual trigger hint (does NOT execute any shell command)
+python scripts/monitor_manager.py run --id flight-KOW-HRB-2026-04-10
 ```
 
 Monitor tasks are saved as TOML files under `~/.workbuddy/automations/`.
+
+**Security notes:**
+- `monitor_manager.py` does **not** import `os` and contains **no** `os.system()` / `subprocess` calls.
+- All `--id` arguments are validated against a strict whitelist regex (`flight-[A-Z]+-[A-Z]+-YYYY-MM-DD`) before any filesystem access, preventing path traversal attacks.
+- The `run` subcommand only prints a safe hint — it never executes external commands.
 
 ---
 

@@ -18,7 +18,7 @@ Usage:
 
 import argparse
 import json
-import os
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -54,14 +54,75 @@ FREQ_LABELS = {
 }
 
 
+_TASK_ID_RE = re.compile(r'^flight-[A-Z]{2,4}-[A-Z]{2,4}-\d{4}-\d{2}-\d{2}$')
+
+# Individual field validators (whitelist approach)
+_CITY_CODE_RE = re.compile(r'^[A-Za-z]{2,4}$')
+_DATE_RE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+_FREQ_RE = re.compile(r'^(hourly|1h|2h|3h|6h|12h|daily|morning|twice-daily)$')
+
+
+def _validate_city_code(code: str) -> bool:
+    """Only allow 2-4 letter IATA city/airport codes."""
+    return bool(_CITY_CODE_RE.match(code))
+
+
+def _validate_date(date: str) -> bool:
+    """Only allow dates in YYYY-MM-DD format with plausible values."""
+    if not _DATE_RE.match(date):
+        return False
+    try:
+        datetime.strptime(date, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
+
+
+def _safe_resolve_under(path: Path, base: Path) -> bool:
+    """Return True only if resolved path is strictly under base directory."""
+    try:
+        path.resolve().relative_to(base.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def validate_task_id(task_id: str) -> bool:
+    """
+    Whitelist check: only allow IDs of the form flight-XXX-XXX-YYYY-MM-DD.
+    Prevents path traversal (e.g. '../../etc/passwd') and shell metacharacters.
+    """
+    return bool(_TASK_ID_RE.match(task_id))
+
+
 def make_task_id(dep: str, arr: str, date: str) -> str:
     return f"flight-{dep.upper()}-{arr.upper()}-{date}"
 
 
 def add_monitor(dep: str, arr: str, date: str, freq: str,
                 threshold: float = None, return_date: str = None) -> str:
+    # ── Input validation ────────────────────────────────────────────────────
+    if not _validate_city_code(dep):
+        return f"❌ 无效的出发城市代码 `{dep}`（只允许 2-4 位字母 IATA 代码，如 BJS、SHA）"
+    if not _validate_city_code(arr):
+        return f"❌ 无效的到达城市代码 `{arr}`（只允许 2-4 位字母 IATA 代码，如 SYX、CTU）"
+    if not _validate_date(date):
+        return f"❌ 无效的日期 `{date}`（格式应为 YYYY-MM-DD，如 2026-04-10）"
+    if return_date and not _validate_date(return_date):
+        return f"❌ 无效的返程日期 `{return_date}`（格式应为 YYYY-MM-DD）"
+    if freq not in FREQ_MAP:
+        return f"❌ 无效的频率 `{freq}`，支持：{', '.join(FREQ_MAP.keys())}"
+
     task_id = make_task_id(dep, arr, date)
+    # Double-check the generated ID still passes whitelist (belt-and-suspenders)
+    if not validate_task_id(task_id):
+        return f"❌ 生成的任务 ID `{task_id}` 未通过安全校验"
+
     task_dir = AUTOMATIONS_DIR / task_id
+    # Path boundary check: ensure target is strictly inside AUTOMATIONS_DIR
+    if not _safe_resolve_under(task_dir, AUTOMATIONS_DIR):
+        return f"❌ 安全错误：任务目录超出允许范围"
+
     task_dir.mkdir(parents=True, exist_ok=True)
 
     rrule = FREQ_MAP.get(freq, FREQ_MAP["daily"])
@@ -160,6 +221,8 @@ def list_monitors() -> str:
 
 
 def pause_monitor(task_id: str) -> str:
+    if not validate_task_id(task_id):
+        return f"❌ 无效的任务 ID `{task_id}`（格式应为 flight-DEP-ARR-YYYY-MM-DD）"
     toml_file = AUTOMATIONS_DIR / task_id / "automation.toml"
     if not toml_file.exists():
         return f"❌ 未找到任务 `{task_id}`"
@@ -170,6 +233,8 @@ def pause_monitor(task_id: str) -> str:
 
 
 def remove_monitor(task_id: str) -> str:
+    if not validate_task_id(task_id):
+        return f"❌ 无效的任务 ID `{task_id}`（格式应为 flight-DEP-ARR-YYYY-MM-DD）"
     task_dir = AUTOMATIONS_DIR / task_id
     if not task_dir.exists():
         return f"❌ 未找到任务 `{task_id}`"
@@ -180,7 +245,16 @@ def remove_monitor(task_id: str) -> str:
 
 
 def run_monitor(task_id: str) -> str:
-    """Manually trigger a monitor task by reading its prompt and executing."""
+    """
+    Show the monitoring prompt for a task.
+
+    NOTE: This function intentionally does NOT execute any shell commands.
+    Monitoring tasks are driven by the WorkBuddy automation scheduler which
+    reads the TOML prompt directly — no subprocess or os.system() calls are
+    needed or used here.
+    """
+    if not validate_task_id(task_id):
+        return f"❌ 无效的任务 ID `{task_id}`（格式应为 flight-DEP-ARR-YYYY-MM-DD）"
     toml_file = AUTOMATIONS_DIR / task_id / "automation.toml"
     if not toml_file.exists():
         return f"❌ 未找到任务 `{task_id}`"
@@ -189,15 +263,17 @@ def run_monitor(task_id: str) -> str:
     dep = meta.get("dep", "")
     arr = meta.get("arr", "")
     date = meta.get("date", "")
-    threshold = meta.get("threshold")
-    threshold_arg = f"--max-price {threshold}" if threshold and threshold != "null" else ""
-    print(f"🔍 手动触发：{dep} → {arr} on {date}")
-    # Execute query
-    os.system(
-        f'python "{SCRIPTS_DIR / "query_flights.py"}" '
-        f"--from {dep} --to {arr} --date {date} {threshold_arg}"
+    threshold = meta.get("threshold", "")
+    threshold_arg = f" --max-price {threshold}" if threshold and threshold != "null" else ""
+
+    return (
+        f"🔍 任务详情：{dep} → {arr}，出行日期 {date}\n\n"
+        f"如需手动执行一次查询，请运行：\n"
+        f"```\n"
+        f"python scripts/search_flights.py --from {dep} --to {arr} --date {date}{threshold_arg}\n"
+        f"```\n"
+        f"（此脚本仅做查询，不执行任何系统命令。）"
     )
-    return ""
 
 
 def _simple_toml_parse(content: str, section: str) -> dict:
