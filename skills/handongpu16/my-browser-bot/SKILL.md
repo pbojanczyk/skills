@@ -14,7 +14,8 @@ description: Browser automation CLI for AI agents. Use when the user needs to in
 
 ## Installation
 ```bash
-pip install mybrowser-skill
+pipx install mybrowser-skill
+mybrowser-skill install   # Download Chromium
 ```
 
 ## Note:
