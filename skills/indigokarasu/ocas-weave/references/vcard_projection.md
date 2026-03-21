@@ -1,20 +1,38 @@
-# Weave vCard Projection
+# vCard Projection
 
-## Principles
-- Projection is read-only: it generates a draft, not a writeback
-- Strict mode (default): omit any field where data is absent or confidence is low
-- Conservative: prefer omission over invention
-- Standards-conscious: follow vCard 4.0 field semantics
+Rules for `weave.project.vcard`. Confidence threshold: 0.7. Omit fields below threshold entirely.
 
-## Field Mapping
-- FN → Person.name
-- NICKNAME → Person.aliases (if present)
-- EMAIL → identifiers where type=email
-- TEL → identifiers where type=phone (only if explicitly stored)
-- ORG → facts where predicate=works_at
-- NOTE → person notes (truncated)
+## Field map
 
-## Omission Rules
-- If a field has no backing data, omit it entirely
-- If confidence is low, omit unless the user explicitly requests inclusion
-- Never generate synthetic data to fill gaps
+FN -- name (always include if present)
+N -- name_family;name_given (include if both present)
+EMAIL -- email
+TEL -- phone (E.164 preferred)
+ADR -- location_city + location_country only. Never street address.
+ORG -- org
+TITLE -- occupation
+NOTE -- notes (confidence >= 0.7 only)
+REV -- record_time (always include)
+
+Never include: id, clay_id, google_resource_name, preferences, relationships, street address, zip, inferred fields.
+
+## Output format
+
+```
+BEGIN:VCARD
+VERSION:4.0
+FN:{name}
+N:{name_family};{name_given};;;
+EMAIL;TYPE=WORK:{email}
+TEL;TYPE=WORK:{phone}
+ORG:{org}
+TITLE:{occupation}
+ADR;TYPE=WORK:;;{location_city};;;{location_country};
+NOTE:{notes}
+REV:{record_time}
+END:VCARD
+```
+
+Omit any line where the value is missing or below threshold. One block per person. Separate blocks with a blank line.
+
+All output is labeled DRAFT. No writeback without explicit user approval via `weave.writeback.contacts`.
