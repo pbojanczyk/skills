@@ -1,0 +1,11 @@
+{
+  "owner": "oblio-falootin",
+  "slug": "sql-memory",
+  "displayName": "SQL Memory",
+  "latest": {
+    "version": "2.0.1",
+    "publishedAt": 1773995151370,
+    "commit": null
+  },
+  "history": []
+}
