@@ -2,9 +2,11 @@
 name: feedback
 version: "2.0.0"
 author: BytesAgain
+homepage: https://bytesagain.com
+source: https://github.com/bytesagain/ai-skills
 license: MIT-0
 tags: [feedback, tool, utility]
-description: "Feedback - command-line tool for everyday use"
+description: "Collect user feedback, categorize by theme, and track issue resolution. Use when gathering opinions, prioritizing bugs, or tracking fix progress."
 ---
 
 # Feedback
