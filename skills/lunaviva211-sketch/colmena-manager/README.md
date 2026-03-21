@@ -1,81 +1,37 @@
-# 🐺 Colmena Manager Skill
+# Colmena Manager
 
-Skill para gestionar todos los agentes de la Colmena OpenClaw desde una única interfaz.
-
-## Características
-
-- 🟢 Listar estado de agentes (online/offline, CPU, mem, heartbeat)
-- 📢 Broadcast a todas las hermanas
-- 📋 Ver logs de agentes
-- ⏸️ Pausar/reanudar agentes
-- 💓 Health checks automáticos
-- 📁 Gestión de workspaces
-- 🔗 Integración con HEARTBEAT.md
-
-## Instalación
-
-```bash
-clawhub install colmena-manager
-```
-
-## Uso rápido
-
-```bash
-# Estado de toda la colmena
-colmena-manager status
-
-# Enviar mensaje a todas las agentes
-colmena-manager broadcast "Hola hermanas!"
-
-# Health check completo
-colmena-manager health-check
-
-# Ver logs de skynet
-colmena-manager logs skynet 100
-```
+Skill para gestionar y coordinar agentes de OpenClaw como una colmena
 
 ## Comandos
 
-| Comando | Descripción |
-|---------|-------------|
-| `status [agent]` | Muestra estado de todos o un agente específico |
-| `broadcast <msg>` | Envía mensaje a todas las agentes |
-| `logs <agent> [lines]` | Muestra logs recientes del agente |
-| `pause <agent>` | Pausa un agente |
-| `resume <agent>` | Reanuda un agente pausado |
-| `health-check` | Diagnóstico completo de la colmena |
-| `workspace list` | Lista workspaces |
-| `workspace create <name>` | Crea workspace nuevo |
-| `workspace remove <name>` | Elimina workspace |
+- `status [agent]`: Ver estado de todos los agentes o uno específico
+- `broadcast <msg>`: Enviar mensaje a todos los agentes
+- `logs <agent> [lines]`: Ver logs de un agente
+- `pause <agent>`: Pausar un agente
+- `resume <agent>`: Reanudar un agente
+- `health-check`: Verificar estado de todos los agentes
+- `workspace list/create/remove`: Gestionar workspaces
 
-## Configuración
-
-Opcional: crea `~/.openclaw/config/colmena-manager.json`:
-
-```json
-{
-  "monitoredAgents": ["main", "vision", "skynet", "healer", "nemotron"],
-  "healthCheckInterval": 300000,
-  "heartbeatCheckInterval": 60000,
-  "logLines": 50,
-  "healthCheckCommands": [
-    "node -v",
-    "openclaw status"
-  ]
-}
-```
-
-## Para desarrolladores
+## Uso
 
 ```bash
-# Clonar y enlazar
-cd colmena-manager
-npm link
-
-# Probar
 colmena-manager status
+colmena-manager broadcast "Reunión en 10 min"
+colmena-manager logs main --last 50
+colmena-manager pause vision
+colmena-manager health-check
+colmena-manager workspace list
 ```
 
-## License
+## Arquitectura
 
-MIT © 2026 Anubis
+La skill se integra con las APIs nativas de OpenClaw:
+- `agents_list()`: Descubrir agentes disponibles
+- `sessions_list()`: Ver actividad actual
+- `sessions_send()`: Comunicación entre agentes
+- `message()`: Broadcasts externos
+- `exec/process`: Health checks y diagnósticos
+
+## HEARTBEAT.md
+
+Incluye un archivo HEARTBEAT.md que realiza checks automáticos de la salud de la colmena cada 30 minutos.
