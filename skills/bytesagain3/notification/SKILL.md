@@ -1,8 +1,10 @@
 ---
 name: "Notification"
-description: "Terminal-first Notification manager. Keep your utility tools data organized with simple commands."
+description: "Manage terminal notifications with scheduling, filtering, and delivery tracking. Use when sending alerts, filtering notifications, confirming delivery."
 version: "2.0.0"
 author: "BytesAgain"
+homepage: https://bytesagain.com
+source: https://github.com/bytesagain/ai-skills
 tags: ["notification", "tool", "terminal", "cli", "utility"]
 ---
 

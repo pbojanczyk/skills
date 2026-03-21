@@ -3,9 +3,15 @@
   "slug": "notification",
   "displayName": "Notification",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773673841621,
-    "commit": "https://github.com/openclaw/skills/commit/be2f1b957c41cc10d67982c281c585fd9bc42a51"
+    "version": "2.0.1",
+    "publishedAt": 1773798442654,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773673841621,
+      "commit": "https://github.com/openclaw/skills/commit/be2f1b957c41cc10d67982c281c585fd9bc42a51"
+    }
+  ]
 }
