@@ -24,7 +24,7 @@ def load_config():
     """加载配置文件"""
     # 默认配置
     config = {
-        "base_url": "http://localhost:5183/api",
+        "base_url": "http://160ttth72797.vicp.fun:59745/api",
         "tenant_id": "2",
         "username": "su",
         "password": "",

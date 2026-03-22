@@ -1,7 +1,7 @@
 ---
 name: "assethub"
-description: "资产管理系统 API 助手。用于资产查询、维修报修、盘点管理、折旧计算等资产全生命周期管理。Base URL: 需要配置"
-version: "2.0.0"
+description: "资产管理系统AI助手(openclaw技能)。用于资产查询、维修报修、盘点管理、折旧计算等资产全生命周期管理"
+version: "2.0.3"
 metadata: { "openclaw": { "emoji": "📦", "requires": { "apis": ["需要配置"] } } }
 ---
 
@@ -13,7 +13,7 @@ metadata: { "openclaw": { "emoji": "📦", "requires": { "apis": ["需要配置"
 
 资产管理系统 API 助手，支持资产查询、维修报修、盘点管理等。
 
-**Base URL**: `http://localhost:5183/api`
+**Base URL**: `http://160ttth72797.vicp.fun:59745/api`
 **认证**: 动态 Token (每次调用自动获取)
 
 ---
@@ -57,7 +57,7 @@ ASSETHUB_PASS=密码 python query.py stats
 
 ```json
 {
-    "base_url": "http://localhost:5183/api",
+    "base_url": "http://160ttth72797.vicp.fun:59745/api",
     "tenant_id": "2",
     "username": "su",
     "password": "你的密码",
@@ -70,7 +70,7 @@ ASSETHUB_PASS=密码 python query.py stats
 ### 环境变量 (优先级最高)
 
 ```bash
-export ASSETHUB_URL=http://localhost:5183/api
+export ASSETHUB_URL=http://160ttth72797.vicp.fun:59745/api
 export ASSETHUB_TENANT=2
 export ASSETHUB_USER=su
 export ASSETHUB_PASS=密码
@@ -84,7 +84,7 @@ export ASSETHUB_PASS=密码
 
 ```bash
 # 查询所有资产 (前300条)
-curl -s "http://localhost:5183/api/assets?page=1&pageSize=300" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/assets?page=1&pageSize=300" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -98,12 +98,12 @@ curl -s "http://localhost:5183/api/assets?page=1&pageSize=300" \
 
 ```bash
 # 查询手术室资产
-curl -s "http://localhost:5183/api/assets?page=1&pageSize=300" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/assets?page=1&pageSize=300" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2" | jq '.data.list[] | select(.department_new | contains("手术室"))'
 
 # 查询在用资产
-curl -s "http://localhost:5183/api/assets?page=1&pageSize=300&status=在用" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/assets?page=1&pageSize=300&status=在用" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -111,7 +111,7 @@ curl -s "http://localhost:5183/api/assets?page=1&pageSize=300&status=在用" \
 ### 查询单个资产详情
 
 ```bash
-curl -s "http://localhost:5183/api/assets/{id}" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/assets/{id}" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -124,12 +124,12 @@ curl -s "http://localhost:5183/api/assets/{id}" \
 
 ```bash
 # 所有维修申请
-curl -s "http://localhost:5183/api/maintenance/requests?page=1&pageSize=50" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/maintenance/requests?page=1&pageSize=50" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 
 # 按状态筛选
-curl -s "http://localhost:5183/api/maintenance/requests?status=待审批" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/maintenance/requests?status=待审批" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -137,7 +137,7 @@ curl -s "http://localhost:5183/api/maintenance/requests?status=待审批" \
 ### 创建维修申请
 
 ```bash
-curl -X POST http://localhost:5183/api/maintenance/requests \
+curl -X POST http://160ttth72797.vicp.fun:59745/api/maintenance/requests \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2" \
   -H "Content-Type: application/json" \
@@ -153,7 +153,7 @@ curl -X POST http://localhost:5183/api/maintenance/requests \
 ### 查询维修工单
 
 ```bash
-curl -s "http://localhost:5183/api/maintenance/workorders?page=1&pageSize=50" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/maintenance/workorders?page=1&pageSize=50" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -161,7 +161,7 @@ curl -s "http://localhost:5183/api/maintenance/workorders?page=1&pageSize=50" \
 ### 查询维修日志
 
 ```bash
-curl -s "http://localhost:5183/api/maintenance/logs?page=1&pageSize=50" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/maintenance/logs?page=1&pageSize=50" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -173,7 +173,7 @@ curl -s "http://localhost:5183/api/maintenance/logs?page=1&pageSize=50" \
 ### 查询部门列表
 
 ```bash
-curl -s "http://localhost:5183/api/departments" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/departments" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -181,7 +181,7 @@ curl -s "http://localhost:5183/api/departments" \
 ### 查询用户列表
 
 ```bash
-curl -s "http://localhost:5183/api/users?page=1&pageSize=50" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/users?page=1&pageSize=50" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -193,7 +193,7 @@ curl -s "http://localhost:5183/api/users?page=1&pageSize=50" \
 ### 查询盘点任务
 
 ```bash
-curl -s "http://localhost:5183/api/inventory?page=1&pageSize=50" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/inventory?page=1&pageSize=50" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -205,7 +205,7 @@ curl -s "http://localhost:5183/api/inventory?page=1&pageSize=50" \
 ### 查询采购申请
 
 ```bash
-curl -s "http://localhost:5183/api/procurement/requests?page=1&pageSize=50" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/procurement/requests?page=1&pageSize=50" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -217,7 +217,7 @@ curl -s "http://localhost:5183/api/procurement/requests?page=1&pageSize=50" \
 ### 查询折旧明细
 
 ```bash
-curl -s "http://localhost:5183/api/asset-depreciation/depreciation?page=1&pageSize=50" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/asset-depreciation/depreciation?page=1&pageSize=50" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -236,7 +236,7 @@ curl -s "http://localhost:5183/api/asset-depreciation/depreciation?page=1&pageSi
 # 第一次请求 (获取确认token)
 IDEMPOTENCY_KEY=$(openssl rand -hex 16)
 
-RESP=$(curl -s -X POST http://localhost:5183/api/maintenance/requests \
+RESP=$(curl -s -X POST http://160ttth72797.vicp.fun:59745/api/maintenance/requests \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2" \
   -H "Content-Type: application/json" \
@@ -253,7 +253,7 @@ RESP=$(curl -s -X POST http://localhost:5183/api/maintenance/requests \
 # 如果返回 requiresConfirmation=true，则需要二次确认
 CONFIRM_TOKEN=$(echo $RESP | jq -r '.confirmToken')
 
-curl -X POST http://localhost:5183/api/maintenance/requests \
+curl -X POST http://160ttth72797.vicp.fun:59745/api/maintenance/requests \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2" \
   -H "Content-Type: application/json" \
@@ -278,7 +278,7 @@ curl -X POST http://localhost:5183/api/maintenance/requests \
 ### 查询盘点任务
 
 ```bash
-curl -s "http://localhost:5183/api/inventory?page=1&pageSize=50" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/inventory?page=1&pageSize=50" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -286,7 +286,7 @@ curl -s "http://localhost:5183/api/inventory?page=1&pageSize=50" \
 ### 创建盘点任务
 
 ```bash
-curl -X POST http://localhost:5183/api/inventory \
+curl -X POST http://160ttth72797.vicp.fun:59745/api/inventory \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2" \
   -H "Content-Type: application/json" \
@@ -304,7 +304,7 @@ curl -X POST http://localhost:5183/api/inventory \
 ### 创建采购申请
 
 ```bash
-curl -X POST http://localhost:5183/api/procurement/requests \
+curl -X POST http://160ttth72797.vicp.fun:59745/api/procurement/requests \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2" \
   -H "Content-Type: application/json" \
@@ -326,7 +326,7 @@ curl -X POST http://localhost:5183/api/procurement/requests \
 ### 查询调拨申请
 
 ```bash
-curl -s "http://localhost:5183/api/transfer?page=1&pageSize=50" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/transfer?page=1&pageSize=50" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -334,7 +334,7 @@ curl -s "http://localhost:5183/api/transfer?page=1&pageSize=50" \
 ### 创建调拨申请
 
 ```bash
-curl -X POST http://localhost:5183/api/transfer \
+curl -X POST http://160ttth72797.vicp.fun:59745/api/transfer \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2" \
   -H "Content-Type: application/json" \
@@ -353,7 +353,7 @@ curl -X POST http://localhost:5183/api/transfer \
 ### 查询报废申请
 
 ```bash
-curl -s "http://localhost:5183/api/scrapping?page=1&pageSize=50" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/scrapping?page=1&pageSize=50" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -361,7 +361,7 @@ curl -s "http://localhost:5183/api/scrapping?page=1&pageSize=50" \
 ### 创建报废申请
 
 ```bash
-curl -X POST http://localhost:5183/api/scrapping \
+curl -X POST http://160ttth72797.vicp.fun:59745/api/scrapping \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2" \
   -H "Content-Type: application/json" \
@@ -381,7 +381,7 @@ curl -X POST http://localhost:5183/api/scrapping \
 ### 查询资产位置
 
 ```bash
-curl -s "http://localhost:5183/api/asset-location/assets/{assetCode}/location" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/asset-location/assets/{assetCode}/location" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -389,7 +389,7 @@ curl -s "http://localhost:5183/api/asset-location/assets/{assetCode}/location" \
 ### 更新资产位置
 
 ```bash
-curl -X POST http://localhost:5183/api/asset-location/assets/{assetCode}/location \
+curl -X POST http://160ttth72797.vicp.fun:59745/api/asset-location/assets/{assetCode}/location \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2" \
   -H "Content-Type: application/json" \
@@ -407,7 +407,7 @@ curl -X POST http://localhost:5183/api/asset-location/assets/{assetCode}/locatio
 ### 按部门统计资产
 
 ```bash
-curl -s "http://localhost:5183/api/assets?page=1&pageSize=300" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/assets?page=1&pageSize=300" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2" | jq '
   [.data.list[].department_new] | group_by(.) | map({department: .[0], count: length}) | sort_by(.count) | reverse
@@ -417,7 +417,7 @@ curl -s "http://localhost:5183/api/assets?page=1&pageSize=300" \
 ### 资产价值汇总
 
 ```bash
-curl -s "http://localhost:5183/api/assets?page=1&pageSize=300" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/assets?page=1&pageSize=300" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2" | jq '
   [.data.list[] | select(.purchase_price != null) | .purchase_price | tonumber] | add
@@ -427,7 +427,7 @@ curl -s "http://localhost:5183/api/assets?page=1&pageSize=300" \
 ### 查询高价值资产 (TOP 10)
 
 ```bash
-curl -s "http://localhost:5183/api/assets?page=1&pageSize=300" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/assets?page=1&pageSize=300" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2" | jq '
   .data.list | sort_by(.purchase_price | tonumber) | reverse | .[0:10] | .[] | {name: .asset_name, price: .purchase_price, dept: .department_new}
@@ -456,7 +456,7 @@ A: 在用、闲置、维修、报废、调配中
 ### 查询维护计划
 
 ```bash
-curl -s "http://localhost:5183/api/maintenance/plans?page=1&pageSize=50" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/maintenance/plans?page=1&pageSize=50" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -464,7 +464,7 @@ curl -s "http://localhost:5183/api/maintenance/plans?page=1&pageSize=50" \
 ### 查询维护模板
 
 ```bash
-curl -s "http://localhost:5183/api/maintenance/templates?page=1&pageSize=50" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/maintenance/templates?page=1&pageSize=50" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -472,7 +472,7 @@ curl -s "http://localhost:5183/api/maintenance/templates?page=1&pageSize=50" \
 ### 查询维修费用
 
 ```bash
-curl -s "http://localhost:5183/api/maintenance/costs?page=1&pageSize=50" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/maintenance/costs?page=1&pageSize=50" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -480,7 +480,7 @@ curl -s "http://localhost:5183/api/maintenance/costs?page=1&pageSize=50" \
 ### 查询维修统计
 
 ```bash
-curl -s "http://localhost:5183/api/maintenance/analytics" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/maintenance/analytics" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -492,7 +492,7 @@ curl -s "http://localhost:5183/api/maintenance/analytics" \
 ### 查询资产分类
 
 ```bash
-curl -s "http://localhost:5183/api/asset-categories" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/asset-categories" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -504,7 +504,7 @@ curl -s "http://localhost:5183/api/asset-categories" \
 ### 打印资产标签
 
 ```bash
-curl -X POST http://localhost:5183/api/asset-labels/print \
+curl -X POST http://160ttth72797.vicp.fun:59745/api/asset-labels/print \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2" \
   -H "Content-Type: application/json" \
@@ -521,7 +521,7 @@ curl -X POST http://localhost:5183/api/asset-labels/print \
 ### 查询验收记录
 
 ```bash
-curl -s "http://localhost:5183/api/acceptance?page=1&pageSize=50" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/acceptance?page=1&pageSize=50" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
@@ -533,7 +533,7 @@ curl -s "http://localhost:5183/api/acceptance?page=1&pageSize=50" \
 ### 查询计量记录
 
 ```bash
-curl -s "http://localhost:5183/api/quality-control/metrology?page=1&pageSize=50" \
+curl -s "http://160ttth72797.vicp.fun:59745/api/quality-control/metrology?page=1&pageSize=50" \
   -H "Authorization: Bearer $TOKEN" \
   -H "X-Tenant-ID: 2"
 ```
