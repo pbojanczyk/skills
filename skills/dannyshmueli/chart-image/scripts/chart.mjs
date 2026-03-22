@@ -71,6 +71,8 @@ DATA FIELDS:
   --x-type      X axis type: ordinal, temporal, quantitative
   --x-format    X axis label format (d3-time-format for temporal, e.g. "%b %d", "%H:%M")
   --x-sort      X axis order: ascending, descending, none (preserve input order)
+  --x-label-limit PX  Max pixel width for X axis labels before Vega truncates them
+  --y-label-limit PX  Max pixel width for Y axis labels before Vega truncates them
 
 STYLING:
   --color       Primary color (default: #e63946)
@@ -97,6 +99,7 @@ SORTING:
   --y-scale TYPE    Y axis scale type: linear (default), log, sqrt, symlog
   --zero-baseline   Force Y axis to start at zero (aka --zero)
   --conditional-color  Color by threshold: "value,belowColor,aboveColor" (default: red/green)
+  --y2-format       Secondary/right Y axis format: percent, dollar, compact, integer, decimal2
 
 CONFIDENCE BANDS:
   --band-upper    Upper bound field name (e.g. "upper" or "max")
@@ -108,6 +111,7 @@ DUAL AXIS:
   --y2-title        Title for second Y axis
   --y2-color        Color for second series (default: blue)
   --y2-type         Chart type for second axis: line, bar, area (default: line)
+  --y2-format       Right-axis number format for dual-axis/volume charts
 
 ANNOTATIONS:
   --trend-line      Add linear regression trend line (dashed)
@@ -188,7 +192,7 @@ function parseArgs(args) {
     
     switch (arg) {
       case '--help': case '-h': showHelp(); break;
-      case '--version': case '-v': console.log('chart.mjs v2.6.14'); process.exit(0); break;
+      case '--version': case '-v': console.log('chart.mjs v2.6.17'); process.exit(0); break;
       case '--type': opts.type = next; i++; break;
       case '--data': opts.data = parseDataArg(next); i++; break;
       case '--spec': opts.specFile = next; i++; break;
@@ -262,11 +266,14 @@ function parseArgs(args) {
       case '--y2-title': opts.y2Title = next; i++; break;  // Second Y axis title
       case '--y2-color': opts.y2Color = next; i++; break;  // Second Y axis line color
       case '--y2-type': opts.y2Type = next; i++; break;  // Second Y axis chart type: line, bar, area (default: line)
+      case '--y2-format': opts.y2Format = next; i++; break;  // Second/right Y axis number format
       case '--transparent': opts.transparent = true; break;  // Transparent background
       case '--bg-color': opts.bgColor = next; i++; break;  // Custom background color
       case '--csv': opts.data = parseCsv(next); i++; break;  // Inline CSV string
       case '--csv-file': opts.data = parseCsv(readFileSync(next, 'utf8')); i++; break;  // CSV file path
       case '--x-format': opts.xFormat = next; i++; break;  // X axis format (d3-time-format for temporal, e.g. "%b %d", "%H:%M")
+      case '--x-label-limit': opts.xLabelLimit = parseFloat(next); i++; break;  // Max pixel width before X labels get truncated
+      case '--y-label-limit': opts.yLabelLimit = parseFloat(next); i++; break;  // Max pixel width before Y labels get truncated
       case '--zero-baseline': case '--zero': opts.zeroBaseline = true; break;  // Force Y axis to start at 0
       case '--horizontal': opts.horizontal = true; break;  // Horizontal bar chart (swap x/y axes)
       case '--band-upper': opts.bandUpper = next; i++; break;  // Upper bound field for confidence band
@@ -914,6 +921,8 @@ function buildSpec(opts) {
       changeText = `${sign}${change.toFixed(1)}%`;
     }
     
+    const y2Format = resolveYFormat(opts.y2Format);
+
     const volumeSpec = {
       $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
       width: opts.width,
@@ -939,7 +948,8 @@ function buildSpec(opts) {
                 orient: 'right',
                 titleColor: volumeColor,
                 labelColor: volumeColor,
-                gridColor: 'transparent'  // No grid lines for volume
+                gridColor: 'transparent',  // No grid lines for volume
+                ...(y2Format ? { format: y2Format } : {})
               },
               scale: { zero: true }
             }
@@ -1023,6 +1033,7 @@ function buildSpec(opts) {
     
     const xAxisType = opts.xType || 'ordinal';
     const yFormat = resolveYFormat(opts.yFormat);
+    const y2Format = resolveYFormat(opts.y2Format);
     
     const dualSpec = {
       $schema: 'https://vega.github.io/schema/vega-lite/v5.json',
@@ -1071,7 +1082,8 @@ function buildSpec(opts) {
                 orient: 'right',
                 titleColor: y2Color,
                 labelColor: y2Color,
-                gridColor: 'transparent'
+                gridColor: 'transparent',
+                ...(y2Format ? { format: y2Format } : {})
               }
             }
           }
@@ -1679,6 +1691,26 @@ async function main() {
         if (!enc.x.axis) enc.x.axis = {};
         enc.x.axis.format = opts.xFormat;
         enc.x.axis.formatType = 'time';
+      }
+    });
+  }
+
+  // Apply --x-label-limit to avoid unreadable/truncated category labels overflowing the chart
+  if (opts.xLabelLimit !== undefined && Number.isFinite(opts.xLabelLimit) && opts.xLabelLimit > 0) {
+    walkEncodings(spec, (enc) => {
+      if (enc && enc.x) {
+        if (!enc.x.axis) enc.x.axis = {};
+        enc.x.axis.labelLimit = opts.xLabelLimit;
+      }
+    });
+  }
+
+  // Apply --y-label-limit to keep long category/value labels from overflowing the chart
+  if (opts.yLabelLimit !== undefined && Number.isFinite(opts.yLabelLimit) && opts.yLabelLimit > 0) {
+    walkEncodings(spec, (enc) => {
+      if (enc && enc.y) {
+        if (!enc.y.axis) enc.y.axis = {};
+        enc.y.axis.labelLimit = opts.yLabelLimit;
       }
     });
   }
