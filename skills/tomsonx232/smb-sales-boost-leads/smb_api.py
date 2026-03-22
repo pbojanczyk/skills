@@ -3,6 +3,12 @@
 SMB Sales Boost API Client
 Reusable script for making any API call. Pass method, endpoint, and optional params/body as arguments.
 
+Requires: API key with smbk_ prefix (generate from Dashboard > API tab).
+          Set via SMB_SALES_BOOST_API_KEY env var or pass as first argument.
+
+Data Sensitivity: Exports may contain PII (business phone numbers, email addresses).
+                  Handle exported files with appropriate care.
+
 Usage:
   python smb_api.py <API_KEY> <METHOD> <ENDPOINT> [--params '{"key":"value"}'] [--body '{"key":"value"}'] [--output-dir /path/to/dir]
 
@@ -23,6 +29,11 @@ Examples:
   python smb_api.py none POST /purchase --body '{"email":"user@example.com","plan":"starter"}'
   python smb_api.py none POST /claim-key --body '{"email":"user@example.com","claimToken":"tok_abc123"}'
   python smb_api.py smbk_xxx GET /leads/other/schema-types
+  python smb_api.py smbk_xxx GET /leads --params '{"positiveKeywords":"[\"*dental*\"]","stateInclude":"TX","maxCredits":"10"}'
+  python smb_api.py smbk_xxx GET /auto-top-up
+  python smb_api.py smbk_xxx PATCH /auto-top-up --body '{"enabled":true,"triggerType":"credits","triggerAmount":100,"purchaseType":"credits","purchaseAmount":500}'
+  python smb_api.py smbk_xxx POST /settings/switch-database --body '{"smbType":"other"}'
+  python smb_api.py smbk_xxx GET /settings/database
 """
 
 import sys
@@ -101,7 +112,7 @@ def save_export_files(data, output_dir):
 
 def main():
     parser = argparse.ArgumentParser(description="SMB Sales Boost API Client")
-    parser.add_argument("api_key", help="API key (smbk_... prefix), or 'none' for unauthenticated endpoints")
+    parser.add_argument("api_key", nargs="?", default=None, help="API key (smbk_... prefix), or 'none' for unauthenticated endpoints. Falls back to SMB_SALES_BOOST_API_KEY env var.")
     parser.add_argument("method", help="HTTP method: GET, POST, PATCH, PUT, DELETE")
     parser.add_argument("endpoint", help="API endpoint path, e.g. /leads, /me, /filter-presets")
     parser.add_argument("--params", default=None, help="Query parameters as JSON string (for GET requests)")
@@ -109,10 +120,16 @@ def main():
     parser.add_argument("--output-dir", default=DEFAULT_OUTPUT_DIR, help="Directory for saving export files")
     args = parser.parse_args()
 
+    # Resolve API key: CLI arg > env var > error
+    api_key = args.api_key or os.environ.get("SMB_SALES_BOOST_API_KEY")
+    if not api_key:
+        print(json.dumps({"error": "No API key provided. Pass as first argument or set SMB_SALES_BOOST_API_KEY env var."}))
+        sys.exit(1)
+
     params = json.loads(args.params) if args.params else None
     body = json.loads(args.body) if args.body else None
 
-    resp = make_request(args.api_key, args.method, args.endpoint, params=params, body=body)
+    resp = make_request(api_key, args.method, args.endpoint, params=params, body=body)
 
     # Try to parse response as JSON
     try:
@@ -146,7 +163,7 @@ def main():
         print(json.dumps({
             "status": 402,
             "error": "insufficient_credits",
-            "message": data.get("message", "Insufficient credits to complete this export."),
+            "message": data.get("message", "Insufficient credits. Use maxCredits/maxResults to limit usage, or purchase more credits."),
             "data": data
         }, indent=2))
     else:
