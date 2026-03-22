@@ -1,0 +1,11 @@
+{
+  "owner": "membranedev",
+  "slug": "arcgis-online",
+  "displayName": "Arcgis Online",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774087367458,
+    "commit": null
+  },
+  "history": []
+}
