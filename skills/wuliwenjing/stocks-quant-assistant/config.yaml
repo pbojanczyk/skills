@@ -1,0 +1,23 @@
+# 股票监控配置 - 模板版本
+# 首次运行自动生成，用户可编辑此文件或让 AI 帮忙配置
+
+stocks: []
+
+push:
+  channel: "console"
+  times:
+    - "09:15"
+    - "10:30"
+    - "13:00"
+    - "14:50"
+
+  feishu:
+    chat_id: ""
+
+  telegram:
+    chat_id: ""
+    bot_token: ""
+
+advanced:
+  history_days: 60
+  language: "zh"
