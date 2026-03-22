@@ -1,8 +1,7 @@
 ---
 name: whatsapp-ultimate
-version: 1.4.0
-version: 3.6.0
-description: "WhatsApp skill with a 3-rule security gate. Your agent speaks only when spoken to — in the right chat, by the right person."
+version: 4.0.0
+description: "You put 5 agents in a WhatsApp group. They all respond at once. Your API bill does a backflip. Protocol v2 fixes that — congestion control, conversation lifecycle, and budget-aware scheduling. Agents that know when to talk, when to shut up, and when to burn your unused tokens before reset."
 metadata:
   openclaw:
     emoji: "📱"
@@ -32,6 +31,7 @@ This skill documents all WhatsApp capabilities available through OpenClaw's nati
 | **Messaging** | Text, media, polls, stickers, voice notes, GIFs |
 | **Interactions** | Reactions, replies/quotes, edit, unsend |
 | **Groups** | Create, rename, icon, description, participants, admin, invite links |
+| **History** | Full-text search, vCard contact extraction with phone numbers |
 
 **Total: 22 distinct actions**
 
@@ -200,29 +200,6 @@ Convert images to WebP stickers:
 ffmpeg -i input.png -vf "scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=0x00000000" output.webp
 ```
 
-### Acknowledgment Messages (ackMessage)
-Send an instant text message when an inbound message is received — fires at gateway level before model inference:
-```json
-{
-  "channels": {
-    "whatsapp": {
-      "ackMessage": {
-        "text": "⚡",
-        "direct": true,
-        "group": "never"
-      }
-    }
-  }
-}
-```
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `text` | string | `""` | Message to send (empty = disabled) |
-| `direct` | boolean | `true` | Send in direct chats |
-| `group` | `"always"` / `"mentions"` / `"never"` | `"never"` | Group behavior |
-
-This is different from `ackReaction` (which sends an emoji reaction). `ackMessage` sends a standalone message bubble — visible in WhatsApp Web even when reaction flips aren't.
-
 ### Rate Limits
 WhatsApp has anti-spam measures. Avoid:
 - Bulk messaging to many contacts
@@ -257,36 +234,166 @@ To react/edit/unsend, you need the message ID. Incoming messages include this in
 
 ---
 
-## Media Download (from History)
+---
 
-Download images, videos, documents, and audio from past WhatsApp messages stored in the history database. Uses Baileys' `downloadContentFromMessage` with the media keys stored in `raw_json` — no active socket needed.
+## Protocol v2: Multi-Agent Discussions
 
-### List Recent Media
-```bash
-cd ~/src/tinkerclaw && npx tsx src/whatsapp-history/download-media.ts --list-media [--since YYYY-MM-DD] [--chat <jid|name>] [--limit N]
+Version 4.0 introduces a complete multi-agent framework for WhatsApp group chats. Multiple AI agents can discuss topics, debate ideas, and converge on conclusions — all with built-in safeguards against message explosion.
+
+### Agent Identity
+
+Each agent gets its own personality, icon, and (optionally) model:
+
+```yaml
+channels:
+  whatsapp:
+    agentIcon: "🤖"          # single-agent icon prefix
+    turnEndMarker: "⚡"       # end-of-turn marker in 1:1 chats
+    multiAgent:
+      mainAgentId: "jarvis"
+      agents:
+        jarvis:
+          id: "jarvis"
+          name: "Jarvis"
+          icon: "🤖"
+        luna:
+          id: "luna"
+          name: "Luna"
+          icon: "🌙"
+          model: "sonnet"
+        rex:
+          id: "rex"
+          name: "Rex"
+          icon: "🦖"
+          model: "haiku"
 ```
 
-### Download by Message ID
-```bash
-cd ~/src/tinkerclaw && npx tsx src/whatsapp-history/download-media.ts --id <messageId> [--out <directory>]
+Agent personalities live in the workspace:
 ```
-Default output: `~/.openclaw/workspace/data/wa-media/<messageId>.<ext>`
+workspace/
+├── SOUL.md                  # main agent
+├── agents/
+│   ├── luna/SOUL.md         # Luna's personality
+│   └── rex/SOUL.md          # Rex's personality
+```
 
-### Notes
-- Media URLs on WhatsApp servers expire after ~2 weeks. Download promptly.
-- Works for: images, videos, documents, audio, stickers, voice notes.
-- Extension auto-detected from the message's mimetype.
-- The `raw_json` column in the messages table must contain the original Baileys proto (live-captured messages only, not imported .txt exports).
+### Intra-Agent Chats
+
+Register WhatsApp groups where agents discuss freely (no trigger prefix needed):
+
+```yaml
+      intraAgentChats:
+        brainstorm:
+          chatId: "120363424201898007@g.us"
+          participants: ["jarvis", "luna", "rex"]
+          owner: "oscar"
+          mode: "broadcast"        # broadcast | addressed | round-robin
+```
+
+**Routing modes:**
+- **broadcast** — all agents respond (with congestion control)
+- **addressed** — only respond when mentioned by name ("Luna, what do you think?")
+- **round-robin** — structured turn-taking
+
+### Congestion Control (Exponential Courtesy Protocol)
+
+Prevents N agents from all responding simultaneously:
+
+```yaml
+      congestion:
+        enabled: true
+        baseDelayFactor: 150     # ms × agentCount² base delay
+        maxDelay: 30000          # 30s cap
+        backpressureThreshold: 1.5  # slow down over-talkers
+        windowMs: 60000          # 60s sliding window
+```
+
+**How it works:**
+- Base delay scales quadratically with agent count (2 agents ≈ 600ms, 5 agents ≈ 3750ms)
+- Random jitter prevents synchronization
+- Agents talking more than their fair share get 2× delay penalty
+- If another agent posts during your wait, restart the timer (yield-on-collision)
+
+### Conversation Lifecycle
+
+Agents detect when discussions go stale and know when to wrap up:
+
+```yaml
+      lifecycle:
+        stalenessWindow: 5        # compare last N messages
+        stalenessThreshold: 0.85  # cosine similarity trigger
+        maxTurnsPerObjective: 30  # hard cap
+        autoClose: true
+```
+
+**Features:**
+- **Staleness detection** — cosine similarity of message embeddings detects circular discussions
+- **Agreement loop detection** — catches "I agree" / "Good point" / "Exactly" loops
+- **Topic steering** — one agent claims pivot role to redirect conversation
+- **Objective tracking** — set goals, track completion, auto-close with summary
+- **Closure protocol** — propose → ack → converge (all agents must agree)
+
+### Budget-Aware Scheduling
+
+Adjusts conversation depth based on API usage and reset timing:
+
+```yaml
+      budget:
+        provider: "anthropic"
+        windowDays: 7
+        burnModeEnabled: true
+        burnTriggerHours: 24     # hours before reset
+        burnUsageThreshold: 0.20 # usage below 20%
+```
+
+**Four modes:**
+
+| Mode | When | Congestion | Staleness | Max Turns | Tangents |
+|------|------|-----------|-----------|-----------|----------|
+| Conservative | >85% used | 2× slower | 0.80 | ½ | No |
+| Moderate | 60-85% | Normal | 0.85 | Normal | No |
+| Aggressive | <60% | 0.7× faster | 0.85 | Normal | Yes |
+| **Burn** | <20% used, <24h to reset | 0.3× faster | 0.95 | 2× | Encouraged |
+
+Burn mode philosophy: unused tokens expire at reset. Better to have emergent agent-agent discussions than waste the budget.
+
+### DM Trigger Prefix
+
+Protocol v2 extends `triggerPrefix` to DMs (previously groups only):
+
+- **Owner** — always bypasses triggerPrefix
+- **Authorized contacts** — must start message with prefix (e.g., "Jarvis, help me with...")
+- **Intra-agent chats** — bypass triggerPrefix entirely
+
+### Turn-End Marker
+
+In 1:1 chats (selfChat or owner-only DM), append a visual marker to signal turn completion:
+
+```yaml
+channels:
+  whatsapp:
+    turnEndMarker: "⚡"
+```
 
 ---
 
-### 3.5.1
+### 4.0.0
 
-- **Added:** Media download from history — `download-media.ts` script extracts media keys from stored `raw_json` and downloads/decrypts directly from WhatsApp CDN without needing an active socket connection.
+- **Protocol v2:** Multi-agent discussions with configurable routing (broadcast/addressed/round-robin)
+- **Added:** Congestion control — Exponential Courtesy Protocol prevents message explosion in multi-agent chats
+- **Added:** Conversation lifecycle — staleness detection, agreement loop detection, topic steering, objective tracking, closure protocol
+- **Added:** Budget-aware scheduling — four spending modes including burn mode for pre-reset token usage
+- **Added:** Agent identity system — per-agent SOUL.md, icons, names, model overrides
+- **Added:** DM triggerPrefix gating — non-owner contacts must use prefix in DMs
+- **Added:** Turn-end marker (⚡) for 1:1 chats
+- **Added:** `agentIcon` config for outbound message prefixing
 
-### 3.5.0
+### 3.7.0
 
-- **Added:** `ackMessage` — gateway-level instant message acknowledgment. Sends a configurable text message (e.g. ⚡) the moment an inbound message arrives, before any model inference. Fires at the same speed as `ackReaction` (emoji flip). Useful as a visual cue to distinguish your messages from bot replies in WhatsApp Web where reaction flips aren't visible.
+- **Added:** vCard phone number extraction — contact messages now return structured `vcard` field with names and phone numbers
+- **Added:** `contactsArrayMessage` support — multi-contact shares are now parsed
+- **Improved:** New contact messages store phone numbers in `text_content` for full-text search (e.g. search by phone number)
+- **Improved:** `raw_json` now included in search results for contact-type messages, enabling vCard extraction from historical data
 
 ### 3.4.0
 
@@ -312,16 +419,26 @@ No external services. No Docker. No CLI tools. Direct protocol integration.
 
 ---
 
-## License
-
-MIT — Part of OpenClaw
-
 ## Pairs Well With
 
-- [outlook-hack](https://clawhub.com/globalcaos/outlook-hack) — same philosophy for Outlook: reads everything, drafts replies, won't send
-- [teams-hack](https://clawhub.com/globalcaos/teams-hack) — Teams integration with the same browser-relay approach
-- [agent-superpowers](https://clawhub.com/globalcaos/agent-superpowers) — engineering discipline for the agent running behind these channels
+- [smart-model-router](https://clawhub.com/globalcaos/smart-model-router) — auto-select the right model per agent role (creative → Sonnet, analyst → Haiku, devil's advocate → GPT)
+- [agent-superpowers](https://clawhub.com/globalcaos/agent-superpowers) — verification iron law and three-agent review for when your multi-agent discussions produce code
+- [subagent-overseer](https://clawhub.com/globalcaos/subagent-overseer) — monitor agent sessions without burning tokens on polling loops
 
 👉 **https://github.com/globalcaos/tinkerclaw**
 
 _Clone it. Fork it. Break it. Make it yours._
+
+---
+
+## License
+
+MIT — Part of OpenClaw
+
+---
+
+## Links
+
+- OpenClaw: https://github.com/openclaw/openclaw
+- Baileys: https://github.com/WhiskeySockets/Baileys
+- ClawHub: https://clawhub.com
