@@ -3,11 +3,16 @@
   "slug": "docs-cog",
   "displayName": "docs-cog",
   "latest": {
-    "version": "1.0.2",
-    "publishedAt": 1770774090451,
-    "commit": "https://github.com/openclaw/skills/commit/81dddd59fa346b4e44acd7f313551b4b87ae4f95"
+    "version": "1.0.3",
+    "publishedAt": 1774033641057,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.2",
+      "publishedAt": 1770774090451,
+      "commit": "https://github.com/openclaw/skills/commit/81dddd59fa346b4e44acd7f313551b4b87ae4f95"
+    },
     {
       "version": "1.0.1",
       "publishedAt": 1770419742050,
