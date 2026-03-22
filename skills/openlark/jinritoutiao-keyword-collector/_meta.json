@@ -1,0 +1,11 @@
+{
+  "owner": "openlark",
+  "slug": "jinritoutiao-keyword-collector",
+  "displayName": "今日头条搜索关键词收集工具",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774106689808,
+    "commit": null
+  },
+  "history": []
+}
