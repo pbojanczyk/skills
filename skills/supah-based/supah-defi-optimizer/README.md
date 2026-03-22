@@ -8,8 +8,8 @@ openclaw skills install https://tools.supah.ai/skills/supah-defi-optimizer
 ```
 
 ## Pricing
-- FREE: View positions, top 5 APYs
-- PAID: Auto-optimize ($5/mo), IL calc ($0.50), rebalance ($1)
+- View positions: $0.10
+- Auto-optimize: $0.10 | IL calc: $0.10 | Rebalance: $0.10
 
 ## Support
 https://supah.ai

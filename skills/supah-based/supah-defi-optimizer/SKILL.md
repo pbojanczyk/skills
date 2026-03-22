@@ -1,6 +1,16 @@
 ---
 name: supah-defi-optimizer
 description: "DeFi yield optimization, impermanent loss tracking, and portfolio management for Base blockchain. Find the best yields, monitor LP positions, and optimize DeFi strategies."
+metadata:
+  {
+    "openclaw":
+      {
+        "emoji": "🔄",
+        "requires": { "bins": ["curl", "node"], "env": ["SUPAH_API_BASE"] },
+        "network": { "outbound": ["api.supah.ai"] },
+        "x402": { "enabled": true, "currency": "USDC", "network": "base", "maxPerCall": "0.10", "payTo": "0xD3B2eCfe77780bFfDFA356B70DC190C914521761" }
+      }
+  }
 ---
 # SUPAH DeFi Optimizer
 
