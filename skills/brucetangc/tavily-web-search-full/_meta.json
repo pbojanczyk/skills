@@ -1,0 +1,11 @@
+{
+  "owner": "brucetangc",
+  "slug": "tavily-web-search-full",
+  "displayName": "Tavily Web Search",
+  "latest": {
+    "version": "2.0.4",
+    "publishedAt": 1774139788615,
+    "commit": null
+  },
+  "history": []
+}
