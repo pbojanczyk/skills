@@ -1,9 +1,9 @@
 ---
 name: publora
 description: >
-  Publora API — schedule and publish social media posts across 11 platforms
+  Publora API — schedule and publish social media posts across 10 platforms
   (X/Twitter, LinkedIn, Instagram, Threads, TikTok, YouTube, Facebook, Bluesky,
-  Mastodon, Telegram, Pinterest). Use this skill when the user wants to post,
+  Mastodon, Telegram). Use this skill when the user wants to post,
   schedule, draft, bulk-schedule, manage workspace users, configure webhooks,
   or retrieve LinkedIn analytics via Publora.
 ---
@@ -11,11 +11,21 @@ description: >
 # Publora API — Core Skill
 
 Publora is an affordable REST API for scheduling and publishing social media posts
-across 11 platforms. Base URL: `https://api.publora.com/api/v1`
+across 10 platforms (Pinterest is listed internally but not yet supported). Base URL: `https://api.publora.com/api/v1`
+
+## Plans & API Access
+
+| Plan | Price | Posts/Month | Platforms |
+|------|-------|-------------|-----------|
+| Starter | Free | 15 | LinkedIn & Bluesky |
+| Pro | $2.99/account | 100/account | All |
+| Premium | $5.99/account | 500/account | All |
+
+> ℹ️ Starter gives API access for LinkedIn and Bluesky. Twitter/X requires Pro or Premium (explicitly excluded from Starter). See [publora.com/pricing](https://publora.com/pricing).
 
 ## Authentication
 
-All requests require the `x-publora-key` header. Keys start with `sk_`.
+All requests require the `x-publora-key` header. Keys start with `sk_` (format: `sk_xxxxxxx.xxxxxx...`).
 
 ```bash
 curl https://api.publora.com/api/v1/platform-connections \
@@ -197,32 +207,36 @@ For carousels: call `get-upload-url` N times with the **same `postGroupId`**.
 
 ## Cross-Platform Threading
 
-X/Twitter and Threads support auto-threading. Separate segments with `---` on its own line:
+X/Twitter and Threads support threading. Three methods:
+
+- **Auto-split**: Content over the char limit is split automatically at paragraph/sentence/word breaks. Publora adds `(1/N)` markers (e.g. `(1/3)`).
+- **Manual `---`**: Use `---` on its own line to define exact split points.
+- **Explicit `[n/m]`**: Use `[1/3]`, `[2/3]` markers — Publora preserves them as-is.
 
 ```javascript
-await fetch('https://api.publora.com/api/v1/create-post', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json', 'x-publora-key': 'sk_YOUR_KEY' },
-  body: JSON.stringify({
-    content: 'First tweet in the thread.\n\n---\n\nSecond tweet continues.\n\n---\n\nFinal tweet wraps up.',
-    platforms: ['twitter-123', 'threads-789']
-  })
-});
+// Manual split example
+body: JSON.stringify({
+  content: 'First tweet.\n\n---\n\nSecond tweet.\n\n---\n\nThird tweet.',
+  platforms: ['twitter-123']
+})
 ```
 
-> ⚠️ **Threads Restriction:** Multi-threaded nested posts (content auto-split into connected replies) are **temporarily unavailable on Threads** due to Threads app reconnection status. Single posts and carousels continue to work normally. Contact support@publora.com for updates.
+> ⚠️ **Threads Restriction:** Multi-threaded nested posts are **temporarily unavailable on Threads** (connected replies). Single posts, images, and carousels work normally. Contact support@publora.com for updates.
 
 ## LinkedIn Analytics
 
 ```javascript
-// Post statistics
+// Post statistics — queryTypes is an ARRAY (not a string; 'ALL' is invalid here)
+// Use queryType (singular string) for one metric, queryTypes (array) for multiple
 await fetch('https://api.publora.com/api/v1/linkedin-post-statistics', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json', 'x-publora-key': 'sk_YOUR_KEY' },
   body: JSON.stringify({
     postedId: 'urn:li:share:7123456789',
     platformId: 'linkedin-ABC123',
-    queryTypes: 'ALL'  // or: IMPRESSION, MEMBERS_REACHED, RESHARE, REACTION, COMMENT
+    queryTypes: ['IMPRESSION', 'MEMBERS_REACHED', 'RESHARE', 'REACTION', 'COMMENT']
+    // OR: queryType: 'IMPRESSION'  ← singular, returns { count: 123 }
+    // Multi-metric response: { metrics: { IMPRESSION: 4521, MEMBERS_REACHED: 3200, ... } }
   })
 });
 
@@ -281,16 +295,17 @@ Max 10 webhooks per account.
 Manage multiple users under your workspace account. Contact serge@publora.com to enable Workspace API access.
 
 ```javascript
-// Create a managed user
-const user = await fetch('https://api.publora.com/api/v1/workspace/users', {
+// Create a managed user (returns HTTP 201)
+const { user } = await fetch('https://api.publora.com/api/v1/workspace/users', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json', 'x-publora-key': 'sk_CORP_KEY' },
-  body: JSON.stringify({ email: 'client@example.com', displayName: 'Acme Corp' })
+  body: JSON.stringify({ username: 'client@example.com', displayName: 'Acme Corp' })
 }).then(r => r.json());
+// user._id is the MongoDB ObjectId (24-char hex), e.g. "6626a1f5e4b0c91a2d3f4567"
 
 // Generate connection URL for user to connect their social accounts
 const { connectionUrl } = await fetch(
-  `https://api.publora.com/api/v1/workspace/users/${user.id}/connection-url`,
+  `https://api.publora.com/api/v1/workspace/users/${user._id}/connection-url`,
   { method: 'POST', headers: { 'x-publora-key': 'sk_CORP_KEY' } }
 ).then(r => r.json());
 
@@ -300,7 +315,7 @@ await fetch('https://api.publora.com/api/v1/create-post', {
   headers: {
     'Content-Type': 'application/json',
     'x-publora-key': 'sk_CORP_KEY',
-    'x-publora-user-id': user.id  // ← key header for acting on behalf of a user
+    'x-publora-user-id': user._id  // ← key header for acting on behalf of a user
   },
   body: JSON.stringify({ content: 'Post for Acme Corp!', platforms: ['linkedin-XYZ'] })
 });
@@ -312,11 +327,11 @@ Workspace endpoints:
 |----------|--------|-------------|
 | `/workspace/users` | GET | List managed users |
 | `/workspace/users` | POST | Create managed user |
-| `/workspace/users/:userId` | DELETE | Remove managed user |
+| `/workspace/users/:userId` | DELETE | Detach managed user (preserves user record, removes workspace association) |
 | `/workspace/users/:userId/api-key` | POST | Generate per-user API key |
 | `/workspace/users/:userId/connection-url` | POST | Generate OAuth connection link |
 
-Each managed user has a limit of **100 posts/day** (`dailyPostsLeft`). Never expose your workspace key client-side — use per-user API keys for client-facing scenarios.
+Each managed user has a `dailyPostsLeft` field (default: 100) — note this is informational only and **not enforced as an actual posting limit**. Real limits are workspace-level: `monthlyPosts`, `scheduledPosts`, `scheduleHorizonDays` — enforced at scheduling time. Never expose your workspace key client-side — use per-user API keys for client-facing scenarios.
 
 ## Platform Limits Quick Reference (API)
 
@@ -325,8 +340,8 @@ Each managed user has a limit of **100 posts/day** (`dailyPostsLeft`). Never exp
 | Platform | Char Limit | Max Images | Video Max | Text Only? |
 |----------|-----------|-----------|-----------|------------|
 | Twitter/X | 280 (25K Premium) | 4 × 5MB | 2 min / 512MB | ✅ |
-| LinkedIn | 3,000 | 20 × 5MB | 30 min / 500MB | ✅ |
-| Instagram | 2,200 | **10 × 8MB (JPEG only)** | **90s** / 300MB | ❌ |
+| LinkedIn | 3,000 | 10 × 5MB | 30 min / 500MB | ✅ |
+| Instagram | 2,200 | **10 × 8MB (JPEG only)** | **3 min (180s)** Reels / 60s Stories / 300MB | ❌ |
 | Threads | 500 | 20 × 8MB | 5 min / 500MB | ✅ |
 | TikTok | 2,200 | Video only | 10 min / 4GB | ❌ |
 | YouTube | 5,000 desc | Video only | 12h / 256GB | ❌ |
