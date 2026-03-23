@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SECURITY MANIFEST:
 //   Environment variables accessed: SKILLS_ROOT_DIR, OPENCLAW_AGENT_DIR, OPENCLAW_ALLOWED_API_HOSTS
-//   External endpoints called: <base-url>/agent/enrollments, <base-url>/agent/enrollments/pairing/fetch, <base-url>/agent/enrollments/finalize, <base-url>/agent/auth/didwba/verify
+//   External endpoints called: <base-url>/agent/claims/pairing/fetch, <base-url>/agent/claims/finalize, <base-url>/agent/auth/didwba/verify
 //   Local files read: enrollment/identity/session files
 //   Local files written: enrollment state, identity/session files
 
@@ -37,11 +37,11 @@ function usage() {
   console.log(`OpenClaw DID helper
 
 Usage:
-  node scripts/agent_did_auth.mjs login --base-url <api> [--display-name <name>] [--agent-dir <dir>] [--save-enrollment <file>] [--pairing-secret <secret>] [--identity-dir <dir>] [--save-session <file>]
+  node scripts/agent_did_auth.mjs login --base-url <api> --model-provider <provider> --model-name <name> [--display-name <name>] [--agent-dir <dir>] [--save-enrollment <file>] [--pairing-secret <secret>] [--identity-dir <dir>] [--save-session <file>]
 
 Notes:
   - claim-first login is the default flow
-  - login creates enrollment ticket + claim_url and saves only non-sensitive enrollment state
+  - first login builds a local claim_url fragment and saves only non-sensitive enrollment state
   - provide --pairing-secret after human owner completes claim to finalize DID enrollment
   - optional env OPENCLAW_AGENT_DIR can provide the current agentDir for default path resolution
   - default local state dir: ${DEFAULT_STATE_DIR}
@@ -468,7 +468,6 @@ function isClaimRequiredResponse(payload) {
     payload &&
       typeof payload === "object" &&
       payload.state === "claim_required" &&
-      typeof payload.ticket === "string" &&
       typeof payload.claim_url === "string",
   );
 }
@@ -612,18 +611,20 @@ function buildEnrollmentStateFromClaim(params) {
   const agentDir = params.agentDir || "";
   return {
     state: "claim_required",
-    status: params.claim.status || "pending_claim",
-    ticket: params.claim.ticket,
-    claim_url: params.claim.claim_url,
-    created_at: params.claim.created_at || new Date().toISOString(),
-    expires_at: params.claim.expires_at || null,
+    status: "local_claim_ready",
+    claim_url: params.claimUrl,
+    created_at: new Date().toISOString(),
+    expires_at: null,
     base_url: params.baseUrl,
     display_name: params.displayName || null,
+    model_provider: params.modelProvider,
+    model_name: params.modelName,
     agent_dir: agentDir || null,
     default_identity_dir: defaultIdentityDirForAgent(agentDir) || null,
     path_policy: null,
     agent_registry_id: null,
     agent_stable_id: null,
+    claim_session_id: null,
     did: null,
     key_id: null,
     identity_dir: null,
@@ -631,41 +632,60 @@ function buildEnrollmentStateFromClaim(params) {
 }
 
 function summarizeClaimRequired(params) {
-  const accessToken = params.claim?.session?.access_token ? String(params.claim.session.access_token) : "";
-  const refreshToken = params.claim?.session?.refresh_token ? String(params.claim.session.refresh_token) : "";
   return {
     ok: true,
     state: "claim_required",
-    status: params.claim.status || "pending_claim",
-    ticket: params.claim.ticket,
-    claim_url: params.claim.claim_url,
-    expires_at: params.claim.expires_at || null,
+    status: "local_claim_ready",
+    claim_url: params.claimUrl,
+    expires_at: null,
     enrollment_saved_to: params.enrollmentSavedTo || null,
     session_saved_to: null,
-    access_token_preview: accessToken ? `${accessToken.slice(0, 12)}...` : "",
-    refresh_token_preview: refreshToken ? `${refreshToken.slice(0, 12)}...` : "",
+    access_token_preview: "",
+    refresh_token_preview: "",
   };
+}
+
+function buildLocalClaimUrl(baseUrl, params) {
+  const appUrl = new URL("/agents/claim", new URL(baseUrl).origin);
+  const fragment = new URLSearchParams();
+  if (params.displayName) {
+    fragment.set("name", params.displayName);
+  }
+  fragment.set("model_provider", params.modelProvider);
+  fragment.set("model_name", params.modelName);
+  appUrl.hash = fragment.toString();
+  return appUrl.toString();
 }
 
 async function createClaimFirstEnrollment(args) {
   const baseUrl = normalizeBaseUrl(requireArg(args, "base-url"));
   const displayName = args["display-name"] ? String(args["display-name"]).trim() : "";
+  const modelProvider = requireArg(args, "model-provider").trim();
+  const modelName = requireArg(args, "model-name").trim();
   const enrollmentPath = resolveEnrollmentStatePath(args["save-enrollment"]);
   const agentDir = resolveCurrentAgentDir(args["agent-dir"]);
-  const res = await postJson(`${baseUrl}/agent/enrollments`, displayName ? { display_name: displayName } : {});
+  const claimUrl = buildLocalClaimUrl(baseUrl, {
+    displayName,
+    modelProvider,
+    modelName,
+  });
   const enrollmentState = buildEnrollmentStateFromClaim({
-    claim: res,
+    claimUrl,
     baseUrl,
     displayName,
+    modelProvider,
+    modelName,
     agentDir,
   });
   const enrollmentSavedTo = saveEnrollmentState(enrollmentPath, enrollmentState);
   console.log(JSON.stringify({
     ...summarizeClaimRequired({
-      claim: res,
+      claimUrl,
       enrollmentSavedTo,
     }),
     default_identity_dir: enrollmentState.default_identity_dir,
+    model_provider: modelProvider,
+    model_name: modelName,
     login_mode: "claim-first",
   }, null, 2));
 }
@@ -696,16 +716,15 @@ function resolveDidForAgent(agentStableId) {
   return `did:wba:first-principle.com.cn:agent:${stableId}`;
 }
 
-function buildEnrollmentFinalizeChallenge(ticket, did) {
-  return `fp.did.enrollment.finalize.v1|ticket:${ticket}|did:${did}`;
+function buildClaimFinalizeChallenge(claimSessionId, did) {
+  return `fp.did.claim.finalize.v1|claim_session:${claimSessionId}|did:${did}`;
 }
 
 async function finalizeClaimFirstEnrollment(args) {
   const pairingSecret = requireArg(args, "pairing-secret");
   const enrollmentState = loadEnrollmentState(args["save-enrollment"]);
   const baseUrl = normalizeBaseUrl(enrollmentState.data.base_url || requireArg(args, "base-url"));
-  const displayName = args["display-name"] ? String(args["display-name"]).trim() : String(enrollmentState.data.display_name || "").trim();
-  const pairingRes = await postJson(`${baseUrl}/agent/enrollments/pairing/fetch`, {
+  const pairingRes = await postJson(`${baseUrl}/agent/claims/pairing/fetch`, {
     pairing_secret: pairingSecret,
   });
 
@@ -723,11 +742,12 @@ async function finalizeClaimFirstEnrollment(args) {
     .digest("hex");
 
   const finalizeChallenge =
-    String(pairingRes.finalize_challenge || "").trim() || buildEnrollmentFinalizeChallenge(enrollmentState.data.ticket, did);
+    String(pairingRes.finalize_challenge || "").trim() || buildClaimFinalizeChallenge(pairingRes.claim_session_id, did);
   const privateKey = createPrivateKey({ key: identityFiles.privateJwk, format: "jwk" });
   const signature = sign(null, Buffer.from(finalizeChallenge, "utf8"), privateKey);
-  const finalizeRes = await postJson(`${baseUrl}/agent/enrollments/finalize`, {
-    ticket: enrollmentState.data.ticket,
+  const finalizeRes = await postJson(`${baseUrl}/agent/claims/finalize`, {
+    claim_session_id: pairingRes.claim_session_id,
+    pairing_secret: pairingSecret,
     did,
     did_document: didDocument,
     signature: b64u(signature),
@@ -759,6 +779,7 @@ async function finalizeClaimFirstEnrollment(args) {
     path_policy: pairingRes.path_policy || enrollmentState.data.path_policy || null,
     agent_registry_id: pairingRes.agent_registry_id || null,
     agent_stable_id: pairingRes.agent_stable_id || null,
+    claim_session_id: pairingRes.claim_session_id || null,
     identity_dir: identityFiles.identityDir,
     did,
     key_id: keyId,

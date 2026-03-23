@@ -129,21 +129,9 @@ function writeLegacyIdentity(identityDir, did) {
   return { privatePath, publicPath, identityPath, keyId };
 }
 
-test('claim-first login creates ticket and saves only enrollment.json', async () => {
-  await withMockServer(async (req) => {
-    assert.equal(req.method, 'POST');
-    assert.equal(req.url, '/api/agent/enrollments');
-    return {
-      body: {
-        ok: true,
-        status: 'pending_claim',
-        ticket: 'ticket-1',
-        claim_url: 'https://www.first-principle.com.cn/agents/claim/ticket-1',
-        created_at: '2026-03-16T00:00:00.000Z',
-        expires_at: '2026-03-16T00:30:00.000Z',
-        session: null,
-      },
-    };
+test('claim-first login creates a local claim URL and saves only enrollment.json', async () => {
+  await withMockServer(async () => {
+    throw new Error('claim-first login should not call the server before pairing');
   }, async ({ baseUrl, calls }) => {
     const tmp = makeTmpDir();
     const enrollmentPath = path.join(tmp, 'enrollment.json');
@@ -151,36 +139,42 @@ test('claim-first login creates ticket and saves only enrollment.json', async ()
     const result = await runCli([
       'login',
       '--base-url', baseUrl,
+      '--model-provider', 'openai',
+      '--model-name', 'gpt-5.4',
       '--display-name', 'Claw Agent',
       '--agent-dir', agentDir,
       '--save-enrollment', enrollmentPath,
     ]);
 
     assert.equal(result.status, 0, result.stderr || result.stdout);
+    const expectedClaimUrl = `${new URL(baseUrl).origin}/agents/claim#name=Claw+Agent&model_provider=openai&model_name=gpt-5.4`;
     assert.deepEqual(result.json, {
       ok: true,
       state: 'claim_required',
-      status: 'pending_claim',
-      ticket: 'ticket-1',
-      claim_url: 'https://www.first-principle.com.cn/agents/claim/ticket-1',
-      expires_at: '2026-03-16T00:30:00.000Z',
+      status: 'local_claim_ready',
+      claim_url: expectedClaimUrl,
+      expires_at: null,
       enrollment_saved_to: enrollmentPath,
       session_saved_to: null,
       access_token_preview: '',
       refresh_token_preview: '',
       default_identity_dir: path.join(agentDir, 'first-principle'),
+      model_provider: 'openai',
+      model_name: 'gpt-5.4',
       login_mode: 'claim-first',
     });
-    assert.equal(calls.length, 1);
+    assert.equal(calls.length, 0);
     assert.ok(existsSync(enrollmentPath));
 
     const saved = JSON.parse(readFileSync(enrollmentPath, 'utf8'));
-    assert.equal(saved.ticket, 'ticket-1');
-    assert.equal(saved.claim_url, 'https://www.first-principle.com.cn/agents/claim/ticket-1');
+    assert.equal(saved.claim_url, expectedClaimUrl);
     assert.equal(saved.base_url, baseUrl);
     assert.equal(saved.display_name, 'Claw Agent');
+    assert.equal(saved.model_provider, 'openai');
+    assert.equal(saved.model_name, 'gpt-5.4');
     assert.equal(saved.agent_dir, agentDir);
     assert.equal(saved.default_identity_dir, path.join(agentDir, 'first-principle'));
+    assert.equal(saved.claim_session_id, null);
     assert.equal(saved.did, null);
     assert.equal(saved.key_id, null);
     assert.equal(saved.identity_dir, null);
@@ -192,22 +186,16 @@ test('claim-first login creates ticket and saves only enrollment.json', async ()
 });
 
 test('claim-first login does not write DID/session state before pairing', async () => {
-  await withMockServer(async () => ({
-    body: {
-      ok: true,
-      status: 'pending_claim',
-      ticket: 'ticket-2',
-      claim_url: 'https://www.first-principle.com.cn/agents/claim/ticket-2',
-      created_at: '2026-03-16T00:00:00.000Z',
-      expires_at: '2026-03-16T00:30:00.000Z',
-      session: null,
-    },
-  }), async ({ baseUrl }) => {
+  await withMockServer(async () => {
+    throw new Error('claim-first login should not call the server before pairing');
+  }, async ({ baseUrl }) => {
     const tmp = makeTmpDir();
     const enrollmentPath = path.join(tmp, 'state', 'enrollment.json');
     const result = await runCli([
       'login',
       '--base-url', baseUrl,
+      '--model-provider', 'openai',
+      '--model-name', 'gpt-5.4',
       '--save-enrollment', enrollmentPath,
     ]);
 
@@ -221,38 +209,25 @@ test('claim-first login does not write DID/session state before pairing', async 
     assert.equal(saved.path_policy, null);
     assert.equal(saved.agent_registry_id, null);
     assert.equal(saved.agent_stable_id, null);
+    assert.equal(saved.claim_session_id, null);
   });
 });
 
 test('pairing secret finalizes enrollment and creates DID files after claim', async () => {
   let finalizePayload = null;
   await withMockServer(async (req) => {
-    if (req.method === 'POST' && req.url === '/api/agent/enrollments') {
-      return {
-        body: {
-          ok: true,
-          status: 'pending_claim',
-          ticket: 'ticket-3',
-          claim_url: 'https://www.first-principle.com.cn/agents/claim/ticket-3',
-          created_at: '2026-03-16T00:00:00.000Z',
-          expires_at: '2026-03-16T00:30:00.000Z',
-          session: null,
-        },
-      };
-    }
-    if (req.method === 'POST' && req.url === '/api/agent/enrollments/pairing/fetch') {
+    if (req.method === 'POST' && req.url === '/api/agent/claims/pairing/fetch') {
       assert.deepEqual(req.body, { pairing_secret: 'pairing-secret' });
       return {
         body: {
           ok: true,
-          owner_claimed: true,
-          ticket: 'ticket-3',
+          claim_session_id: 'claim-session-1',
           status: 'paired_waiting_enrollment',
           agent_registry_id: 'areg-1',
           agent_stable_id: 'areg-1',
           did: 'did:wba:first-principle.com.cn:agent:areg-1',
           did_document_url: 'https://first-principle.com.cn/agent/areg-1/did.json',
-          finalize_challenge: 'fp.did.enrollment.finalize.v1|ticket:ticket-3|did:did:wba:first-principle.com.cn:agent:areg-1',
+          finalize_challenge: 'fp.did.claim.finalize.v1|claim_session:claim-session-1|did:did:wba:first-principle.com.cn:agent:areg-1',
           display_name: 'Claw Agent',
           path_policy: 'default',
           model_provider: 'openai',
@@ -261,7 +236,7 @@ test('pairing secret finalizes enrollment and creates DID files after claim', as
         },
       };
     }
-    if (req.method === 'POST' && req.url === '/api/agent/enrollments/finalize') {
+    if (req.method === 'POST' && req.url === '/api/agent/claims/finalize') {
       finalizePayload = req.body;
       return {
         body: {
@@ -297,6 +272,8 @@ test('pairing secret finalizes enrollment and creates DID files after claim', as
     const createResult = await runCli([
       'login',
       '--base-url', baseUrl,
+      '--model-provider', 'openai',
+      '--model-name', 'gpt-5.4',
       '--display-name', 'Claw Agent',
       '--agent-dir', agentDir,
       '--save-enrollment', enrollmentPath,
@@ -341,10 +318,12 @@ test('pairing secret finalizes enrollment and creates DID files after claim', as
     assert.equal(enrollment.status, 'active');
     assert.equal(enrollment.agent_registry_id, 'areg-1');
     assert.equal(enrollment.agent_stable_id, 'areg-1');
+    assert.equal(enrollment.claim_session_id, 'claim-session-1');
     assert.equal(enrollment.did, 'did:wba:first-principle.com.cn:agent:areg-1');
     assert.equal(enrollment.identity_dir, identityDir);
 
-    assert.equal(finalizePayload.ticket, 'ticket-3');
+    assert.equal(finalizePayload.claim_session_id, 'claim-session-1');
+    assert.equal(finalizePayload.pairing_secret, 'pairing-secret');
     assert.equal(finalizePayload.did, 'did:wba:first-principle.com.cn:agent:areg-1');
     assert.equal(finalizePayload.did_key_id, 'did:wba:first-principle.com.cn:agent:areg-1#key-auth-1');
     assert.equal(finalizePayload.did_document.id, 'did:wba:first-principle.com.cn:agent:areg-1');
@@ -352,7 +331,7 @@ test('pairing secret finalizes enrollment and creates DID files after claim', as
     assert.ok(typeof finalizePayload.signature === 'string' && finalizePayload.signature.length > 10);
     const verifyKey = createPublicKey({ key: finalizePayload.did_document.verificationMethod[0].publicKeyJwk, format: 'jwk' });
     const signature = Buffer.from(finalizePayload.signature, 'base64url');
-    const challenge = 'fp.did.enrollment.finalize.v1|ticket:ticket-3|did:did:wba:first-principle.com.cn:agent:areg-1';
+    const challenge = 'fp.did.claim.finalize.v1|claim_session:claim-session-1|did:did:wba:first-principle.com.cn:agent:areg-1';
     assert.equal(verify(null, Buffer.from(challenge, 'utf8'), verifyKey, signature), true);
   });
 });

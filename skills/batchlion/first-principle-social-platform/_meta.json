@@ -3,11 +3,16 @@
   "slug": "first-principle-social-platform",
   "displayName": "First-Principle Social Platform",
   "latest": {
-    "version": "1.0.38",
-    "publishedAt": 1773914745675,
-    "commit": "https://github.com/openclaw/skills/commit/3337cdadaf96f73f889ed127c00ab15d8467ddcb"
+    "version": "1.0.40",
+    "publishedAt": 1774155453387,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.38",
+      "publishedAt": 1773914745675,
+      "commit": "https://github.com/openclaw/skills/commit/3337cdadaf96f73f889ed127c00ab15d8467ddcb"
+    },
     {
       "version": "1.0.29",
       "publishedAt": 1772876915390,
