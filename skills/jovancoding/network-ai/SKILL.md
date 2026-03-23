@@ -1,40 +1,39 @@
 ﻿---
 name: Network-AI
-description: "Python orchestration skill: local multi-agent workflows via blackboard file, permission gating, and token budget scripts. All execution is local — no network calls, no Node.js required. TypeScript/Node.js features (HMAC tokens, AES-256, MCP server, 16 adapters, CLI) are in the SEPARATE companion npm package (npm install -g network-ai) and are NOT part of this skill bundle."
+description: "Local Python orchestration skill: multi-agent workflows via shared blackboard file, permission gating, token budget scripts, and persistent project context. The bundled Python scripts make no network calls and have zero third-party dependencies. Workflow delegations via the host platform's sessions_send may invoke external model APIs."
 metadata:
   openclaw:
     emoji: "\U0001F41D"
-    homepage: https://github.com/Jovancoding/Network-AI
-    bundle_scope: "Python scripts only (scripts/*.py). The README.md in this repo describes the FULL project including the companion Node.js npm package — features documented there (HMAC tokens, AES-256 encryption, MCP server, 16 adapters, CLI) are NOT implemented in these Python scripts and are NOT part of this ClawHub skill. Install the npm package separately for those features."
-    network_calls: none
-    sessions_ops: "platform-provided — sessions_send, sessions_list, and sessions_history are OpenClaw host platform built-ins, not implemented or invoked by this skill's Python scripts"
+    homepage: https://network-ai.org
+    bundle_scope: "Python scripts only (scripts/*.py). All execution is local. Only Python stdlib — no other runtimes, adapters, or CLI tools are included."
+    network_calls: "none — bundled scripts make zero network calls. The host platform's sessions_send (not part of this skill) may invoke external models."
+    sessions_send: "NOT implemented or invoked by this skill. sessions_send is a host-platform built-in. This skill only provides budget guards that run before the platform delegates."
+    sessions_ops: "platform-provided — outside this skill's control"
     requires:
       bins:
         - python3
-      optional_bins: []  # No optional binaries required. Node.js is only needed for the SEPARATE companion npm package (not part of this skill).
-    env:
-      SWARM_TOKEN_SECRET:
-        required: false
-        description: "Node.js MCP server only — not used by these Python scripts. The Python permission layer uses UUID-based tokens stored in data/active_grants.json."
-      SWARM_ENCRYPTION_KEY:
-        required: false
-        description: "Node.js MCP server only — not used by these Python scripts. The Python blackboard does not encrypt data at rest."
-      OPENAI_API_KEY:
-        required: false
-        description: "Not used by these Python scripts. Only used by the optional Node.js demo examples when running the companion npm package."
-      MINIMAX_API_KEY:
-        required: false
-        description: "Not used by these Python scripts. Only used by the optional Node.js MiniMaxAdapter when running the companion npm package."
+      optional_bins: []
+    env: {}
     privacy:
       audit_log:
         path: data/audit_log.jsonl
         scope: local-only
-        description: "Local append-only JSONL file recording operation metadata (agentId, action, timestamp, outcome). No data leaves the machine. Disable with --no-audit flag on network-ai-server, or pass auditLogPath: undefined in createSwarmOrchestrator config."
+        description: "Local append-only JSONL file recording operation metadata. No data leaves the machine."
+        pii_warning: "Do not include PII, secrets, or credentials in justification fields. Log entries persist on disk."
+      data_directory:
+        path: data/
+        scope: local-only
+        files: ["audit_log.jsonl", "active_grants.json", "project-context.json"]
+        description: "All persistent state is local-only. No files are transmitted over the network."
 ---
 
 # Swarm Orchestrator Skill
 
-> **Scope of this skill bundle:** All instructions below run local Python scripts (`scripts/*.py`). No network calls are made by this skill. Tokens are UUID-based (`grant_{uuid4().hex}`) stored in `data/active_grants.json`. Audit logging is plain JSONL (`data/audit_log.jsonl`) — no HMAC signing in the Python layer. HMAC-signed tokens, AES-256 encryption, and the standalone MCP server are all features of the **companion Node.js package** (`npm install -g network-ai`) — they are **not** implemented in these Python scripts and do **not** run automatically.
+> **Scope:** The bundled Python scripts (`scripts/*.py`) make **no network calls**, use only the Python standard library, and have **zero third-party dependencies**. Tokens are UUID-based (`grant_{uuid4().hex}`) stored in `data/active_grants.json`. Audit logging is plain JSONL (`data/audit_log.jsonl`).
+
+> **Data-flow notice:** This skill does NOT implement, invoke, or control `sessions_send`. That is a host-platform built-in (OpenClaw runtime). The orchestration instructions below describe *when* to call the platform's `sessions_send` after budget checks pass — but the actual network call, model endpoint, and data transmission are entirely the host platform's responsibility. If you need to prevent external network calls, disable or reroute `sessions_send` in your platform settings before installing this skill.
+
+> **PII / sensitive-data warning:** The `justification` field in permission requests and the audit log (`data/audit_log.jsonl`) store free-text strings provided by agents. **Do not include PII, secrets, or credentials in justification text.** Consider restricting file permissions on `data/` or running this skill in an isolated workspace.
 
 ## Setup
 
@@ -236,7 +235,7 @@ python {baseDir}/scripts/context_manager.py update \
 ```bash
 python {baseDir}/scripts/context_manager.py update \
   --section stack \
-  --set '{"language": "TypeScript", "runtime": "Node.js 18", "framework": "Network-AI v4.5"}'
+  --set '{"language": "Python", "runtime": "Python 3.11", "framework": "SwarmOrchestrator"}'
 ```
 
 #### Banning an Approach
@@ -324,10 +323,6 @@ python {baseDir}/scripts/blackboard.py read "task:q4_analysis"
 python {baseDir}/scripts/blackboard.py list
 ```
 
-### 5. Optional: Use the Node.js CLI
-
-> **Scope note:** The `network-ai` CLI is part of the **companion npm package** — it is a completely separate project and is NOT part of this ClawHub skill bundle. This skill's Python scripts work fully without it. See the [Appendix](#appendix-optional-nodejs-companion-npm) at the bottom of this file for details.
-
 ## Agent-to-Agent Handoff Protocol
 
 When delegating tasks between agents/sessions:
@@ -403,7 +398,7 @@ Expected Output: JSON summary with category, revenue, growth_pct
 sessions_history data_analyst  # OpenClaw platform operation — get the response
 ```
 
-## Permission Wall (AuthGuardian)
+## Permission Wall
 
 **CRITICAL**: Always check permissions before accessing:
 - `DATABASE` - Internal database / data store access
@@ -530,6 +525,8 @@ Sequential processing - output of one feeds into next.
 ## 📝 Audit Trail Requirements (MANDATORY)
 
 **Every sensitive action MUST be logged to `data/audit_log.jsonl`** to maintain compliance and enable forensic analysis.
+
+> **Privacy note:** Audit log entries contain agent-provided free-text fields (justifications, descriptions). These are stored locally in `data/audit_log.jsonl` and never transmitted over the network by this skill. However, **do not put PII, passwords, or API keys in justification strings** — they persist on disk. Consider periodic log rotation and restricting OS file permissions on the `data/` directory.
 
 ### What Gets Logged Automatically
 
@@ -724,29 +721,4 @@ python {baseDir}/scripts/swarm_guard.py supervisor-review --task-id "task_001"
 
 ## References
 
-- [AuthGuardian Details](references/auth-guardian.md) - Full permission system documentation
-- [Blackboard Schema](references/blackboard-schema.md) - Data structure specifications
-- [Agent Trust Levels](references/trust-levels.md) - How trust is calculated
-- [CLI Reference](QUICKSTART.md) - Full `network-ai` CLI command reference (§ 10. CLI)
-
----
-
-## Appendix: Optional Node.js Companion (npm)
-
-> **This section describes a SEPARATE project — not part of this ClawHub skill bundle.**
-> The Python scripts above work completely without any of this.
-> Install only if you want MCP server integration with Claude/Cursor/VS Code.
-
-```bash
-npm install -g network-ai
-npx network-ai-server --port 3001
-```
-
-The companion npm package (`network-ai`) provides:
-- HMAC-signed audit tokens (vs UUID tokens in the Python layer)
-- AES-256 blackboard encryption
-- A standalone MCP server for IDE integration (Claude, Cursor, VS Code)
-- 16 framework adapters (LangChain, AutoGen, CrewAI, DSPy, LlamaIndex, NemoClaw, etc.)
-- A full CLI (`network-ai bb`, `network-ai auth`, `network-ai budget`, `network-ai audit`)
-
-None of the above are provided by this skill's Python scripts. No network calls are made by this skill.
+This skill is part of the larger [Network-AI](https://github.com/Jovancoding/Network-AI) project. See the repository for full documentation on the permission system, blackboard schema, and trust-level calculations.
