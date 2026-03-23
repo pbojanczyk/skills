@@ -1,33 +1,28 @@
 # video-resizer-zh
 
 [![ClawHub Skill](https://img.shields.io/badge/ClawHub-Skill-blueviolet)](https://clawhub.io)
-[![Version](https://img.shields.io/badge/version-1.0.8-blue)](SKILL.md)
+[![Version](https://img.shields.io/badge/version-1.0.12-blue)](SKILL.md)
 
-> **视频尺寸调整**
-> 中文场景版，由 Sparki 提供能力。
->
-> Powered by [Sparki](https://sparki.io).
+> **把同一条视频快速适配成 9:16、1:1、16:9 等不同平台比例。**
 
-## 这个 Skill 做什么
+## 适合什么场景
+适合 Reels、Shorts、TikTok、Instagram、YouTube 等平台适配和多版本分发。
 
-这个 skill 是 Sparki AI 视频工作流的中文场景入口。
-
-- 上传视频文件
-- 根据场景创建 AI 处理任务
-- 轮询直到处理完成
-- 返回结果下载链接
-
-## 适合这些需求
-- “改成 9:16”
-- “改成竖屏 / 方屏 / 横屏”
-- “适配 Reels 或 Shorts”
-- “把这个视频换个比例”
-
-## 快速开始
+## 一条命令直接开始
 
 ```bash
-export SPARKI_API_KEY="sk_live_your_key_here"
-export SPARKI_API_BASE="https://business-agent-api.sparki.io/api/v1"
-RESULT_URL=$(bash scripts/edit_video.sh my_video.mp4 "22" "改成适合竖屏观看，并尽量保持主体居中" "9:16")
-echo "$RESULT_URL"
+sparki run --file ./video.mp4 --mode prompt-driven --prompt "改成适合竖屏观看，并尽量保持主体居中" --aspect-ratio 9:16
 ```
+
+## 推荐提示词
+- 改成适合竖屏观看，并尽量保持主体居中。
+- 把这条视频适配成 Reels / Shorts 的比例。
+- 改成 Instagram 方屏版本。
+
+## 相关技能
+- `长视频转短视频`
+- `高光集锦`
+- `AI Vlog 剪辑器`
+
+## 共享核心
+这个 skill 继承官方 `sparki-video-editor` 最新的安装、API key、上传和命令说明。
