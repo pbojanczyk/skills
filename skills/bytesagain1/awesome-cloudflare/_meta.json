@@ -3,11 +3,16 @@
   "slug": "awesome-cloudflare",
   "displayName": "Awesome Cloudflare",
   "latest": {
-    "version": "1.0.4",
-    "publishedAt": 1773664672656,
-    "commit": "https://github.com/openclaw/skills/commit/9b2263c81d75b4bb1a5bfb77110a1027c027466f"
+    "version": "3.0.0",
+    "publishedAt": 1774227857726,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.0.4",
+      "publishedAt": 1773664672656,
+      "commit": "https://github.com/openclaw/skills/commit/9b2263c81d75b4bb1a5bfb77110a1027c027466f"
+    },
     {
       "version": "1.0.2",
       "publishedAt": 1773612329247,
