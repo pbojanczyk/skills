@@ -1,83 +1,57 @@
 ---
-name: lottery
-version: "2.0.0"
-author: BytesAgain
-license: MIT-0
-tags: [lottery, tool, utility]
-description: "Lottery - command-line tool for everyday use"
+name: "lottery"
+version: "3.0.0"
+description: "Generate lottery numbers and check results. Use when picking numbers for draws."
+author: "BytesAgain"
+homepage: "https://bytesagain.com"
 ---
 
-# Lottery
+# lottery
 
-Lottery toolkit — number generator, odds calculator, result checker, and statistics.
+Generate lottery numbers and check results. Use when picking numbers for draws.
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `lottery help` | Show usage info |
-| `lottery run` | Run main task |
-| `lottery status` | Check state |
-| `lottery list` | List items |
-| `lottery add <item>` | Add item |
-| `lottery export <fmt>` | Export data |
-
-## Usage
+### `pick`
 
 ```bash
-lottery help
-lottery run
-lottery status
+scripts/script.sh pick <count max>
 ```
 
-## Examples
+### `powerball`
 
 ```bash
-lottery help
-lottery run
-lottery export json
+scripts/script.sh powerball
 ```
 
-## Output
+### `mega`
 
-Results go to stdout. Save with `lottery run > output.txt`.
+```bash
+scripts/script.sh mega
+```
 
-## Configuration
+### `check`
 
-Set `LOTTERY_DIR` to change data directory. Default: `~/.local/share/lottery/`
+```bash
+scripts/script.sh check <numbers winning>
+```
+
+### `history`
+
+```bash
+scripts/script.sh history
+```
+
+### `stats`
+
+```bash
+scripts/script.sh stats
+```
+
+## Data Storage
+
+Data stored in `~/.local/share/lottery/`.
 
 ---
-*Powered by BytesAgain | bytesagain.com*
-*Feedback & Feature Requests: https://bytesagain.com/feedback*
 
-
-## Features
-
-- Simple command-line interface for quick access
-- Local data storage with JSON/CSV export
-- History tracking and activity logs
-- Search across all entries
-
-## Quick Start
-
-```bash
-# Check status
-lottery status
-
-# View help
-lottery help
-
-# Export data
-lottery export json
-```
-
-## How It Works
-
-Lottery stores all data locally in `~/.local/share/lottery/`. Each command logs activity with timestamps for full traceability.
-
-## Support
-
-- Feedback: https://bytesagain.com/feedback/
-- Website: https://bytesagain.com
-
-Powered by BytesAgain | bytesagain.com | hello@bytesagain.com
+*Powered by BytesAgain | bytesagain.com | hello@bytesagain.com*
