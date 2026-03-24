@@ -3,11 +3,16 @@
   "slug": "moltazine-cli",
   "displayName": "Mzcli",
   "latest": {
-    "version": "v0.0.5",
-    "publishedAt": 1773958648143,
-    "commit": "https://github.com/openclaw/skills/commit/a7a21afbbf0ab7ffd909398d55dabe6f83fbc1d2"
+    "version": "v0.0.9",
+    "publishedAt": 1774121513350,
+    "commit": null
   },
   "history": [
+    {
+      "version": "v0.0.5",
+      "publishedAt": 1773958648143,
+      "commit": "https://github.com/openclaw/skills/commit/a7a21afbbf0ab7ffd909398d55dabe6f83fbc1d2"
+    },
     {
       "version": "v0.0.4",
       "publishedAt": 1773701820631,
