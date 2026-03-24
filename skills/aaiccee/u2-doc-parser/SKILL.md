@@ -8,6 +8,13 @@ Overview
 --------
 Parse documents using UniDoc API for conversion to Markdown or JSON format. Supports both synchronous and asynchronous parsing with automatic status polling. Ideal for converting various document formats (PDF, DOC, DOCX, images) through a cloud-based API service.
 
+**⚠️ Important Privacy Notice**
+- This skill uploads your documents to an external API service: `https://unidoc.uat.hivoice.cn`
+- Documents are transmitted over the internet and processed on third-party servers
+- No authentication or API key is required for this UAT environment
+- **Do not use** with sensitive, confidential, or private documents
+- By using this skill, you acknowledge that your files will be uploaded to external servers
+
 Prereqs / when to read references
 ---------------------------------
 If you encounter API errors, network issues, or need to understand the API endpoints, read:
@@ -16,11 +23,14 @@ If you encounter API errors, network issues, or need to understand the API endpo
 Quick start (single document)
 -----------------------------
 ```bash
-# Run from the skill directory
-python scripts/unidoc_parse.py /path/to/file.pdf \
-  --format md \
-  --output ./unidoc-output \
-  --mode sync
+# Output to terminal (default)
+python scripts/unidoc_parse.py /path/to/file.pdf
+
+# Save to file
+python scripts/unidoc_parse.py /path/to/file.pdf --output result.md
+
+# Convert to JSON format (async mode)
+python scripts/unidoc_parse.py /path/to/file.docx --format json --mode async
 ```
 
 Options
@@ -32,23 +42,26 @@ Options
   - Asynchronous mode: polls status until completion
 * `--func METHOD` (default: `unisound`)
   - Conversion method/algorithm to use
-* `--output DIR` (default: `./unidoc-output`)
-  - Output directory for converted files
-- 
+* `--output FILE` (optional)
+  - Save output to file instead of printing to terminal
+  - When not specified, results are printed directly to stdout
 * `--uid UUID` (optional)
   - Custom user ID (auto-generated if not provided)
 
-Output conventions
-------------------
-* Creates `./unidoc-output/<document_name>/` by default
-* Markdown output: `output.md`
-* JSON output: `output.json`
-* Output filename preserves original document name
+Output
+------
+* **Default**: Prints converted content directly to terminal (stdout)
+* **With --output**: Saves to specified file path
+* Progress and error messages are sent to stderr
+* Can be piped to other commands: `python scripts/unidoc_parse.py doc.pdf | grep "keyword"`
 
 Notes
 -----
-* Requires network connectivity to UniDoc API (http://unidoc.uat.hivoice.cn)
-* Supports multiple file formats: PDF, DOC, DOCX, PNG, JPG, etc.
-* Async mode polls every 1 second until completion
-* Max file size and rate limits depend on API service configuration
-* For large files or batch processing, prefer async mode
+* **Privacy**: Your documents are uploaded to UniDoc's UAT servers for processing
+* **No authentication**: Current implementation does not require API keys or credentials
+* **Network**: Requires internet connectivity to https://unidoc.uat.hivoice.cn
+* **Supported formats**: PDF, DOC, DOCX, PNG, JPG, etc.
+* **Async mode**: Polls every 1 second until completion (max 5 minutes)
+* **Limits**: Max file size and rate limits depend on API service configuration
+* **Recommendation**: For large files or batch processing, prefer async mode
+* **Security**: Only use with non-sensitive test documents
