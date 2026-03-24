@@ -1,7 +1,6 @@
 ---
 name: paper-repro-python
 description: This skill should be used when the user asks to "reproduce a paper", "implement paper methods in Python", "extract paper content to Markdown", or works on paper reproduction tasks. Use for TeX-first extraction, modular Python implementation, and bilingual documentation.
-version: 1.0.0
 metadata:
   openclaw:
     emoji: "📄"
@@ -15,19 +14,28 @@ metadata:
 - State assumptions explicitly when information is missing.
 - Keep approach adaptable to the specific paper; do not force a fixed dependency stack or rigid project template.
 - Check whether the working folder already contains paper source files (`.tex`, `.bib`, style files, figures).
-- Source priority rule:
-  - If usable TeX source files are present, use TeX as the primary source for reproduction.
-  - If TeX is absent or incomplete for key content, fall back to PDF extraction only for missing parts.
+- Check whether the working folder contains user-preprocessed documents (`.md`, `.json`, images such as `.png`, `.jpg`, `.svg`).
+- Source priority rule (read in order, stop when sufficient):
+  1. **TeX sources** (preferred): If usable TeX source files (`.tex`, `.bib`, style files) are present, use them as the primary source.
+  2. **User-preprocessed documents** (secondary): If TeX is absent or incomplete, read user-provided documents (`.md`, `.json`) and images (`.png`, `.jpg`, `.svg`) that may contain pre-extracted paper content.
+  3. **PDF fallback** (last resort): Only when both TeX and user-preprocessed documents are unavailable or insufficient, fall back to PDF extraction.
 
-## 2) Source extraction (TeX-first, PDF fallback)
+## 2) Source extraction (TeX → preprocessed docs → PDF)
 
-- TeX-first path (preferred):
+- TeX path (highest priority):
   - Parse and read the main TeX project structure first (`main.tex` or equivalent entry file and includes).
   - Preserve original scientific wording when converting relevant content to Markdown notes.
   - Resolve equations, theorem blocks, citations, and appendices from source files whenever possible.
   - Record unresolved include/bibliography issues explicitly; do not invent missing content.
 
-- PDF fallback path (required when TeX is unavailable/incomplete):
+- User-preprocessed documents path (secondary):
+  - Read Markdown files (`.md`) that may contain paper content extracted by the user.
+  - Read JSON files (`.json`) that may contain structured paper data (metadata, sections, references).
+  - View images (`.png`, `.jpg`, `.svg`) that may contain paper figures, tables, or scanned pages.
+  - Preserve original content; do not summarize or paraphrase.
+  - Note the source of each piece of information (which file, which section).
+
+- PDF fallback path (lowest priority, when all else fails):
   - Extract paper content page by page into Markdown, preserving the original wording.
   - Do not summarize, paraphrase, or rewrite scientific statements.
   - Preserve structure faithfully:
@@ -77,7 +85,36 @@ metadata:
   - explicit config for key hyperparameters,
   - clear experiment entry points.
 
-## 6) README header requirements (paper metadata)
+## 6) Logging and data persistence
+
+- All reproduction experiments must save execution logs and output data:
+  - **Logs**: Save console output, training progress, and error messages to timestamped log files (e.g., `logs/experiment_YYYYMMDD_HHMMSS.log`).
+  - **Data**: Save all generated data (metrics, model checkpoints, intermediate results) to structured files (e.g., JSON, CSV, or pickle) in a dedicated `outputs/` or `results/` directory.
+  - **Configuration snapshot**: Save the exact configuration/hyperparameters used for each run alongside the outputs.
+- Logging should capture enough detail to:
+  - Trace the execution flow for debugging.
+  - Compare results across multiple runs.
+  - Identify the exact conditions under which results were produced.
+
+## 7) Result verification and comparison
+
+- After running reproduction experiments, compare results against the paper's reported data:
+  - Extract quantitative metrics (tables, figures) from the paper source.
+  - Compute the same metrics from reproduction outputs.
+  - Document both paper-reported values and reproduction values side by side.
+- Identify discrepancies:
+  - If reproduction results deviate significantly from paper results, investigate potential causes:
+    - Implementation errors (algorithm bugs, missing steps).
+    - Hyperparameter differences.
+    - Random seed or initialization differences.
+    - Dataset or preprocessing differences.
+  - Document all findings and fixes applied.
+- Validation criteria:
+  - Define acceptable tolerance for numerical differences based on the paper's domain.
+  - Flag results outside tolerance for further review.
+- The goal of reproduction is accurate reconstruction of paper results; verification is mandatory, not optional.
+
+## 8) README header requirements (paper metadata)
 
 - Every reproduction project README must start with paper metadata before any other content:
   - **Paper title** (original title as published)
@@ -106,7 +143,7 @@ metadata:
   [Then reproduction project content begins...]
   ```
 
-## 7) README update requirements (bilingual + images)
+## 9) README update requirements (bilingual + images)
 
 - Generate and maintain two README files after code changes:
   - `README.md` (English original)
@@ -123,7 +160,7 @@ metadata:
 - Keep both README files aligned with actual code paths and commands.
 - Keep Chinese content as faithful translation of English technical content (no missing key steps).
 
-## 8) Output contract
+## 10) Output contract
 
 - Deliver:
   - source-derived extraction notes/file(s) (TeX-first, PDF fallback when needed),
