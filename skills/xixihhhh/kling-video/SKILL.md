@@ -3,10 +3,12 @@ name: kling-video
 description: "Generate, animate, and edit AI videos using Kuaishou's Kling 3.0 and Kling Video O3 — featuring cinematic motion quality, physics simulation, reference-based generation, and natural-language video editing. Supports text-to-video, image-to-video, reference-to-video, and video editing in Pro and Standard tiers, up to 1080p resolution, 3-15 second duration, with optional synchronized sound generation. Available via Atlas Cloud API at 15% off standard pricing. Use this skill whenever the user wants to generate AI videos, create video clips, animate images, edit existing videos, produce short films, make video content, or mentions Kling, Kuaishou video, KwaiVGI, or video generation/editing. Also trigger when users ask to create product demos, marketing videos, social media reels, animated scenes, cinematic clips, talking head videos, edit video content, remove objects from video, change video backgrounds, or any video content using AI."
 source: "https://github.com/AtlasCloudAI/nano-banana-2-skill"
 homepage: "https://github.com/AtlasCloudAI/nano-banana-2-skill"
-env_vars:
-  ATLASCLOUD_API_KEY:
-    description: "Atlas Cloud API key for accessing Kling video generation models"
-    required: true
+metadata:
+  openclaw:
+    requires:
+      env:
+        - ATLASCLOUD_API_KEY
+    primaryEnv: ATLASCLOUD_API_KEY
 ---
 
 # Kling 3.0 & O3 — AI Video Generation by Kuaishou
@@ -38,6 +40,46 @@ Kling 3.0 excels at creating cinematic short clips with realistic motion, comple
 1. Sign up at https://www.atlascloud.ai
 2. Console → API Keys → Create new key
 3. Set env: `export ATLASCLOUD_API_KEY="your-key"`
+
+---
+
+## Script Usage
+
+This skill includes a Python script for video generation. Zero external dependencies required.
+
+### List available video models
+
+```bash
+python scripts/generate_video.py list-models
+```
+
+### Generate a video (text-to-video)
+
+```bash
+python scripts/generate_video.py generate \
+  --model "MODEL_ID" \
+  --prompt "Your prompt here" \
+  --output ./output \
+  duration=5 resolution=720p
+```
+
+### Generate a video (image-to-video)
+
+```bash
+python scripts/generate_video.py generate \
+  --model "MODEL_ID" \
+  --image "https://example.com/photo.jpg" \
+  --prompt "Animate this scene" \
+  --output ./output
+```
+
+### Upload a local file
+
+```bash
+python scripts/generate_video.py upload ./local-file.jpg
+```
+
+Run `python scripts/generate_video.py generate --help` for all options. Extra model params can be passed as key=value (e.g. `duration=10 shot_type=multi_camera`).
 
 ---
 
@@ -158,7 +200,7 @@ curl -s -X POST "https://api.atlascloud.ai/api/v1/model/generateVideo" \
 # Returns: { "code": 200, "data": { "id": "prediction-id" } }
 
 # Step 2: Poll (every 5 seconds until "completed" or "succeeded")
-curl -s "https://api.atlascloud.ai/api/v1/model/result/{prediction-id}" \
+curl -s "https://api.atlascloud.ai/api/v1/model/prediction/{prediction-id}" \
   -H "Authorization: Bearer $ATLASCLOUD_API_KEY"
 # Returns: { "code": 200, "data": { "status": "completed", "outputs": ["https://...video-url..."] } }
 
