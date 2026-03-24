@@ -9,7 +9,7 @@ set -e
 OPENCLAW_MANUAL_PATH="${OPENCLAW_MANUAL_PATH:-$HOME/.openclaw/workspace/docs/openclaw_manual}"
 LAST_COMMIT_FILE="${LAST_COMMIT_FILE:-$OPENCLAW_MANUAL_PATH/.last-docs-commit}"
 DOC_UPDATE_LOG="${DOC_UPDATE_LOG:-$(dirname "$0")/../docs-update.log}"
-DOC_NOTIFY_CHANNEL="${DOC_NOTIFY_CHANNEL:-webchat}"
+DOC_NOTIFY_CHANNEL="${DOC_NOTIFY_CHANNEL:-none}"
 
 # GitHub API 配置
 GITHUB_REPO="openclaw/openclaw"
@@ -50,7 +50,7 @@ check_dependencies() {
 log() {
   local msg="[$(date '+%Y-%m-%d %H:%M:%S')] $1"
   echo "$msg" >> "$DOC_UPDATE_LOG"
-  echo "$msg"
+  echo "$msg" >&2  # 输出到 stderr，避免污染函数返回值
 }
 
 # =============================================================================
@@ -109,10 +109,23 @@ sync_documents() {
   log "   仓库：$GITHUB_REPO"
   log "   路径：$GITHUB_DOCS_PATH"
   
-  # 浅克隆 docs 目录
-  git clone --depth 1 --filter=blob:none --sparse "https://github.com/$GITHUB_REPO.git" "$temp_dir" 2>/dev/null
-  cd "$temp_dir"
-  git sparse-checkout set "$GITHUB_DOCS_PATH"
+  # 浅克隆 docs 目录（输出到 stderr，避免污染函数返回值）
+  # 使用子 shell+pipefail 确保正确捕获 git clone 的退出状态
+  (
+    set -o pipefail
+    git clone --depth 1 --filter=blob:none --sparse "https://github.com/$GITHUB_REPO.git" "$temp_dir" 2>&1 | sed 's/^/[git] /' >&2
+  )
+  if [ $? -ne 0 ]; then
+    log "❌ 克隆仓库失败"
+    rm -rf "$temp_dir"
+    return 1
+  fi
+  
+  # 在临时目录中执行 git 操作（使用子 shell，不影响外部目录）
+  (
+    cd "$temp_dir" || { log "❌ 进入临时目录失败"; return 1; }
+    git sparse-checkout set "$GITHUB_DOCS_PATH" || { log "❌ 设置 sparse-checkout 失败"; return 1; }
+  ) || { log "❌ git 操作失败"; rm -rf "$temp_dir"; return 1; }
   
   # 统计文件
   local new_count=0
@@ -139,8 +152,8 @@ sync_documents() {
     # 复制所有文件
     cp -r "$temp_dir/$GITHUB_DOCS_PATH"/* "$OPENCLAW_MANUAL_PATH/" 2>/dev/null || true
     
-    # 统计
-    total_count=$(find "$OPENCLAW_MANUAL_PATH" -name "*.md" -type f | wc -l)
+    # 统计（去除 wc -l 输出的前导空格）
+    total_count=$(find "$OPENCLAW_MANUAL_PATH" -name "*.md" -type f | wc -l | tr -d ' ')
     
     if [ -n "$current_commit" ]; then
       updated_count=$total_count
@@ -149,8 +162,7 @@ sync_documents() {
     fi
   fi
   
-  # 清理临时目录
-  cd - >/dev/null
+  # 清理临时目录（此时已在原始目录，无需 cd -）
   rm -rf "$temp_dir"
   
   # 更新基线

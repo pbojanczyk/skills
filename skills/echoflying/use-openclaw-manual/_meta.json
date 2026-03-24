@@ -1,13 +1,18 @@
 {
   "owner": "echoflying",
   "slug": "use-openclaw-manual",
-  "displayName": "Use Openclaw Manual",
+  "displayName": "Use OpenClaw Manual",
   "latest": {
-    "version": "2.0.2",
-    "publishedAt": 1773237382606,
-    "commit": "https://github.com/openclaw/skills/commit/1148b183d26cc5ca78ba67dac0c75200f4519537"
+    "version": "2.0.3",
+    "publishedAt": 1774237967866,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.0.2",
+      "publishedAt": 1773237382606,
+      "commit": "https://github.com/openclaw/skills/commit/1148b183d26cc5ca78ba67dac0c75200f4519537"
+    },
     {
       "version": "1.0.3",
       "publishedAt": 1773163763260,

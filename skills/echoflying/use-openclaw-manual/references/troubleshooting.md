@@ -14,7 +14,9 @@ $ ls ~/.openclaw/workspace/docs/openclaw_manual/
 
 **解决方法**:
 ```bash
-clawhub skill run use-openclaw-manual --init
+# 进入技能目录
+cd path/to/use-openclaw-manual/
+./run.sh --init
 ```
 
 **预期输出**:
@@ -35,7 +37,7 @@ clawhub skill run use-openclaw-manual --init
 
 **症状**:
 ```bash
-$ clawhub skill run use-openclaw-manual --search "xxx"
+$ ./run.sh --search "xxx"
 共找到 0 个结果
 ```
 
@@ -52,14 +54,14 @@ $ clawhub skill run use-openclaw-manual --search "xxx"
    ls ~/.openclaw/workspace/docs/openclaw_manual/
    
    # 如果为空，执行初始化
-   clawhub skill run use-openclaw-manual --init
+   ./run.sh --init
    ```
 
 3. **搜索类型不对**
    ```bash
    # 尝试不同搜索类型
-   clawhub skill run use-openclaw-manual --search "agent" --type filename
-   clawhub skill run use-openclaw-manual --search "agent" --type title
+   ./run.sh --search "agent" --type filename
+   ./run.sh --search "agent" --type title
    ```
 
 **调试步骤**:
@@ -68,7 +70,7 @@ $ clawhub skill run use-openclaw-manual --search "xxx"
 grep -r "关键词" ~/.openclaw/workspace/docs/openclaw_manual/ --include="*.md" | head
 
 # 查看文档统计
-clawhub skill run use-openclaw-manual --stats
+./run.sh --stats
 ```
 
 ---
@@ -109,8 +111,11 @@ clawhub skill run use-openclaw-manual --stats
 
 **查看日志**:
 ```bash
-# 默认日志位置
-cat ~/.openclaw/skills/use-openclaw-manual/docs-update.log
+# 在技能目录内查看
+cat docs-update.log
+
+# 或使用绝对路径
+cat /path/to/use-openclaw-manual/docs-update.log
 
 # 或自定义位置
 cat $DOC_UPDATE_LOG
@@ -134,7 +139,7 @@ cat $DOC_UPDATE_LOG
    echo $DOC_NOTIFY_CHANNEL
    
    # 临时指定渠道
-   DOC_NOTIFY_CHANNEL=webchat clawhub skill run use-openclaw-manual --sync
+   DOC_NOTIFY_CHANNEL=webchat ./run.sh --sync
    ```
 
 3. **权限问题**
@@ -152,9 +157,12 @@ Permission denied
 
 **解决**:
 ```bash
-# 添加执行权限
-chmod +x ~/.openclaw/skills/use-openclaw-manual/run.sh
-chmod +x ~/.openclaw/skills/use-openclaw-manual/scripts/*.sh
+# 在技能目录内执行
+chmod +x run.sh scripts/*.sh
+
+# 或使用绝对路径（根据你的安装位置）
+chmod +x /path/to/use-openclaw-manual/run.sh
+chmod +x /path/to/use-openclaw-manual/scripts/*.sh
 ```
 
 ---
@@ -167,7 +175,7 @@ chmod +x ~/.openclaw/skills/use-openclaw-manual/scripts/*.sh
 ```bash
 # 强制重新同步
 rm ~/.openclaw/workspace/docs/openclaw_manual/.last-docs-commit
-clawhub skill run use-openclaw-manual --sync
+./run.sh --sync
 ```
 
 ---
@@ -204,14 +212,12 @@ clawhub skill run use-openclaw-manual --sync
 ### 内置帮助
 
 ```bash
-clawhub skill run use-openclaw-manual --help
+./run.sh --help
 ```
 
 ### 相关资源
 
 - 官方文档：https://docs.openclaw.ai
-- 社区支持：https://discord.com/invite/clawd
-- 技能市场：https://clawhub.com
 
 ### 报告问题
 

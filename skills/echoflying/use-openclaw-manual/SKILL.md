@@ -1,8 +1,9 @@
 ---
 name: use-openclaw-manual
-description: 配置 OpenClaw 前必须查阅官方文档的技能。当用户提到任何配置相关的话题（agent、channel、cron、通知、工具、workspace、gateway 等）时，立即使用此技能搜索本地文档。不要凭经验猜测——先查文档再设计方案。
+description: 配置 OpenClaw 前必须查阅官方文档的技能。当用户提到任何配置相关的话题（agent、session、channel、cron、通知、工具、workspace、gateway 等）时，立即使用此技能搜索本地文档。不要凭经验猜测——先查文档再设计方案。
 compatibility:
-  required_tools: git, curl, python3, openclaw CLI
+  required_tools: git, curl, python3
+  optional_tools: jq (测试框架), openclaw CLI (通知)
   optional_env: GITHUB_TOKEN (GitHub API 认证), OPENCLAW_MANUAL_PATH, DOC_NOTIFY_CHANNEL
   permissions: 本地文件读写 (~/.openclaw/workspace/docs/), GitHub API 访问
 ---
@@ -36,63 +37,121 @@ compatibility:
 收到配置需求后，按此流程操作：
 
 ```
-1. 搜索文档
-   $ clawhub skill run use-openclaw-manual --search "<关键词>"
+1. 进入技能目录
+   $ cd path/to/use-openclaw-manual/
 
-2. 阅读相关文档
-   $ clawhub skill run use-openclaw-manual --read "<文档路径>"
+2. 搜索文档
+   $ ./run.sh --search "<关键词>"
 
-3. 设计方案（引用文档来源）
+3. 阅读相关文档
+   $ ./run.sh --read "<文档路径>"
+
+4. 设计方案（引用文档来源）
    "根据 <文档路径>，配置步骤如下：..."
 
-4. 用户批准
+5. 用户批准
 
-5. 执行配置
+6. 执行配置
 ```
 
 **为什么必须引用文档来源**：让用户知道你的方案有官方依据，而非猜测。如果配置出错，也便于回溯是文档问题还是操作问题。
 
 ## 使用方法
 
+### 首次配置
+
+运行配置脚本完成权限设置和文档初始化：
+
+```bash
+# 进入技能目录
+cd path/to/use-openclaw-manual/
+
+# 运行配置脚本
+./setup.sh
+```
+
+配置脚本会：
+1. 检查必需依赖（git, curl, python3）
+2. 添加执行权限到所有脚本
+3. （可选）初始化官方文档
+
 ### 快速搜索
 
 ```bash
 # 搜索关键词（默认搜索内容）
-clawhub skill run use-openclaw-manual --search "cron schedule"
+./run.sh --search "cron schedule"
 
 # 指定搜索类型
-clawhub skill run use-openclaw-manual --search "agent" --type filename
-clawhub skill run use-openclaw-manual --search "notification" --type title
+./run.sh --search "agent" --type filename
+./run.sh --search "notification" --type title
+
+# 限制结果数量
+./run.sh --search "discord" --limit 5
 ```
 
 ### 查阅文档
 
 ```bash
 # 列出目录内容
-clawhub skill run use-openclaw-manual --list "automation"
+./run.sh --list "automation"
 
 # 阅读特定文档
-clawhub skill run use-openclaw-manual --read "automation/cron.md"
+./run.sh --read "automation/cron.md"
 ```
 
 ### 文档同步
 
 ```bash
-# 首次初始化（完整同步，约 700+ 文件）
-clawhub skill run use-openclaw-manual --init
-
 # 增量同步（仅更新变更）
-clawhub skill run use-openclaw-manual --sync
+./run.sh --sync
 
 # 仅检查更新（不同步）
-clawhub skill run use-openclaw-manual --check
+./run.sh --check
 ```
 
 ### 查看统计
 
 ```bash
-clawhub skill run use-openclaw-manual --stats
+./run.sh --stats
 ```
+
+### 帮助
+
+```bash
+./run.sh --help
+```
+
+### 查找技能安装位置
+
+如果你不记得技能安装在哪里：
+
+```bash
+# 搜索技能目录
+find ~ -name "use-openclaw-manual" -type d 2>/dev/null
+
+# 或搜索 run.sh 文件
+find ~ -path "*/use-openclaw-manual/run.sh" 2>/dev/null
+```
+
+找到后 `cd` 进入该目录即可使用。
+
+## 详细文档
+
+本技能提供以下详细文档：
+
+| 文档 | 用途 | 何时读取 |
+|------|------|---------|
+| [references/scripts.md](references/scripts.md) | 脚本详细说明 | 首次使用或忘记参数时 |
+| [references/troubleshooting.md](references/troubleshooting.md) | 故障排除指南 | 遇到错误或异常时 |
+
+> **Agent 提示**：搜索时优先使用英文关键词（如 `notification`, `cron`, `gateway`），可获得更准确的搜索结果。
+
+### 快速导航
+
+- **了解脚本功能** → 读取 `references/scripts.md`
+- **搜索无结果** → 读取 `references/troubleshooting.md` 的"搜索无结果"章节
+- **同步失败** → 读取 `references/troubleshooting.md` 的"同步失败"章节
+- **查看日志** → 读取 `references/troubleshooting.md` 的"日志分析"章节
 
 ## 环境变量
 
@@ -108,9 +167,10 @@ clawhub skill run use-openclaw-manual --stats
 
 脚本执行前会自动检查以下工具：
 
-- ✅ `git` - 文档同步
-- ✅ `curl` - GitHub API 调用
-- ✅ `python3` - JSON 解析
+- ✅ `git` - 文档同步（必需）
+- ✅ `curl` - GitHub API 调用（必需）
+- ✅ `python3` - JSON 解析（必需）
+- ⚠️ `jq` - JSON 输出（可选，用于 `--json` 模式）
 - ⚠️ `openclaw` CLI - 发送通知（可选，缺失时跳过通知）
 
 如缺少必需依赖，脚本会报错并退出。
@@ -139,17 +199,20 @@ clawhub skill run use-openclaw-manual --stats
 用户：帮我配置 Discord 通知
 
 助手：
-1. 搜索文档
-   $ clawhub skill run use-openclaw-manual --search "discord notification"
+1. 进入技能目录
+   $ cd path/to/use-openclaw-manual/
 
-2. 找到相关文档
+2. 搜索文档
+   $ ./run.sh --search "discord notification"
+
+3. 找到相关文档
    - channels/discord.md
    - automation/notifications.md
 
-3. 设计方案（引用文档）
+4. 设计方案（引用文档）
    "根据 channels/discord.md 第 3 节，配置步骤如下：..."
 
-4. 用户批准后执行
+5. 用户批准后执行
 ```
 
 ### 配置定时任务
@@ -159,7 +222,7 @@ clawhub skill run use-openclaw-manual --stats
 
 助手：
 1. 搜索文档
-   $ clawhub skill run use-openclaw-manual --search "cron schedule every"
+   $ ./run.sh --search "cron schedule every"
 
 2. 查阅 automation/cron.md
 

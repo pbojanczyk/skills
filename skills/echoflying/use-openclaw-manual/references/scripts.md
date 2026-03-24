@@ -169,14 +169,17 @@ grep -rn "^#.*关键词" "$OPENCLAW_MANUAL_PATH"
 ### 使用示例
 
 ```bash
+# 进入技能目录
+cd path/to/use-openclaw-manual/
+
 # 初始化
-clawhub skill run use-openclaw-manual --init
+./run.sh --init
 
 # 搜索
-clawhub skill run use-openclaw-manual --search "agent workspace"
+./run.sh --search "agent workspace"
 
 # 指定通知渠道
-DOC_NOTIFY_CHANNEL=discord clawhub skill run use-openclaw-manual --sync
+DOC_NOTIFY_CHANNEL=discord ./run.sh --sync
 ```
 
 ---
