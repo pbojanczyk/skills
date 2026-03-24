@@ -2,9 +2,11 @@
 name: equity
 version: "2.0.0"
 author: BytesAgain
+homepage: https://bytesagain.com
+source: https://github.com/bytesagain/ai-skills
 license: MIT-0
 tags: [equity, tool, utility]
-description: "Equity - command-line tool for everyday use"
+description: "Model cap tables, dilution scenarios, and vesting schedules for startups. Use when planning fundraising, pricing options, or tracking equity."
 ---
 
 # Equity
