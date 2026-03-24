@@ -1,41 +1,45 @@
 ---
-        name: ugc-hook-analyzer
-        description: Analyze UGC openings for retention strength and generate improved hook alternatives tuned for TikTok/Reels/Shorts. Use when the user asks why hooks underperform, wants first-3-second diagnosis, or needs niche-specific hook rewrites.
-        ---
+name: ugc-hook-analyzer
+description: Analyze UGC openings for retention strength and generate improved hook alternatives tuned for TikTok, Reels, and Shorts. Use when the user asks why hooks underperform, wants first-3-second diagnosis, or needs niche-specific hook rewrites.
+---
 
-        # UGC Hook Analyzer
+# UGC Hook Analyzer
 
-        ## Skill Card
+## Skill Card
 
-        - **Category:** Creator Content
-        - **Core problem:** Why do some UGC openings retain while others fail in first seconds?
-        - **Best for:** Pre-shoot UGC optimization
-        - **Expected input:** UGC script/video transcript + target audience + product angle
-        - **Expected output:** Hook diagnosis + improved variants + execution notes
-        - **Creatop handoff:** Use winning hooks in short-video-hook-lab and script packs
+- **Category:** Creator Content
+- **Core problem:** Why do some UGC openings retain while others fail in the first seconds?
+- **Best for:** Pre-shoot UGC optimization
+- **Expected input:** UGC script or transcript + target audience + product angle + platform context
+- **Expected output:** Hook diagnosis + improved variants + execution notes
+- **Creatop handoff:** Use winning hooks in short-video-hook-lab and script packs
 
-        ## Workflow
+## Workflow
 
-        1. Classify current hook archetype and likely retention weaknesses.
-2. Map mismatch between audience intent and opening promise.
-3. Generate alternative hooks across 2-3 emotional angles.
-4. Provide execution note for visual + verbal delivery.
+1. Classify the current hook archetype and likely retention weaknesses.
+2. Map the mismatch between audience intent and the opening promise.
+3. Generate alternative hooks across 2-3 emotional or strategic angles.
+4. Add execution notes for visual framing, spoken delivery, and pacing.
+5. Flag clickbait, compliance, or clarity risks before recommending rewrites.
 
-        ## Output format
+## Output format
 
-        Return in this order:
-        1. Executive summary (max 5 lines)
-        2. Priority actions (P0/P1/P2)
-        3. Evidence table (signal, confidence, risk)
-        4. 7-day execution plan
+Return in this order:
+1. Executive summary (max 5 lines)
+2. Hook diagnosis table
+3. Improved hook variants by angle
+4. Execution notes for delivery
+5. Risks and watch-outs
 
-        ## Quality and safety rules
+## Quality and safety rules
 
-        - Avoid clickbait promises that cannot be fulfilled.
-- Keep hooks consistent with product and compliance constraints.
+- Avoid clickbait promises that cannot be fulfilled.
+- Keep hooks consistent with product reality and compliance constraints.
 - Prefer concrete language over hype-only wording.
+- Distinguish between weak curiosity and strong audience-relevant tension.
+- Make rewrites feel native to short-form video, not ad-copy pasted into a hook.
 
-        ## License
+## License
 
 Copyright (c) 2026 **Razestar**.
 
