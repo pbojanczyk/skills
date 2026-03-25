@@ -369,6 +369,8 @@ def cmd_id_photo(args: argparse.Namespace) -> None:
         "images": {"face": face_url},
         "waitForResult": args.wait,
     }
+    if getattr(args, "description", None):
+        payload["prompt"] = args.description
 
     result = make_request("POST", f"{base_url}/v1/character/id-photo", api_key, payload)
     result = maybe_download_outputs(result, getattr(args, "output", None))
@@ -443,6 +445,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     id_photo = subs.add_parser("id-photo", help="Generate character ID photo (四合一)")
     id_photo.add_argument("--face-image", dest="face_image", required=True, help="Face image URL or local path")
+    id_photo.add_argument("--description", dest="description", default=None, help="Custom prompt for ID photo generation (e.g. anime style)")
     id_photo.add_argument("--output", dest="output", default=None, help="Directory to download result images to")
     id_photo.add_argument("--wait", action="store_true", help="Block until job completes")
     id_photo.set_defaults(func=cmd_id_photo)

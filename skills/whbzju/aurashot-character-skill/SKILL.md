@@ -83,11 +83,21 @@ AURASHOT_API_KEY=sk_live_xxxxx
 收集到面部参考图后，立即生成四合一证件照作为角色身份基线：
 
 ```bash
+# 真人角色（不传 --description，使用默认 prompt）
 python3 {baseDir}/scripts/aurashot.py id-photo \
   --face-image "用户提供的面部图片" \
   --output avatars/{角色名}/profile \
   --wait
+
+# 虚拟/二次元角色（通过 --description 描述风格）
+python3 {baseDir}/scripts/aurashot.py id-photo \
+  --face-image "用户提供的面部图片" \
+  --description "生成动漫风格角色证件照（四合一），包含正面、左侧45度、右侧45度、正面微笑四个视角。保持二次元画风，角色穿纯白色简约T恤，纯白色背景。重点突出面部特征，保持四个视角的画风和气质完全一致。" \
+  --output avatars/{角色名}/profile \
+  --wait
 ```
+
+根据用户在第 1 步选择的角色类型和对话中描述的风格偏好，自行组装合适的 `--description`。真人角色通常不需要传，默认即可。
 
 将生成的证件照下载保存到本地角色目录（见下方目录结构）。
 
@@ -232,6 +242,7 @@ avatars/
 | 参数 | 必填 | 说明 |
 |------|------|------|
 | `--face-image` | 是 | 面部图片 URL 或本地路径 |
+| `--description` | 否 | 自定义证件照生成描述。不传则使用默认真人风格。虚拟/二次元角色请传入包含风格描述的 prompt |
 | `--output` | 否 | 结果图片下载目录（配合 `--wait` 使用） |
 | `--wait` | 否 | 阻塞等待任务完成 |
 

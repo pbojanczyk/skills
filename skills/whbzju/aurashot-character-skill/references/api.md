@@ -46,13 +46,15 @@ Generate a 4-in-1 character ID photo (front, left profile, right profile, white-
 {
   "images": {
     "face": "https://example.com/face.jpg"
-  }
+  },
+  "prompt": "Optional custom prompt for ID photo generation"
 }
 ```
 
-| Field         | Required | Description                    |
-|---------------|----------|--------------------------------|
-| `images.face` | Yes      | Face photo URL (HTTPS)         |
+| Field         | Required | Description                                                                 |
+|---------------|----------|-----------------------------------------------------------------------------|
+| `images.face` | Yes      | Face photo URL (HTTPS)                                                      |
+| `prompt`      | No       | Custom generation prompt. Defaults to standard real-person ID photo prompt. |
 
 **Response:**
 ```json
