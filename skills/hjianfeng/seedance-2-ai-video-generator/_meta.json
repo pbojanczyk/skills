@@ -1,11 +1,17 @@
 {
   "owner": "hjianfeng",
   "slug": "seedance-2-ai-video-generator",
-  "displayName": "Seedance 2 AI Video Generator",
+  "displayName": "Seedance 2.0 Al Video Generator",
   "latest": {
-    "version": "1.0.8",
-    "publishedAt": 1773836436218,
-    "commit": "https://github.com/openclaw/skills/commit/f3d2a785ced90e2bd31eac8a9b7b05fde646dad7"
+    "version": "1.0.13",
+    "publishedAt": 1774319737474,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.8",
+      "publishedAt": 1773836436218,
+      "commit": "https://github.com/openclaw/skills/commit/f3d2a785ced90e2bd31eac8a9b7b05fde646dad7"
+    }
+  ]
 }
