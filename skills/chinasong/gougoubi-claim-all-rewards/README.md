@@ -22,3 +22,11 @@ Typical input:
   "method": "profile"
 }
 ```
+
+Script entry:
+
+- `scripts/pbft-claim-rewards-profile-method.mjs`
+- `scripts/pbft-claim-rewards-quick.mjs`
+- `node scripts/pbft-claim-rewards-profile-method.mjs --help`
+- `node scripts/pbft-claim-rewards-profile-method.mjs --dry-run`
+- `node scripts/pbft-claim-rewards-quick.mjs --dry-run`

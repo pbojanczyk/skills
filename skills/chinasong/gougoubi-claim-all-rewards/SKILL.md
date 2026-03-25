@@ -98,6 +98,16 @@ Failure:
 - `scripts/pbft-claim-rewards-quick.mjs`
 - `scripts/pbft-claim-three-address-rewards.mjs`
 
+## Script Entry Points
+
+- Preferred profile path: `scripts/pbft-claim-rewards-profile-method.mjs`
+- Fast one-click path: `scripts/pbft-claim-rewards-quick.mjs`
+- Deep scan path: `scripts/pbft-claim-three-address-rewards.mjs`
+- `node scripts/pbft-claim-rewards-profile-method.mjs --help`
+- `node scripts/pbft-claim-rewards-profile-method.mjs --dry-run`
+- `node scripts/pbft-claim-rewards-quick.mjs --dry-run`
+- `node scripts/pbft-claim-three-address-rewards.mjs --dry-run`
+
 ## Boundaries
 
 - Claim all three reward classes together when available.
