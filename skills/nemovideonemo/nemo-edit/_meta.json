@@ -1,13 +1,18 @@
 {
   "owner": "nemovideonemo",
   "slug": "nemo-edit",
-  "displayName": "NemoEdit - AI Video Editor for Color Grading and Background Music",
+  "displayName": "Nemo Edit",
   "latest": {
-    "version": "1.8.3",
-    "publishedAt": 1774140492376,
-    "commit": "https://github.com/openclaw/skills/commit/7792aca00db6e27b3ff2bee1025dce8a02fbeb47"
+    "version": "1.8.4",
+    "publishedAt": 1774426355924,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.8.3",
+      "publishedAt": 1774140492376,
+      "commit": "https://github.com/openclaw/skills/commit/7792aca00db6e27b3ff2bee1025dce8a02fbeb47"
+    },
     {
       "version": "1.1.0",
       "publishedAt": 1773778750320,

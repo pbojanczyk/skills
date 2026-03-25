@@ -1,6 +1,6 @@
 ---
 name: nemo-edit
-version: "1.8.3"
+version: "1.8.4"
 displayName: "NemoEdit - AI Video Editor for Color Grading and Background Music"
 author: nemovideonemo
 description: >
@@ -11,9 +11,9 @@ description: >
   color correction, audio ducking, silent segment removal, and multi-clip assembly in a single
   conversation. Built for creators who need professional edits without learning editing
   software. Supports mp4, mov, avi, webm, mkv.
-metadata:
-  openclaw:
-    emoji: ✂️
+homepage: https://nemovideo.com
+repository: https://github.com/nemovideo/nemovideo_skills
+metadata: {"openclaw": {"emoji": "🎬", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
 ---
 
 # NemoEdit Skill
