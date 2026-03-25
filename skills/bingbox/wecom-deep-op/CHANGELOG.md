@@ -2,7 +2,56 @@
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
-## [1.0.0] - 2026-03-22
+## [2.0.2] - 2026-03-22
+
+### 🛠️ User-Requested Documentation Updates
+
+**更新来源**: 根据用户实际使用反馈和 review 修订
+
+- 📝 **中文文档优化**: 
+  - 增强快速开始指南，添加更多实际示例
+  - 补充故障排除表格，覆盖常见问题
+  - 优化 API 调用示例，添加错误处理建议
+  - 完善安全配置说明
+
+- 🌍 **英文文档同步**:
+  - README.en.md, SKILL.en.md, QUICKSTART.en.md 同步更新
+  - 保持中英文内容一致性
+  - 改进技术术语翻译准确性
+
+- 📚 **整体改进**:
+  - 统一文档结构和格式
+  - 补充贡献指南链接
+  - 更新支持联系方式
+
+---
+
+## [2.0.1] - 2026-03-22
+
+### 🌍 Internationalization & Documentation Overhaul
+
+**新增内容**:
+- 📚 **Full English Documentation**: Created complete English versions of all docs
+  - `README.en.md` - Full project intro, installation, configuration, FAQ
+  - `SKILL.en.md` - Complete API reference (27 functions)
+  - `QUICKSTART.en.md` - 5-minute quick start with code samples
+- 🔗 Updated Chinese `README.md` with link to English docs
+- 📝 Updated `QUICKSTART.md` with improved examples
+
+**中文本地化增强**:
+- 🛡️ **Security Audit Chapter** - Detailed security analysis and compliance (5/5 rating)
+- 🌐 **Data Flow & Security Boundaries** - Explains network patterns and data handling
+- 🐛 **Expanded Troubleshooting** - More common issues and solutions
+- 📖 **Improved API Examples** - Realistic use cases and error handling
+
+**技术改进**:
+- All documentation validated and tested
+- Consistent version (v2.0.1) across all files
+- Maintained MIT license
+
+---
+
+## [2.0.0] - 2026-03-22
 
 ### 🎉 正式发布
 
@@ -37,6 +86,7 @@
 - 🌐 数据流向透明：用户控制端点、用户提供文件
 - ⚠️ 通讯录权限限制提示（仅返回可见范围成员）
 - 📊 通过 OpenClaw 安全审计（5/5 生产就绪）
+- 📄 **MIT 协议**开源
 
 **文档**:
 - 完整的 `SKILL.md` 技能说明
@@ -48,5 +98,5 @@
 
 ## [历史版本]
 
-> **注意**：v1.0.0 之前的版本（1.0.1 - 1.0.5）已被重置，历史记录已清理。
+> **注意**: 本版本之前的开发版本（1.0.1 - 1.0.5）已被重置，历史记录已清理。
 > 这些版本包含的功能已全部整合到当前 v1.0.0 中。

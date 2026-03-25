@@ -6,6 +6,8 @@
 
 > **一站式企业微信自动化解决方案** - 基于微信官方插件 @wecom/wecom-openclaw-plugin v1.0.13+， 封装的的一站式企业微信自动化解决方案 - 你可以方便操作文档、日历、会议、待办、通讯录所有企业微信MCP能力，充分发挥OpenClaw与企业微信的协同能力。
 
+
+> 🇺🇸 **English Documentation Available**: See [README.en.md](./README.en.md) for the full English version, including API reference and quick start guide.
 ---
 
 ## 📖 目录
@@ -29,7 +31,7 @@
 | **生产就绪** | 依赖官方插件 `@wecom/wecom-openclaw-plugin` **v1.0.13+**（必需） |
 | **安全设计** | 不存储任何token，配置完全由用户控制 |
 | **TypeScript** | 完整的类型定义，开发体验优秀 |
-| **MIT协议** | 自由使用、修改、分发 |
+| **MIT 协议** | 自由使用、修改、分发 |
 
 ---
 

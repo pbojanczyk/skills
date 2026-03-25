@@ -1,8 +1,8 @@
 ---
 name: wecom-deep-op
 description: 基于微信官方插件 @wecom/wecom-openclaw-plugin v1.0.13+，封装的一站式企业微信自动化解决方案 - 你可以方便操作文档、日历、会议、待办、通讯录所有企业微信MCP能力，充分发挥OpenClaw与企业微信的协同能力。
-version: 1.0.0
-author: 白小圈 (based on Tencent WeCom official plugin)
+version: 2.0.2
+author: 老白
 license: MIT
 dependencies:
   - name: "@wecom/wecom-openclaw-plugin"
