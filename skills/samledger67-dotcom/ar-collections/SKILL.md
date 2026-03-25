@@ -7,7 +7,6 @@ description: >
   (e.g. POS-based businesses). Use for AR aging reports, collections analysis, DSO tracking,
   and bad debt reserve calculations. NOT for bank reconciliation, payroll, or tax preparation.
 version: 1.0.0
-author: PrecisionLedger
 tags:
   - finance
   - accounting
@@ -46,7 +45,7 @@ Runs the AR Collections & Aging Analysis pipeline (`scripts/pipelines/ar-collect
 **Use when:**
 - Client asks for AR aging report, collections status, or DSO
 - Monthly close includes AR review
-- Irfan needs to know who owes money and what to do about it
+- Need to know who owes money and what to do about it
 - Bad debt reserve needs to be calculated for month-end
 - Auditors or investors request AR aging schedule
 
@@ -60,7 +59,6 @@ Runs the AR Collections & Aging Analysis pipeline (`scripts/pipelines/ar-collect
 
 The pipeline **automatically checks the client SOP** before pulling any data:
 - `sb-paulson` → exits gracefully with explanation (POS collection, no AR)
-- `pl` → proceeds (retainer clients on net terms)
 - Unknown slugs → checks SOP markdown for AR-disabled signals, defaults to AR-applicable
 
 To add a new client's AR status, update `CLIENT_AR_CONFIG` in the pipeline, OR add these markers to their `clients/{slug}/sop.md`:
@@ -72,16 +70,16 @@ To add a new client's AR status, update `CLIENT_AR_CONFIG` in the pipeline, OR a
 
 ```bash
 # Standard run — as of end of month
-python3 scripts/pipelines/ar-collections.py --slug pl --as-of 2026-03-31
+python3 scripts/pipelines/ar-collections.py --slug <client-slug> --as-of 2026-03-31
 
 # With custom output directory
-python3 scripts/pipelines/ar-collections.py --slug pl --as-of 2026-03-31 --out ~/Desktop/reports
+python3 scripts/pipelines/ar-collections.py --slug <client-slug> --as-of 2026-03-31 --out ~/Desktop/reports
 
 # Skip GL pull (faster, no payment pattern analysis)
-python3 scripts/pipelines/ar-collections.py --slug pl --as-of 2026-03-31 --skip-gl
+python3 scripts/pipelines/ar-collections.py --slug <client-slug> --as-of 2026-03-31 --skip-gl
 
 # QBO sandbox
-python3 scripts/pipelines/ar-collections.py --slug pl --as-of 2026-03-31 --sandbox
+python3 scripts/pipelines/ar-collections.py --slug <client-slug> --as-of 2026-03-31 --sandbox
 
 # Client with no AR — exits gracefully
 python3 scripts/pipelines/ar-collections.py --slug sb-paulson --as-of 2026-03-31
@@ -142,7 +140,7 @@ Each run saves customer balances and worst buckets. Next run computes:
 ```bash
 pip install openpyxl
 # Node.js QBO client must be auth'd
-node integrations/qbo-client/bin/qbo info {slug}
+node bin/qbo info {slug}  # from your QBO integration directory
 ```
 
 ## Related Pipelines
@@ -154,7 +152,4 @@ node integrations/qbo-client/bin/qbo info {slug}
 
 ## Clients
 
-| Slug | AR Applicable | Notes |
-|------|--------------|-------|
-| pl | ✅ Yes | Net-30 retainer clients |
-| sb-paulson | ❌ No | POS — auto-skip |
+Configure AR applicability per client in `CLIENT_AR_CONFIG` or via `clients/{slug}/sop.md`.
