@@ -3,9 +3,15 @@
   "slug": "diskview",
   "displayName": "Diskview",
   "latest": {
-    "version": "2.0.0",
-    "publishedAt": 1773831784155,
-    "commit": "https://github.com/openclaw/skills/commit/b2fe74b3ba0d639ed3d813a699a8cb1ffab429cf"
+    "version": "2.0.4",
+    "publishedAt": 1774314889635,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "2.0.0",
+      "publishedAt": 1773831784155,
+      "commit": "https://github.com/openclaw/skills/commit/b2fe74b3ba0d639ed3d813a699a8cb1ffab429cf"
+    }
+  ]
 }
