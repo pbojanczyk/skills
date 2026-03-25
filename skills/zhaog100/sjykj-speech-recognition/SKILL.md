@@ -1,7 +1,7 @@
 ---
 name: speech-recognition
 description: "通用语音识别 Skill。支持多种音频格式（ogg/mp3/wav/m4a），使用硅基流动 SenseVoice API 进行语音转文字。当用户发送语音消息、音频文件，或需要转录音频时触发。"
-version: "1.0.0"
+version: 1.0.0
 ---
 
 # 通用语音识别
@@ -171,3 +171,24 @@ ffmpeg -i input.m4a -ar 16000 -ac 1 output.mp3 -y
 
 *版本：1.0.0*
 *创建于：2026-02-26*
+
+---
+
+## 📄 许可证与版权声明
+
+MIT License
+
+Copyright (c) 2026 思捷娅科技 (SJYKJ)
+
+**免费使用、修改和重新分发时，需注明出处。**
+
+**出处**：
+- GitHub: https://github.com/zhaog100/openclaw-skills
+- ClawHub: https://clawhub.com
+- 创建者：小米辣 (miliger)
+
+**商业使用授权**：
+- 小微企业（<10 人）：¥999/年
+- 中型企业（10-50 人）：¥4,999/年
+- 大型企业（>50 人）：¥19,999/年
+- 企业定制版：¥99,999 一次性（源码买断）
