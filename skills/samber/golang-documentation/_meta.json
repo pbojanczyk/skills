@@ -1,0 +1,11 @@
+{
+  "owner": "samber",
+  "slug": "golang-documentation",
+  "displayName": "Golang Documentation",
+  "latest": {
+    "version": "0.1.0",
+    "publishedAt": 1774234800992,
+    "commit": null
+  },
+  "history": []
+}
