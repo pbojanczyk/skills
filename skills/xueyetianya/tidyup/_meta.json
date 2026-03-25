@@ -3,11 +3,16 @@
   "slug": "tidyup",
   "displayName": "Tidyup",
   "latest": {
-    "version": "2.0.1",
-    "publishedAt": 1774231661079,
-    "commit": "https://github.com/openclaw/skills/commit/6348ca28239d8b5fc2813bfa0e791989e77a0d93"
+    "version": "2.0.2",
+    "publishedAt": 1774316982814,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.0.1",
+      "publishedAt": 1774231661079,
+      "commit": "https://github.com/openclaw/skills/commit/6348ca28239d8b5fc2813bfa0e791989e77a0d93"
+    },
     {
       "version": "2.0.0",
       "publishedAt": 1773831752604,
