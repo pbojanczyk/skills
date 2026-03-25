@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 import { runScript } from './lib/cli.js';
-import { execute } from './lib/submit-text.js';
+import { execute } from './lib/submit-almighty.js';
 
-const HELP = `Submit a text-to-video generation task.
+const HELP = `Submit an almighty-reference-to-video generation task.
 
 Usage:
-  node scripts/submit-text-video.js --json '{"prompt":"A cat walking in a garden","duration":5}'
+  node {baseDir}/scripts/submit-almighty-video.js --json '{"model":"SEEDANCE_2_0","prompt":"Use image and video refs","images":["https://example.com/1.png"],"videos":["https://example.com/1.mp4"],"duration":5}'
 
 Options:
   --json <data>  Pass parameters as JSON string (use "-" for stdin)
