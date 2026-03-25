@@ -58,6 +58,9 @@
 
   # 查看背包
   python game.py inventory
+
+  # 输入文本
+  python game.py input <text>
   ```
 
   克隆代码后，直接执行python命令即可

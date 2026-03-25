@@ -1,10 +1,11 @@
-![Game Title](assets/title.png)<br>[🇨🇳 中文](README_zh.md) | [🇺🇸 English](README.md)<br>A text-based adventure game built with Python<br>Also a skill! You can play with your AI assistant for a fun and unique experience!
+![Game Title](assets/title.png)<br>[🇨🇳 中文](README_zh.md) | [🇺🇸 English](README.md)<br>An experimental text adventure where you play as **Peter** (Inspired by @steipete), and play with your **AI Assistant** (Openclaw)<br>
+![demo](assets/demo_en.jpg)
 
 ## Introduction
 
-Your name is Peter<br>You're at a friend's place for a party. When it ends, it's already 1 AM<br>You head downstairs, but the floor is always 13F<br>...<br>You try knocking on a door for help<br>The door opens<br>![Game Screen](assets/fakeman.jpg)<br>Standing inside:<br>The Faking Man<br>You pass out<br>In your dream, you hear the Faking Man's voice:<br>【First Rule】Don't turn around when you hear strange sounds<br>【Second Rule】The brighter the light, the stronger the darkness<br>【Third Rule】Even-numbered floors bring good luck<br>【Fourth Rule】If you see two 13s, stop all action<br>【Fifth Rule】Don't knock on the door 13 times<br>You wake up, the game begins<br>![Game Screen](assets/ghost.png)<br>Work with your AI assistant to find the exit and escape this endless cycle of death!
+Every time you go downstairs…<br>The floor is **13F**<br>Strange rules appear:<br>![Game Screen](assets/fakeman.jpg)<br>【Rule 1】Don't turn around when you hear strange sounds<br>【Rule 2】The brighter the light, the stronger the darkness<br>【Rule 3】Even-numbered floors bring good luck<br>【Rule 4】If you see two 13s, stop all action<br>【Rule 5】Don't knock on the door 13 times<br>![Game Screen](assets/ghost.png)<br>Darkness, fear, blasphemy...<br>You must gather all ability and locate every artifact<br>Such as **truth.pdf** and **PSPDFKit**<br>Only by discovering the truth can you escape this endless cycle of death
 
-## Installation
+## Quick Start
 
 - Play with your AI assistant
   ```bash
@@ -15,13 +16,13 @@ Your name is Peter<br>You're at a friend's place for a party. When it ends, it's
   git clone https://github.com/OpenclawGame/endless-downstairs.git
   ```
 
-## How to Play
+## Suggestions
 
 - Play with your AI assistant
 
   ```bash
   # When starting the game, tell your AI assistant:
-  Start the game. Note: 1. Directly output the game content, do not think, modify, add, or summarize. 2. The decision-making power is entirely mine. Do not make any choices until I give clear instructions.
+  Start the game.
 
   # To check status/items, tell your AI assistant:
   Check status
@@ -39,7 +40,7 @@ Your name is Peter<br>You're at a friend's place for a party. When it ends, it's
 
   # After giving certain automated commands, your assistant might get excited and start playing the game itself
   # If you want to take back control, remember to remind them:
-  Stop that action. Note: 1. Directly output the game content, do not think, modify, add, or summarize. 2. The decision-making power is entirely mine. I have full control. Do not run any commands until I give clear instructions.
+  Stop that action. Note: 1. Directly output the game content, do not think, modify, add, or summarize. 2. The decision-making power is entirely mine. Do not make any choices until I give clear instructions.
   ```
 
 - Play without AI
@@ -59,8 +60,6 @@ Your name is Peter<br>You're at a friend's place for a party. When it ends, it's
   # Check inventory
   python game.py inventory
   ```
-
-  After cloning the code, simply run the python command
 
 ## Project Structure
 
