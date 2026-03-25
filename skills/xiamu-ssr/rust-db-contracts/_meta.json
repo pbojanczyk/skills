@@ -1,0 +1,11 @@
+{
+  "owner": "xiamu-ssr",
+  "slug": "rust-db-contracts",
+  "displayName": "Rust + SeaORM Database Explicit Contracts",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1773974047348,
+    "commit": null
+  },
+  "history": []
+}
