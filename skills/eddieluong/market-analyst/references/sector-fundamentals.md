@@ -1,6 +1,6 @@
-# Sector Fundamentals — Thị trường chứng khoán Việt Nam
+# Sector Fundamentals — Vietnam Stock Market
 
-> Cập nhật: Q1 2026 | Nguồn: Tổng hợp analyst reports, Bloomberg, Vietstock
+> Updated: Q1 2026 | Sources: Analyst reports, Bloomberg, Vietstock
 
 ---
 
@@ -18,23 +18,23 @@
 | **ROE** | Lợi nhuận/vốn chủ | > 18% |
 | **LDR** (Loan/Deposit Ratio) | Tỷ lệ dư nợ/huy động | < 85% |
 
-### Định giá
+### Valuation
 - **Sector P/E**: 8–12x (rẻ so với khu vực 12–18x)
 - **P/B**: 1.0–2.5x
 
-### Tăng trưởng 2026–2028
+### Growth 2026–2028
 - ✅ Lãi suất giảm → NIM cải thiện, chi phí vốn thấp hơn
 - ✅ Tín dụng tăng 14–16%/năm theo mục tiêu NHNN
 - ✅ **Nâng hạng thị trường** (FTSE/MSCI Emerging Market) → vốn ngoại tăng mạnh vào ngân hàng
 - ✅ Chuyển đổi số banking → giảm chi phí vận hành (CIR), tăng fee income
 - ✅ Bancassurance và cross-selling sản phẩm tài chính
 
-### Rủi ro
+### Risks
 - ⚠️ Nợ xấu BĐS: một số ngân hàng có exposure cao với BĐS
 - ⚠️ Tỷ giá VND/USD: áp lực từ USD mạnh
 - ⚠️ Basel II/III compliance: tăng vốn
 
-### Best Picks (quan điểm phân tích)
+### Best Picks (analytical view)
 | Ticker | Lý do | Style |
 |--------|-------|-------|
 | **VCB** | Chất lượng tài sản tốt nhất, NPL thấp nhất, thương hiệu mạnh | Quality |
@@ -61,7 +61,7 @@
 | **IT Offshore revenue** | >50% tổng doanh thu |
 | **P/E** | 18–25x |
 
-### Định giá
+### Valuation
 - **Sector P/E**: 18–25x (premium justified by growth)
 - Mức này thấp hơn nhiều so với tech peers châu Á (30–50x)
 
@@ -76,7 +76,7 @@
 - **Analyst consensus**: 130,000–150,000 VND (upside 70–90% từ ~77,000)
 - EPS FY2026E: ~6,000–7,000 VND → P/E 18–22x
 
-### Rủi ro
+### Risks
 - ⚠️ Cạnh tranh outsourcing từ Ấn Độ (Infosys, TCS, Wipro)
 - ⚠️ FX risk: doanh thu USD/JPY nhưng chi phí VND
 - ⚠️ Talent war: chi phí nhân sự IT tăng
@@ -105,7 +105,7 @@
 - ✅ Xuất khẩu thép HRC sang ASEAN (Indonesia, Philippines)
 - ✅ Hòa Phát đa dạng hóa: thép, nông nghiệp, điện
 
-### Rủi ro
+### Risks
 - ⚠️ **Thép giá rẻ Trung Quốc** bán phá giá — áp lực giá lớn nhất
 - ⚠️ **Anti-dumping duties** từ Mỹ/EU có thể ảnh hưởng xuất khẩu
 - ⚠️ Giá quặng sắt biến động (phụ thuộc Australia/Brazil)
@@ -125,7 +125,7 @@
 | **D/E ratio** | Tỷ lệ nợ/vốn chủ — BĐS thường cao |
 | **NAV/share** | Net Asset Value per share |
 
-### Định giá
+### Valuation
 - **Sector P/E**: rất biến động, 10–20x tùy chu kỳ
 - **P/B**: 1.0–3.0x
 
@@ -140,7 +140,7 @@
 - ✅ Urbanization rate: 40% → 50% (còn dư địa lớn)
 - ✅ Tầng lớp trung lưu tăng nhanh
 
-### Rủi ro
+### Risks
 - ⚠️ Thanh khoản BĐS: thị trường có thể trầm lắng kéo dài
 - ⚠️ Nợ doanh nghiệp: nhiều DN BĐS vẫn đang tái cơ cấu nợ
 - ⚠️ Pháp lý: thủ tục cấp phép phức tạp, chậm
@@ -216,7 +216,7 @@
 - ✅ Điện khí LNG: Nhà máy điện khí LNG mới (Nhơn Trạch 3, 4)
 - ✅ Giá dầu ổn định 70–85 USD/barrel hỗ trợ capex E&P
 
-### Rủi ro
+### Risks
 - ⚠️ Giá dầu biến động: mỗi $10/barrel ảnh hưởng ~10% EPS GAS
 - ⚠️ Chính sách năng lượng: renewable push có thể giảm gas long-term
 - ⚠️ FX: doanh thu một phần USD
@@ -234,7 +234,7 @@
 
 ---
 
-## 🧭 So sánh Sector — Quick Reference
+## 🧭 Sector Comparison — Quick Reference
 
 | Sector | P/E range | ROE target | Growth | Risk | Style |
 |--------|-----------|------------|--------|------|-------|
@@ -247,4 +247,4 @@
 
 ---
 
-*Disclaimer: Tài liệu này chỉ mang tính tham khảo. Không phải khuyến nghị đầu tư. DYOR.*
+*Disclaimer: This document is for reference only. Not investment advice. DYOR.*

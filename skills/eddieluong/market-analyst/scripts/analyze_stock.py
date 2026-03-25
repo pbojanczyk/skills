@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Single stock deep analysis — kỹ thuật đầy đủ
+Single stock deep analysis — full technical
 Usage: python3 analyze_stock.py FPT [HOSE]
        python3 analyze_stock.py VCB HOSE
        python3 analyze_stock.py HPG
@@ -27,8 +27,8 @@ def analyze(ticker, exchange="HOSE"):
         data = json.loads(r.read())
 
     if not data.get("data"):
-        print(f"❌ Không tìm thấy {exchange}:{ticker}")
-        print("   Kiểm tra lại mã cổ phiếu và sàn giao dịch (HOSE/HNX/UPCOM)")
+        print(f"❌ Not found {exchange}:{ticker}")
+        print("   Check the stock ticker and exchange (HOSE/HNX/UPCOM)")
         return None
 
     d = data["data"][0]["d"]
@@ -50,7 +50,7 @@ def analyze(ticker, exchange="HOSE"):
     if close > ema20 and close > ema50 and close > ema200:
         trend_summary = "Strong uptrend ▲▲▲"
     elif close > ema200:
-        trend_summary = "Long-term uptrend, ngắn hạn điều chỉnh"
+        trend_summary = "Long-term uptrend, short-term correction"
     elif close < ema20 and close < ema50 and close < ema200:
         trend_summary = "Strong downtrend ▼▼▼"
     else:
@@ -59,13 +59,13 @@ def analyze(ticker, exchange="HOSE"):
     # Bollinger position
     bb_mid = (bb_up + bb_low) / 2
     if close <= bb_low * 1.01:
-        bb_label = "🟢 Tại BB Lower (oversold zone)"
+        bb_label = "🟢 At BB Lower (oversold zone)"
     elif close >= bb_up * 0.99:
-        bb_label = "🔴 Tại BB Upper (overbought zone)"
+        bb_label = "🔴 At BB Upper (overbought zone)"
     elif close < bb_mid:
-        bb_label = "Dưới midband"
+        bb_label = "Below midband"
     else:
-        bb_label = "Trên midband"
+        bb_label = "Above midband"
 
     # 52W position
     pos52 = (close - l52) / (h52 - l52) * 100 if (h52 and l52 and h52 != l52) else 0
@@ -78,17 +78,17 @@ def analyze(ticker, exchange="HOSE"):
         buy_reasons.append(f"RSI={rsi:.1f} (<40)")
     if close > ema200:
         buy_score += 1
-        buy_reasons.append("Trên EMA200")
+        buy_reasons.append("Above EMA200")
     if close <= bb_low * 1.03:
         buy_score += 1
-        buy_reasons.append("Gần BB Lower")
+        buy_reasons.append("Near BB Lower")
 
     if buy_score >= 2:
-        verdict = "🟢 VÙNG MUA TỐT"
+        verdict = "🟢 GOOD BUY ZONE"
     elif buy_score == 1:
-        verdict = "🟡 THEO DÕI"
+        verdict = "🟡 WATCH"
     else:
-        verdict = "⏳ CHỜ THÊM"
+        verdict = "⏳ WAIT"
 
     # --- Output ---
     print(f"\n{'='*56}")
@@ -96,8 +96,8 @@ def analyze(ticker, exchange="HOSE"):
     print(f"{'='*56}")
     print(f"  Giá:      {close:>10,.0f} VND  ({chg:+.2f}%  {chg_abs:+,.0f})")
     print(f"  O/H/L:    {open_:,.0f} / {high:,.0f} / {low:,.0f}")
-    print(f"  Volume:   {vol/1e6:.2f}M cổ phiếu")
-    print(f"\n  ─── Chỉ báo kỹ thuật ────────────────────────")
+    print(f"  Volume:   {vol/1e6:.2f}M shares")
+    print(f"\n  ─── Technical Indicators ────────────────────────")
     print(f"  RSI(14):   {rsi:>6.1f}  {rsi_sig}")
     print(f"  EMA20:     {ema20:>10,.0f}  {t20}")
     print(f"  EMA50:     {ema50:>10,.0f}  {t50}")
@@ -108,14 +108,14 @@ def analyze(ticker, exchange="HOSE"):
     print(f"  BB Upper:  {bb_up:>10,.0f}")
     print(f"  BB Lower:  {bb_low:>10,.0f}  {bb_label}")
     print(f"  ATR(14):   {atr:>10,.0f}")
-    print(f"\n  ─── 52 tuần ──────────────────────────────────")
+    print(f"\n  ─── 52 Weeks ──────────────────────────────────")
     print(f"  High:      {h52:>10,.0f}")
     print(f"  Low:       {l52:>10,.0f}")
-    print(f"  Vị trí:    {pos52:.1f}% từ đáy 52W")
-    print(f"\n  ─── Kết luận ─────────────────────────────────")
+    print(f"  Position:    {pos52:.1f}% from 52W low")
+    print(f"\n  ─── Conclusion ─────────────────────────────────")
     print(f"  {verdict}")
     if buy_reasons:
-        print(f"  Lý do: {', '.join(buy_reasons)}")
+        print(f"  Reason: {', '.join(buy_reasons)}")
     print(f"{'='*56}")
 
     return {

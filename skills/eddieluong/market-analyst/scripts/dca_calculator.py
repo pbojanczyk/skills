@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-DCA Calculator — Tính lợi nhuận tích lũy hàng tháng
+DCA Calculator — Calculate monthly accumulation returns
 Usage: python3 dca_calculator.py [monthly_vnd] [years]
 Example: python3 dca_calculator.py 2000000 10
 """
@@ -35,10 +35,10 @@ def main():
 
     print(f"\n{'='*65}")
     print(f"  💰 DCA CALCULATOR")
-    print(f"  Tích lũy: {format_vnd(monthly)}/tháng × {years} năm")
-    print(f"  Tổng bỏ vào: {format_vnd(monthly * 12 * years)}")
+    print(f"  Accumulation: {format_vnd(monthly)}/tháng × {years} năm")
+    print(f"  Total invested: {format_vnd(monthly * 12 * years)}")
     print(f"{'='*65}")
-    print(f"  {'Tài sản':<28} {'Kết quả':>10} {'Lãi ròng':>10} {'x Gốc':>8}")
+    print(f"  {'Asset':<28} {'Result':>10} {'Net profit':>10} {'x Gốc':>8}")
     print(f"  {'-'*60}")
 
     bank_val = None
@@ -52,8 +52,8 @@ def main():
         print(f"  {name:<28} {format_vnd(val):>10} {format_vnd(profit):>10} {mult:>7.1f}x  {vs_bank}")
 
     print(f"\n{'='*65}")
-    print(f"  📈 Timeline tăng trưởng (Portfolio Mix 22%):")
-    print(f"  {'Năm':>6} {'Đã bỏ vào':>12} {'Kết quả':>12} {'Tăng trưởng':>12}")
+    print(f"  📈 Growth timeline (Portfolio Mix 22%):")
+    print(f"  {'Year':>6} {'Invested':>12} {'Result':>12} {'Growth':>12}")
     print(f"  {'-'*50}")
     for yr in [1, 3, 5, 10, 15, 20]:
         if yr <= years + 2:
@@ -61,7 +61,7 @@ def main():
             growth = (val/inv - 1) * 100
             print(f"  {yr:>5} năm  {format_vnd(monthly*12*yr):>12} {format_vnd(val):>12} {growth:>10.0f}%")
 
-    print(f"\n  ⚠️  Đây là ước tính dựa trên lịch sử. Không phải cam kết lợi nhuận.")
+    print(f"\n  ⚠️  These are estimates based on history. Not guaranteed returns.")
     print(f"{'='*65}\n")
 
 if __name__ == "__main__":

@@ -1,78 +1,78 @@
 ---
 name: global-market-analyst
-description: "Phân tích và tư vấn đầu tư tài sản toàn cầu — cổ phiếu VN & US, forex, vàng, dầu, crypto, ETF, DCA. Kết hợp phân tích kỹ thuật real-time (RSI, MACD, EMA, Bollinger Bands) từ TradingView với phân tích cơ bản (P/E, ROE, Sharpe, CAGR, định giá ngành). Use when: (1) user hỏi về giá cổ phiếu VN hoặc toàn cầu, (2) user muốn biết nên mua tài sản nào, (3) user hỏi về danh mục đầu tư, (4) user muốn tính DCA tích lũy hàng tháng, (5) user hỏi nên đầu tư bao nhiêu/tháng, (6) user muốn estimate lợi nhuận theo thời gian, (7) user muốn so sánh các loại tài sản toàn cầu, (8) user hỏi về vàng, crypto, S&P 500, ETF, (9) user hỏi về lướt sóng, swing trading, scalping, day trading VN, (10) user hỏi về forex EUR/USD, USD/JPY, (11) user hỏi về commodities dầu WTI, bạc, (12) user hỏi về US stocks AAPL, NVDA, TSLA, MSFT."
+description: "Global asset investment analysis and advisory — VN & US stocks, forex, gold, oil, crypto, ETF, DCA. Combines real-time technical analysis (RSI, MACD, EMA, Bollinger Bands) from TradingView with fundamental analysis (P/E, ROE, Sharpe, CAGR, sector valuation). Use when: (1) user asks about VN or global stock prices, (2) user wants to know which assets to buy, (3) user asks about portfolio management, (4) user wants to calculate monthly DCA accumulation, (5) user asks how much to invest per month, (6) user wants to estimate returns over time, (7) user wants to compare global asset classes, (8) user asks about gold, crypto, S&P 500, ETF, (9) user asks about swing trading, scalping, day trading VN, (10) user asks about forex EUR/USD, USD/JPY, (11) user asks about commodities oil WTI, silver, (12) user asks about US stocks AAPL, NVDA, TSLA, MSFT, (13) user wants to analyze/rebalance an existing portfolio, (14) user wants to scan markets for a new optimal portfolio, (15) user asks about portfolio optimization, Markowitz, asset allocation."
 ---
 
 # Global Market Analyst
 
-Phân tích tài sản toàn cầu — VN stocks, US equities, Forex, Commodities, Crypto, ETF — kỹ thuật real-time + cơ bản + định giá + estimate sinh lời.
+Global asset analysis — VN stocks, US equities, Forex, Commodities, Crypto, ETF — real-time technical + fundamental + valuation + return estimation.
 
-## ⚠️ Nguyên tắc quan trọng nhất
+## ⚠️ Most Important Principle
 
-**CAGR lịch sử ≠ kỳ vọng từ giá hiện tại.**
-Luôn hỏi: *"Nếu mua HÔM NAY ở giá này, P/E là bao nhiêu? Còn rẻ không?"*
+**Historical CAGR ≠ expectation from current price.**
+Always ask: *"If buying TODAY at this price, what is the P/E? Is it still cheap?"*
 
-Ví dụ: MCH CAGR 73%/năm từ đáy 30k → nhưng ở giá 161k hiện tại P/E ~37x là **đắt**.
-Sharpe 2.19 là lịch sử từ vùng giá thấp — không apply cho người mua hôm nay.
+Example: MCH CAGR 73%/year from the 30k bottom → but at current price 161k, P/E ~37x is **expensive**.
+Sharpe 2.19 is historical from low price zone — does not apply to buyers today.
 
 ---
 
-## Step 0: Hiểu rõ yêu cầu & Check Macro
+## Step 0: Understand Requirements & Check Macro
 
-Trước khi phân tích bất kỳ tài sản nào, luôn check:
+Before analyzing any asset, always check:
 
 ### 🇻🇳 Macro Việt Nam
-**Macro context hiện tại (cập nhật 23/03/2026):**
-- **🔴 VN-Index: ~1,604** — giảm 14% trong tháng, khối ngoại bán ròng -27,591 tỷ YTD
-- **🟢 FTSE upgrade VN** → hiệu lực 21/09/2026 → catalyst lớn nhất
-- SBV rate: Đang giữ, follow FED
+**Current macro context (updated 23/03/2026):**
+- **🔴 VN-Index: ~1,604** — down 14% in the month, foreign net selling -27,591 tỷ YTD
+- **🟢 FTSE upgrade VN** → effective 21/09/2026 → biggest catalyst
+- SBV rate: Holding, following FED
 - GDP target 2026: 6.5-7%
 
 ### 🇺🇸 Macro Mỹ
-- **FED rate: 3.5-3.75%** (giữ nguyên 18/3/2026, hawkish — chỉ 1 lần cắt dự kiến 2026)
-- **PCE inflation: 2.7%** (nâng từ 2.4%)
-- **Unemployment:** ~4.0% (ổn định)
-- **S&P 500:** Đang correction ~5-8% từ ATH, tech dẫn dắt
+- **FED rate: 3.5-3.75%** (held 18/3/2026, hawkish — only 1 cut expected in 2026)
+- **PCE inflation: 2.7%** (raised from 2.4%)
+- **Unemployment:** ~4.0% (stable)
+- **S&P 500:** In correction ~5-8% from ATH, tech leading
 - **US 10Y yield:** ~4.2-4.4%
 
-### 🌍 Macro Toàn cầu
-- **🔴 Iran War đang diễn ra** — dầu WTI $95-99, đe dọa Eo Hormuz
-- **Vàng XAUUSD:** ~$4,362 (điều chỉnh -15% từ ATH $5,608)
+### 🌍 Global Macro
+- **🔴 Iran War ongoing** — dầu WTI $95-99, threatening Strait of Hormuz
+- **Vàng XAUUSD:** ~$4,362 (corrected -15% from ATH $5,608)
 - **DXY (USD Index):** ~103-105
-- **BNB:** Áp lực risk-off, ecosystem vẫn mạnh (TVL $6.7B, #3 globally)
-- **ECB rate:** ~3.0%, đang cắt dần
-- **BOJ rate:** ~0.5%, vừa tăng từ 0.25%
+- **BNB:** Risk-off pressure, ecosystem still strong (TVL $6.7B, #3 globally)
+- **ECB rate:** ~3.0%, gradually cutting
+- **BOJ rate:** ~0.5%, just raised from 0.25%
 
-**Tác động lên danh mục:**
-- 🟢 Mua tích lũy: MBB (P/E 6.5x), Vàng, S&P 500 ETF (VOO)
-- 🟢 DCA: FPT (P/E 13-14x, rẻ bất thường nhưng dưới EMA200)
-- ⏳ Hold: BNB (chờ FED cắt), TCB, AAPL, MSFT
-- 🔴 Tránh: VCB (P/E đắt), BĐS (lãi suất tăng), crypto mới, meme coins
-- 🟢 Mua mới: GAS/PVS (hưởng lợi dầu cao), Energy ETF (XLE)
+**Portfolio impact:**
+- 🟢 Accumulate: MBB (P/E 6.5x), Vàng, S&P 500 ETF (VOO)
+- 🟢 DCA: FPT (P/E 13-14x, unusually cheap but below EMA200)
+- ⏳ Hold: BNB (wait for FED cut), TCB, AAPL, MSFT
+- 🔴 Avoid: VCB (P/E expensive), BĐS (rates rising), crypto mới, meme coins
+- 🟢 New buys: GAS/PVS (benefiting from high oil), Energy ETF (XLE)
 
-Xem chi tiết: `references/macro-update-2026-03.md`, `references/crypto-analysis.md`, `references/gold-analysis.md`.
+See details: `references/macro-update-2026-03.md`, `references/crypto-analysis.md`, `references/gold-analysis.md`.
 
 ---
 
-Xác định:
-- **Asset class**: Cổ phiếu VN? US stocks? Forex? Vàng? Crypto? ETF?
-- **Mục tiêu**: Tìm cơ hội mới? Phân tích mã cụ thể? Estimate lợi nhuận? Scan thị trường?
-- **Thời gian nắm giữ**: Ngắn hạn (< 3 tháng), trung hạn (3-12 tháng), dài hạn (> 1 năm)
-- **Vốn**: Để estimate portfolio allocation và risk
-- **Khẩu vị rủi ro**: Bảo thủ / Cân bằng / Tích cực
+Determine:
+- **Asset class**: VN stocks? US stocks? Forex? Gold? Crypto? ETF?
+- **Objective**: Find new opportunities? Analyze a specific ticker? Estimate returns? Scan the market?
+- **Holding period**: Short-term (< 3 months), medium-term (3-12 months), long-term (> 1 year)
+- **Capital**: For portfolio allocation and risk estimation
+- **Risk appetite**: Conservative / Balanced / Aggressive
 
 ---
 
 ## Step 1: Real-time Data (TradingView Scanner)
 
-TradingView scanner hoạt động **KHÔNG cần auth**:
+TradingView scanner works **WITHOUT auth**:
 
 ### 🇻🇳 VN Stocks
 ```bash
-# Scan toàn HOSE tìm oversold
+# Scan all HOSE for oversold stocks
 python3 ~/.openclaw/workspace/skills/market-analyst/scripts/scan_market.py --rsi 40 --exchange HOSE
 
-# Phân tích kỹ thuật sâu 1 mã VN
+# Deep technical analysis for a single VN stock
 python3 ~/.openclaw/workspace/skills/market-analyst/scripts/analyze_stock.py FPT HOSE
 ```
 
@@ -99,11 +99,11 @@ python3 ~/.openclaw/workspace/skills/market-analyst/scripts/scan_global.py --mar
 # Scan commodities (gold, oil, silver)
 python3 ~/.openclaw/workspace/skills/market-analyst/scripts/scan_global.py --market commodities
 
-# Scan tất cả markets
+# Scan all markets
 python3 ~/.openclaw/workspace/skills/market-analyst/scripts/scan_global.py --market all --rsi 40
 ```
 
-**Fetch thủ công nhiều mã (bất kỳ market):**
+**Manually fetch multiple tickers (any market):**
 ```python
 import urllib.request, json
 
@@ -129,33 +129,33 @@ req = urllib.request.Request(
 
 ---
 
-## Step 2: Phân tích Kỹ thuật (Áp dụng cho TẤT CẢ asset classes)
+## Step 2: Technical Analysis (Applies to ALL asset classes)
 
-Đọc từng chỉ báo theo thứ tự ưu tiên:
+Read each indicator in priority order:
 
-### 1. EMA200 — Kiểm tra TRƯỚC TIÊN
-- `close > EMA200` ✅ → Long-term uptrend còn nguyên → **có thể xem xét mua**
-- `close < EMA200` ❌ → Downtrend dài hạn → **thận trọng, chỉ mua nếu có catalyst đặc biệt**
+### 1. EMA200 — Check FIRST
+- `close > EMA200` ✅ → Long-term uptrend intact → **consider buying**
+- `close < EMA200` ❌ → Long-term downtrend → **be cautious, buy only with a clear catalyst**
 
-**⚠️ Không mua asset RSI oversold nhưng dưới EMA200** (trừ khi có catalyst rõ ràng)
+**⚠️ Do NOT buy oversold assets below EMA200** (unless there is a clear catalyst)
 
 ### 2. RSI(14)
-| RSI | Tín hiệu | Hành động |
+| RSI | Signal | Action |
 |---|---|---|
-| < 30 | 🟢🟢 Oversold cực mạnh | Xem xét mua mạnh nếu trên EMA200 |
-| 30–40 | 🟢 Oversold | DCA nếu trên EMA200 |
-| 40–60 | 🟡 Neutral | Giữ / chờ |
-| 60–70 | 🔴 Cận overbought | Không thêm vị thế |
-| > 70 | 🔴🔴 Overbought | Cân nhắc chốt lời |
+| < 30 | 🟢🟢 Extreme oversold | Consider strong buy if above EMA200 |
+| 30–40 | 🟢 Oversold | DCA if above EMA200 |
+| 40–60 | 🟡 Neutral | Hold / wait |
+| 60–70 | 🔴 Near overbought | Do not add positions |
+| > 70 | 🔴🔴 Overbought | Consider taking profit |
 
 ### 3. MACD
 - `macd > signal` → 🟢 Bullish momentum
 - `macd < signal` → 🔴 Bearish momentum
-- MACD vừa cắt lên signal ở vùng âm → **tín hiệu mua mạnh**
+- MACD just crossed above signal in negative zone → **strong buy signal**
 
 ### 4. Bollinger Bands
-- `close ≤ BB.lower` → Gần đáy dải → tiềm năng bounce
-- BB co lại (squeeze) → sắp biến động mạnh, chờ breakout
+- `close ≤ BB.lower` → Near lower band → potential bounce
+- BB squeezing → strong move coming, wait for breakout
 
 ### 5. Stochastic K/D
 - K < 20: Oversold | K > 80: Overbought
@@ -165,10 +165,10 @@ req = urllib.request.Request(
 ```
 pos52 = (close - low52w) / (high52w - low52w) × 100
 ```
-- < 20%: Gần đáy 52W — vùng value tốt
-- > 80%: Gần đỉnh 52W — momentum cao nhưng rủi ro
+- < 20%: Near 52W low — good value zone
+- > 80%: Near 52W high — high momentum but risky
 
-### 🎯 Buy Zone Score (tổng hợp)
+### 🎯 Buy Zone Score (composite)
 ```python
 score = 0
 if rsi < 30: score += 3
@@ -186,46 +186,46 @@ if macd > macd_signal: score += 1
 
 ---
 
-## Step 3: Phân tích Định giá — BẮT BUỘC (Stocks & ETF)
+## Step 3: Valuation Analysis — MANDATORY (Stocks & ETF)
 
-**Không đưa ra khuyến nghị MUA nếu chưa check định giá.**
+**Do NOT recommend BUY without checking valuation.**
 
 ### P/E Analysis
 ```
 Upside = (Fair P/E - Current P/E) / Fair P/E × 100%
 ```
 
-| Upside | Đánh giá |
+| Upside | Assessment |
 |---|---|
-| > 25% | 🟢 Rất rẻ — mua |
-| 10–25% | 🟡 Hơi rẻ — tích lũy |
-| 0–10% | 🟡 Hợp lý — OK |
-| < 0% | 🔴 Đắt — chờ điều chỉnh |
-| < -15% | 🔴🔴 Đắt nhiều — tránh |
+| > 25% | 🟢 Very cheap — buy |
+| 10–25% | 🟡 Slightly cheap — accumulate |
+| 0–10% | 🟡 Fair — OK |
+| < 0% | 🔴 Expensive — wait for correction |
+| < -15% | 🔴🔴 Very expensive — avoid |
 
-**Fair P/E theo ngành VN:**
+**Fair P/E by VN sector:**
 - Ngân hàng: 10–12x | Công nghệ: 20–25x | Thép: 8–12x
 - Tiêu dùng: 15–22x | BĐS: 12–18x | Dầu khí: 10–14x
 
-**Fair P/E theo ngành US:** (Xem chi tiết `references/us-equities.md`)
+**Fair P/E by US sector:** (Xem chi tiết `references/us-equities.md`)
 - Tech (mega): 25–30x | Tech (growth): 30–45x | Healthcare: 16–20x
 - Financials (banks): 10–13x | Energy: 10–14x | Consumer Disc.: 22–28x
 - **US dùng Forward P/E** nhiều hơn Trailing P/E
 - **PEG Ratio** = P/E / EPS Growth Rate → PEG < 1.0 = rẻ tương đối
 
-Xem chi tiết trong `references/sector-fundamentals.md` (VN) và `references/us-equities.md` (US)
+See details in `references/sector-fundamentals.md` (VN) và `references/us-equities.md` (US)
 
-### Các chỉ số cơ bản khác
+### Other Fundamental Metrics
 - **ROE > 15%**: tốt | **> 20%**: xuất sắc
 - **D/E < 1.0**: ít nợ (ngân hàng ngoại lệ)
 - **FCF dương**: công ty sinh tiền thực
 - **EPS CAGR**: driver chính của giá dài hạn
 
-Xem framework đầy đủ trong `references/financial-analysis-knowledge.md`
+See full framework in `references/financial-analysis-knowledge.md`
 
 ---
 
-## Step 4: Phân tích Ngành & Catalyst
+## Step 4: Sector & Catalyst Analysis
 
 ### 🇻🇳 VN Sectors
 Reference `references/sector-fundamentals.md` và `references/sector-update-2026.md`.
@@ -245,16 +245,16 @@ Reference `references/us-equities.md`.
 - Infrastructure spending → industrials, materials
 - GLP-1 drugs → LLY, NVO, healthcare sector
 
-Luôn trả lời:
-1. **Ngành đang ở đâu trong chu kỳ?** (tăng trưởng / đỉnh / suy thoái / đáy)
-2. **Catalyst 1-3 năm tới là gì?**
-3. **Rủi ro chính là gì?**
+Always answer:
+1. **Where is the sector in the cycle?** (growth / peak / recession / bottom)
+2. **What are the catalysts for the next 1-3 years?**
+3. **What are the main risks?**
 
 ---
 
 ## Step 5: US Equities Analysis
 
-Khi user hỏi về cổ phiếu Mỹ (AAPL, NVDA, TSLA, MSFT, GOOG, META, AMZN, v.v.):
+When user asks about US stocks (AAPL, NVDA, TSLA, MSFT, GOOG, META, AMZN, v.v.):
 
 ### Workflow:
 1. **Scan data:** `scan_global.py --market us` hoặc fetch trực tiếp
@@ -263,27 +263,27 @@ Khi user hỏi về cổ phiếu Mỹ (AAPL, NVDA, TSLA, MSFT, GOOG, META, AMZN,
 4. **Earnings:** Check earnings calendar — KHÔNG mua ngay trước earnings
 5. **Macro:** FED rate path, US 10Y yield, DXY ảnh hưởng
 
-### Key Metrics cho US Stocks:
+### Key Metrics for US Stocks:
 - **Forward P/E** (quan trọng hơn trailing)
 - **PEG Ratio** (< 1.0 = rẻ, 1.0-2.0 = hợp lý, > 2.0 = đắt)
 - **FCF Yield** (FCF / Market Cap — > 5% = tốt)
 - **Revenue Growth** (YoY — quan trọng cho tech)
 - **Gross Margin** (>60% cho software, >40% cho hardware)
 
-### Đặc thù US vs VN:
+### US vs VN Differences:
 - US trade pre/after-market → gap risk cao hơn
 - Earnings season 4 lần/năm → stock có thể ±20% trong 1 ngày
 - Options market rất active → đọc implied volatility
 - Buyback programs → hỗ trợ giá (AAPL buyback $100B+/năm)
 - US dùng **fractional shares** → mua $10 NVDA được
 
-Xem chi tiết: `references/us-equities.md`
+See details: `references/us-equities.md`
 
 ---
 
 ## Step 6: Forex Analysis
 
-Khi user hỏi về forex (EUR/USD, USD/JPY, GBP/USD, v.v.):
+When user asks about forex (EUR/USD, USD/JPY, GBP/USD, v.v.):
 
 ### Workflow:
 1. **Scan:** `scan_global.py --market forex`
@@ -293,7 +293,7 @@ Khi user hỏi về forex (EUR/USD, USD/JPY, GBP/USD, v.v.):
 5. **Risk:** Swap rates, leverage management
 
 ### Key Pairs & Factors:
-| Cặp | Nhân tố chính |
+| Cặp | Key Factors |
 |-----|--------------|
 | EUR/USD | FED vs ECB rates, trade balance EU-US |
 | USD/JPY | FED vs BOJ, risk sentiment, carry trade |
@@ -301,7 +301,7 @@ Khi user hỏi về forex (EUR/USD, USD/JPY, GBP/USD, v.v.):
 | AUD/USD | RBA rate, commodities (iron ore), China demand |
 | USD/VND | SBV policy, trade balance VN, FDI flows |
 
-### Session Times (giờ VN):
+### Session Times (VN time):
 - **London-NY overlap (19:30-23:00 VN)** = best time to trade
 - **Asian session (06:00-14:00)** = range-bound, phù hợp range trading
 - **London open (14:00-17:00)** = breakout Asian range
@@ -311,13 +311,13 @@ Khi user hỏi về forex (EUR/USD, USD/JPY, GBP/USD, v.v.):
 - **Leverage max 1:30** cho beginner
 - **ATR-based stop loss:** SL = 1.5-2x ATR(14)
 
-Xem chi tiết: `references/forex-guide.md`
+See details: `references/forex-guide.md`
 
 ---
 
-## Step 7: Commodities Analysis (Vàng, Dầu, Bạc)
+## Step 7: Commodities Analysis (Gold, Oil, Silver)
 
-Khi user hỏi về vàng (XAUUSD), dầu (WTI/Brent), bạc (XAGUSD):
+When user asks about gold (XAUUSD), oil (WTI/Brent), silver (XAGUSD):
 
 ### Workflow:
 1. **Scan:** `scan_global.py --market commodities`
@@ -325,20 +325,20 @@ Khi user hỏi về vàng (XAUUSD), dầu (WTI/Brent), bạc (XAGUSD):
 3. **Technical:** EMA200, RSI, Fibonacci retracement
 4. **Specific factors:** (xem bên dưới)
 
-### 🥇 Vàng (XAUUSD):
+### 🥇 Gold (XAUUSD):
 - **Bullish khi:** Real rates giảm, DXY yếu, risk-off, NHTW mua vàng
 - **Bearish khi:** Real rates tăng, DXY mạnh, risk-on
 - **Key levels:** Round numbers ($4000, $4500, $5000)
 - **Seasonal:** Thường mạnh Q1 và Q4
-- Xem chi tiết: `references/gold-analysis.md`
+- See details: `references/gold-analysis.md`
 
-### 🛢️ Dầu (WTI / Brent):
+### 🛢️ Oil (WTI / Brent):
 - **Bullish khi:** OPEC+ cắt sản lượng, geopolitics (Iran/ME), demand tăng
 - **Bearish khi:** Recession fears, OPEC+ tăng sản lượng, US shale tăng
 - **Key data:** EIA Weekly Inventory, Baker Hughes Rig Count
 - **Correlation:** USD/CAD (inverse), energy stocks (positive)
 
-### 🥈 Bạc (XAGUSD):
+### 🥈 Silver (XAGUSD):
 - **Dual nature:** Industrial metal + precious metal
 - **Gold/Silver Ratio:** > 80 = bạc rẻ tương đối, < 60 = bạc đắt
 - **Volatile hơn vàng:** Beta ~1.5-2x so với gold
@@ -347,7 +347,7 @@ Khi user hỏi về vàng (XAUUSD), dầu (WTI/Brent), bạc (XAGUSD):
 
 ## Step 8: Global ETF Analysis
 
-Khi user hỏi về ETF (VOO, QQQ, VNM, v.v.):
+When user asks about ETF (VOO, QQQ, VNM, v.v.):
 
 ### Workflow:
 1. **Identify need:** Core portfolio? Sector bet? Country exposure?
@@ -356,9 +356,9 @@ Khi user hỏi về ETF (VOO, QQQ, VNM, v.v.):
 4. **DCA plan:** Phân bổ theo risk profile
 
 ### Quick ETF Recommendations:
-| Mục đích | ETF | Expense | Ghi chú |
+| Purpose | ETF | Expense | Notes |
 |----------|-----|---------|---------|
-| Core US | VOO / IVV | 0.03% | S&P 500, nền tảng portfolio |
+| Core US | VOO / IVV | 0.03% | S&P 500, portfolio foundation |
 | Tech/Growth | QQQ / QQQM | 0.15-0.20% | NASDAQ 100, AI exposure |
 | VN Exposure | VNM | 0.66% | VanEck Vietnam ETF |
 | Emerging Markets | VWO / IEMG | 0.08-0.09% | Broad EM |
@@ -372,46 +372,110 @@ Khi user hỏi về ETF (VOO, QQQ, VNM, v.v.):
 **Balanced:** VOO 45% + QQQ 20% + VWO 15% + BND 10% + GLD 10%
 **Aggressive:** QQQ 35% + VOO 25% + VWO/VNM 20% + ARKK/SOXX 10% + GLD 10%
 
-Xem chi tiết: `references/global-etf.md`
+See details: `references/global-etf.md`
 
 ---
 
-## Step 9: Estimate Sinh lời
+## Step 9: Portfolio Management
+
+When user asks about **portfolio management, rebalancing, asset allocation, or building a new portfolio**:
+
+### Option 1: Analyze Existing Portfolio → Rebalance
+```bash
+# Analyze & recommend rebalancing for current portfolio
+python3 ~/.openclaw/workspace/skills/market-analyst/scripts/portfolio_optimizer.py \
+  --portfolio "MBB:30,FPT:25,GOLD:20,BNB:15,CASH:10" \
+  --capital 500000000 \
+  --risk balanced
+```
+
+**Input:**
+- `--portfolio` : Current portfolio dạng "MÃ:tỷ_trọng%,..." 
+- `--capital` : Total capital (VND)
+- `--risk` : `conservative` | `balanced` | `aggressive`
+
+**Output:**
+- Portfolio analysis: return, volatility, Sharpe, max drawdown
+- Assessment: concentration, diversification, risk fit
+- Correlation matrix between assets
+- Rebalance recommendation via Markowitz Mean-Variance
+- Before/after rebalance comparison
+- Bear/Base/Bull return scenarios
+- Implementation plan
+
+**Supported asset classes:** VN stocks, US stocks, ETF, crypto (BTC/ETH/BNB/SOL...), gold (GOLD/XAUUSD), forex, bonds (BOND), cash (CASH)
+
+### Option 2: Scan Market → Recommend New Portfolio
+```bash
+# Scan & recommend new optimal portfolio
+python3 ~/.openclaw/workspace/skills/market-analyst/scripts/portfolio_screener.py \
+  --capital 500000000 \
+  --risk balanced \
+  --markets vn,us,crypto,gold \
+  --horizon medium
+```
+
+**Input:**
+- `--capital` : Total capital (VND)
+- `--risk` : `conservative` | `balanced` | `aggressive`
+- `--markets` : `vn,us,crypto,gold` (chọn thị trường)
+- `--horizon` : `short` (< 3 tháng) | `medium` (3-12 tháng) | `long` (> 1 năm)
+
+**Output:**
+- Real-time TradingView scan to find top assets by score
+- Allocation by risk profile:
+  - **Conservative:** 50% bonds/cash, 30% blue chip, 15% gold, 5% crypto
+  - **Balanced:** 30% blue chip, 25% growth, 20% gold, 15% ETF, 10% crypto
+  - **Aggressive:** 35% growth, 25% crypto, 20% midcap, 15% forex/commodities, 5% commodities
+- Specific ticker list + allocation + rationale
+- Expected return range (Bear/Base/Bull)
+- Suggested DCA schedule by horizon
+
+### Risk Profiles:
+| Profile | Max single | Max equity | Max crypto | Min safe assets | Target Vol |
+|---------|-----------|-----------|-----------|----------------|-----------|
+| Conservative | 25% | 40% | 5% | 35% | 12% |
+| Balanced | 30% | 60% | 15% | 20% | 18% |
+| Aggressive | 35% | 80% | 25% | 5% | 25% |
+
+---
+
+## Step 10: Return Estimation
 
 ```bash
 python3 ~/.openclaw/workspace/skills/market-analyst/scripts/estimate_returns.py [TICKER] [--capital X] [--years N]
 ```
 
-Script tính từ historical data:
-- **CAGR** 3Y/5Y (tỷ lệ tăng trưởng kép)
-- **Volatility** hàng năm (độ biến động)
-- **Max Drawdown** (mức giảm tối đa từ đỉnh)
+Script calculates from historical data:
+- **CAGR** 3Y/5Y (compound annual growth rate)
+- **Volatility** hàng năm (annualized volatility)
+- **Max Drawdown** (maximum drawdown from peak)
 - **Sharpe Ratio** (return/risk)
-- **3 kịch bản** Bear/Base/Bull × 6M/1Y/3Y/5Y
+- **3 scenarios** Bear/Base/Bull × 6M/1Y/3Y/5Y
 
-**⚠️ Luôn nhắc user:**
-- CAGR lịch sử là từ giá VÀO của quá khứ, không phải từ giá hiện tại
-- Nếu P/E hiện tại đã cao → estimate thực tế thấp hơn CAGR lịch sử
-- So sánh với: gửi ngân hàng 5.5%/năm (VN), US Treasury 4.5%/năm, VN-Index ~11%/năm, S&P 500 ~12%/năm
+**⚠️ Always remind user:**
+- Historical CAGR is from past ENTRY price, not current price
+- If current P/E is already high → realistic estimate is lower than historical CAGR
+- Compare with: bank deposit 5.5%/year (VN), US Treasury 4.5%/year, VN-Index ~11%/year, S&P 500 ~12%/year
 
-Xem phương pháp đầy đủ trong `references/return-estimation.md`
+See full methodology in `references/return-estimation.md`
 
 ---
 
-## Step 10: Portfolio Allocation (Global)
+## Step 11: Portfolio Allocation (Global)
 
-Khi user hỏi nên phân bổ vốn như thế nào:
+When user asks how to allocate capital:
 
-### Sizing theo Sharpe
-| Sharpe | Tỷ trọng tối đa |
+### Sizing by Sharpe
+| Sharpe | Max allocation |
 |---|---|
 | > 1.5 | 35% |
 | 1.0–1.5 | 25% |
 | 0.5–1.0 | 15% |
 | < 0.5 | 10% |
 
-### Sizing theo Max Drawdown
-| Max DD | Tỷ trọng tối đa |
+### Sizing by Max Drawdown
+| Max DD | Max allocation |
 |---|---|
 | < 30% | 30% |
 | 30–50% | 20% |
@@ -430,21 +494,21 @@ Khi user hỏi nên phân bổ vốn như thế nào:
 | EM ETF | 10% | 5% | 0% |
 
 ### DCA Strategy
-- Không all-in một lúc
-- Chia 3–5 lần mua trong 4–8 tuần
-- Mua thêm khi RSI giảm về vùng oversold
-- **ETF DCA:** Cùng ngày mỗi tháng, không time the market
+- Don't go all-in at once
+- Split into 3-5 purchases over 4-8 weeks
+- Buy more when RSI drops to oversold zone
+- **ETF DCA:** Same day each month, don't time the market
 
 ---
 
-## Step 11: Output Formats
+## Step 12: Output Formats
 
 ### 📊 VN Stock Output
 ```
 ## 📊 [TICKER] — [Tên công ty]
-Giá: X,XXX VND | Hôm nay: +/-X.XX% | Volume: XM
+Price: X,XXX VND | Today: +/-X.XX% | Volume: XM
 
-### Kỹ thuật
+### Technical
 - RSI: XX.X [tín hiệu]
 - EMA200: X,XXX [▲ Trên / ▼ Dưới] — [Uptrend / Downtrend]
 - MACD: [🟢 Bullish / 🔴 Bearish]
@@ -452,15 +516,15 @@ Giá: X,XXX VND | Hôm nay: +/-X.XX% | Volume: XM
 - 52W: High X,XXX | Low X,XXX | Vị trí: XX%
 - Score: X/15
 
-### Định giá
+### Valuation
 - P/E hiện tại: XX.Xx (Fair: XX-XXx)
 - Upside định giá: +/-XX%
 - ROE: XX% | D/E: XX
 
-### Kết luận
+### Conclusion
 [🟢 MUA / 🟡 THEO DÕI / ⏳ CHỜ / 🔴 TRÁNH]
-Lý do: [1-2 câu]
-Vùng mua lý tưởng: [X,XXX – X,XXX VND]
+Reason: [1-2 câu]
+Ideal buy zone: [X,XXX – X,XXX VND]
 ```
 
 ### 🇺🇸 US Stock Output
@@ -480,9 +544,9 @@ Price: $XXX.XX | Today: +/-X.XX% | Volume: XM | Market Cap: $X.XB
 - FCF Yield: X.X%
 - Next Earnings: [Date]
 
-### Kết luận
+### Conclusion
 [🟢 MUA / 🟡 THEO DÕI / ⏳ CHỜ / 🔴 TRÁNH]
-Lý do: [1-2 câu]
+Reason: [1-2 câu]
 Entry zone: $XXX – $XXX
 ```
 
@@ -520,9 +584,9 @@ Price: $X,XXX | Today: +/-X.XX%
 - [Factor 1: impact]
 - [Factor 2: impact]
 
-### Kết luận
+### Conclusion
 [🟢 MUA / 🟡 TRUNG LẬP / 🔴 TRÁNH]
-Vùng mua: $X,XXX – $X,XXX
+Buy zone: $X,XXX – $X,XXX
 ```
 
 ### 📈 ETF Output
@@ -542,17 +606,17 @@ Price: $XXX.XX | YTD: +/-X.XX% | Expense: X.XX% | Yield: X.X%
 - 5 năm: ~$XX,XXX (gốc $XX,XXX, lãi ~$XX,XXX)
 - 10 năm: ~$XX,XXX
 
-### Kết luận
+### Conclusion
 [🟢 DCA / 🟡 CHỜ / 🔴 TRÁNH]
 ```
 
 ---
 
-## Step 12: Swing Trading & Lướt Sóng (VN)
+## Step 13: Swing Trading (VN)
 
-Khi user hỏi về **lướt sóng, swing trading, scalping, day trading**, hoặc muốn trade ngắn hạn (2-10 ngày):
+When user asks about **swing trading, scalping, day trading**, or short-term trading (2-10 days):
 
-Reference đầy đủ: `references/swing-trading-vn.md`
+Full reference: `references/swing-trading-vn.md`
 
 ### Quick Workflow
 
@@ -591,40 +655,42 @@ Timeframe: X-X ngày
 ## References
 
 ### VN Market
-- `references/sector-fundamentals.md` — P/E chuẩn, catalyst, risk từng ngành VN
-- `references/sector-update-2026.md` — Cập nhật sector Q1/2026
-- `references/swing-trading-vn.md` — Swing trading, scalping, lướt sóng VN
+- `references/sector-fundamentals.md` — Standard P/E, catalyst, risk per VN sector
+- `references/sector-update-2026.md` — Sector update Q1/2026
+- `references/swing-trading-vn.md` — Swing trading, scalping VN
 
 ### US & Global
-- `references/us-equities.md` — Top 20 S&P 500, sector breakdown US, P/E benchmarks, ADR/OTC
+- `references/us-equities.md` — Top 20 S&P 500, US sector breakdown, P/E benchmarks, ADR/OTC
 - `references/forex-guide.md` — Major/cross pairs, factors, sessions, swap rates
-- `references/global-etf.md` — VOO/QQQ/SPY so sánh, VNM ETF, EM ETFs, Bond ETFs, DCA strategy
+- `references/global-etf.md` — VOO/QQQ/SPY comparison, VNM ETF, EM ETFs, Bond ETFs, DCA strategy
 
 ### Macro & Asset-specific
 - `references/macro-update-2026-03.md` — Macro context 03/2026: FED, VN-Index, Iran War
-- `references/crypto-analysis.md` — Framework phân tích crypto/BNB
-- `references/gold-analysis.md` — Framework phân tích vàng XAUUSD
+- `references/crypto-analysis.md` — Crypto/BNB analysis framework
+- `references/gold-analysis.md` — Gold XAUUSD analysis framework
 
 ### Knowledge Base
 - `references/financial-analysis-knowledge.md` — RSI, MACD, P/E, Sharpe, DCA, Global portfolio
 - `references/advanced-ta.md` — Fibonacci, Elliott Wave, Volume Profile
-- `references/return-estimation.md` — Methodology estimate sinh lời
+- `references/return-estimation.md` — Return estimation methodology
 
 ## Scripts
 
 - `scripts/scan_market.py` — Scan VN + US exchanges (HOSE, HNX, NASDAQ, NYSE)
 - `scripts/scan_global.py` — Scan global markets (US, crypto, forex, commodities)
-- `scripts/analyze_stock.py` — Phân tích kỹ thuật sâu 1 mã
-- `scripts/estimate_returns.py` — Estimate lợi nhuận theo lịch sử
-- `scripts/dca_calculator.py` — Tính DCA tích lũy hàng tháng
+- `scripts/analyze_stock.py` — Deep technical analysis for a single ticker
+- `scripts/estimate_returns.py` — Estimate returns from historical data
+- `scripts/dca_calculator.py` — Calculate monthly DCA accumulation
+- `scripts/portfolio_optimizer.py` — Analyze existing portfolio → rebalance recommendation (Markowitz)
+- `scripts/portfolio_screener.py` — Scan market → recommend new optimal portfolio
 
 **DCA Calculator:**
 ```bash
 python3 ~/.openclaw/workspace/skills/market-analyst/scripts/dca_calculator.py [monthly_vnd] [years]
-# Ví dụ: 2 triệu/tháng, 10 năm
+# Example: 2 million VND/month, 10 years
 python3 ~/.openclaw/workspace/skills/market-analyst/scripts/dca_calculator.py 2000000 10
 ```
 
 ---
 
-*⚠️ Phân tích mang tính tham khảo, không phải khuyến nghị đầu tư. DYOR.*
+*⚠️ Analysis is for reference only, not investment advice. DYOR.*

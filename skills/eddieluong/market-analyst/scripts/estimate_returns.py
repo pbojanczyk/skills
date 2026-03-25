@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-VN Stock Return Estimator — fetch lịch sử từ VNDirect, tính CAGR/volatility/drawdown,
-dự báo 3 kịch bản Bear/Base/Bull.
+VN Stock Return Estimator — fetch history from VNDirect, calculate CAGR/volatility/drawdown,
+project 3 scenarios Bear/Base/Bull.
 
 Usage:
   python3 estimate_returns.py FPT
@@ -16,8 +16,8 @@ import math
 import argparse
 from datetime import datetime, timedelta
 
-RF_RATE = 0.055        # Risk-free rate: 5.5%/năm (lãi suất ngân hàng 12 tháng)
-VN_INDEX_RETURN = 0.11 # VN-Index historical average ~11%/năm
+RF_RATE = 0.055        # Risk-free rate: 5.5%/year (12-month bank deposit)
+VN_INDEX_RETURN = 0.11 # VN-Index historical average ~11%/year
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -132,16 +132,16 @@ def estimate(ticker, capital_m=10.0, horizon_years=3):
     ticker = ticker.upper()
     capital = capital_m * 1_000_000  # triệu VND → VND
 
-    print(f"\n⏳ Fetching lịch sử giá {ticker} từ VNDirect...")
+    print(f"\n⏳ Fetching price history for {ticker} from VNDirect...")
     try:
         prices = fetch_history(ticker, days=1825)
     except Exception as e:
-        print(f"❌ Lỗi kết nối VNDirect: {e}")
-        print("   Kiểm tra kết nối internet và tên ticker.")
+        print(f"❌ VNDirect connection error: {e}")
+        print("   Check internet connection and ticker name.")
         return
 
     if len(prices) < 30:
-        print(f"❌ Không đủ dữ liệu cho {ticker} (chỉ có {len(prices)} phiên)")
+        print(f"❌ Insufficient data for {ticker} (only {len(prices)} sessions)")
         return
 
     m = calc_returns(prices)
@@ -160,23 +160,23 @@ def estimate(ticker, capital_m=10.0, horizon_years=3):
         return f"{v/1_000_000:.1f}tr"
 
     print(f"\n{'='*60}")
-    print(f"  📈 Estimate Lợi Nhuận — {ticker}")
-    print(f"  Vốn đầu tư: {capital_m:.0f} triệu VND | Giá hiện tại: {fmt_price(m['now'])} VND")
+    print(f"  📈 Return Estimate — {ticker}")
+    print(f"  Investment capital: {capital_m:.0f} million VND | Current price: {fmt_price(m['now'])} VND")
     print(f"{'='*60}")
 
-    print(f"\n  ─── Lịch sử (thực tế) ───────────────────────────────")
-    print(f"  3 tháng trước:  {fmt_price(m['p3m'])} VND  │  Return: {m['r3m']:+.1f}%")
-    print(f"  6 tháng trước:  {fmt_price(m['p6m'])} VND  │  Return: {m['r6m']:+.1f}%")
-    print(f"  1 năm trước:    {fmt_price(m['p1y'])} VND  │  Return: {m['r1y']:+.1f}%")
+    print(f"\n  ─── History (actual) ───────────────────────────────")
+    print(f"  3 months ago:  {fmt_price(m['p3m'])} VND  │  Return: {m['r3m']:+.1f}%")
+    print(f"  6 months ago:  {fmt_price(m['p6m'])} VND  │  Return: {m['r6m']:+.1f}%")
+    print(f"  1 year ago:    {fmt_price(m['p1y'])} VND  │  Return: {m['r1y']:+.1f}%")
     if m["cagr3"]:
-        print(f"  3 năm trước:    {fmt_price(m['p3y'])} VND  │  CAGR:   {m['cagr3']*100:+.1f}%/năm")
+        print(f"  3 years ago:    {fmt_price(m['p3y'])} VND  │  CAGR:   {m['cagr3']*100:+.1f}%/năm")
     if m["cagr5"]:
-        print(f"  5 năm trước:    {fmt_price(m['p5y'])} VND  │  CAGR:   {m['cagr5']*100:+.1f}%/năm")
+        print(f"  5 years ago:    {fmt_price(m['p5y'])} VND  │  CAGR:   {m['cagr5']*100:+.1f}%/năm")
     print(f"  Volatility/năm: {m['volatility']*100:.1f}%")
     print(f"  Max Drawdown:   {m['max_drawdown']*100:.1f}%")
     print(f"  Sharpe Ratio:   {m['sharpe']:.2f}")
 
-    print(f"\n  ─── Dự báo kịch bản (từ giá {fmt_price(m['now'])} VND) ─────────")
+    print(f"\n  ─── Scenario forecast (from price {fmt_price(m['now'])} VND) ─────────")
     header = f"  {'':18s}" + "".join(f"  {str(h)+'năm':>9}" if h >= 1 else f"  {'6 tháng':>9}" for h in horizons)
     print(header)
     print(f"  {'-'*65}")
@@ -199,7 +199,7 @@ def estimate(ticker, capital_m=10.0, horizon_years=3):
         print(row)
 
     # Comparison table
-    print(f"\n  ─── So sánh {horizon_years} năm (vốn {capital_m:.0f}tr VND) ─────────────────")
+    print(f"\n  ─── Comparison {horizon_years} years (capital {capital_m:.0f}tr VND) ─────────────────")
     bank_val  = project(capital, RF_RATE,          horizon_years)
     base_val  = project(capital, sc["base"],       horizon_years)
     vni_val   = project(capital, VN_INDEX_RETURN,  horizon_years)
@@ -207,18 +207,18 @@ def estimate(ticker, capital_m=10.0, horizon_years=3):
     profit_base = base_val - capital
     profit_vni  = vni_val  - capital
 
-    print(f"  Gửi ngân hàng 5.5%/năm:      +{fmt_vnd(profit_bank):>8}  (tổng: {fmt_vnd(bank_val)})")
+    print(f"  Bank deposit 5.5%/year:      +{fmt_vnd(profit_bank):>8}  (tổng: {fmt_vnd(bank_val)})")
     print(f"  {ticker} Base case:           {'+' if profit_base>=0 else ''}{fmt_vnd(profit_base):>8}  (tổng: {fmt_vnd(base_val)})")
-    print(f"  VN-Index ~11%/năm:            +{fmt_vnd(profit_vni):>8}  (tổng: {fmt_vnd(vni_val)})")
+    print(f"  VN-Index ~11%/year:            +{fmt_vnd(profit_vni):>8}  (tổng: {fmt_vnd(vni_val)})")
 
     # Risk assessment
-    print(f"\n  ─── Đánh giá rủi ro ─────────────────────────────────")
+    print(f"\n  ─── Risk assessment ─────────────────────────────────")
     if m["sharpe"] >= 1.0:
-        risk_label = "🟢 Tốt (Sharpe ≥ 1.0) — return xứng đáng rủi ro"
+        risk_label = "🟢 Good (Sharpe ≥ 1.0) — return justifies the risk"
     elif m["sharpe"] >= 0.5:
-        risk_label = "🟡 Chấp nhận được (Sharpe 0.5–1.0)"
+        risk_label = "🟡 Acceptable (Sharpe 0.5–1.0)"
     else:
-        risk_label = "🔴 Rủi ro cao (Sharpe < 0.5) — cân nhắc kỹ"
+        risk_label = "🔴 High risk (Sharpe < 0.5) — consider carefully"
     print(f"  {risk_label}")
 
     worst_case = project(capital, sc["bear"], horizon_years)
@@ -226,15 +226,15 @@ def estimate(ticker, capital_m=10.0, horizon_years=3):
     print(f"  Worst case ({horizon_years}năm): {fmt_vnd(worst_case)} ({worst_loss/capital*100:+.1f}%)")
 
     print(f"{'='*60}")
-    print(f"  ⚠️  Đây là ước tính, không phải cam kết lợi nhuận. DYOR.")
+    print(f"  ⚠️  These are estimates, not guaranteed returns. DYOR.")
     print(f"{'='*60}\n")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="VN Stock Return Estimator")
-    parser.add_argument("ticker",              help="Mã cổ phiếu (VD: FPT, VCB, HPG)")
+    parser.add_argument("ticker",              help="Stock ticker (e.g., FPT, VCB, HPG)")
     parser.add_argument("--capital", "-c", type=float, default=10.0,
-                        help="Vốn đầu tư (triệu VND, mặc định: 10)")
+                        help="Investment capital (million VND, default: 10)")
     parser.add_argument("--years",   "-y", type=int,   default=3,
-                        help="Horizon dài hạn để so sánh (năm, mặc định: 3)")
+                        help="Long-term horizon for comparison (years, default: 3)")
     args = parser.parse_args()
     estimate(args.ticker, args.capital, args.years)

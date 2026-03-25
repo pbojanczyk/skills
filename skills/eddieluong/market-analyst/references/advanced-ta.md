@@ -1,27 +1,27 @@
 # Advanced Technical Analysis
-> Fibonacci, Elliott Wave, Volume Profile — Nâng cao kỹ thuật phân tích
+> Fibonacci, Elliott Wave, Volume Profile — Advanced Analysis Techniques
 
 ---
 
 ## 1. FIBONACCI RETRACEMENT & EXTENSION
 
-### 1.1 Nguồn gốc
-Dãy Fibonacci: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144...
-Các tỷ lệ quan trọng đến từ phép chia trong dãy:
-- **61.8%** = 34/55 = "Golden Ratio" → quan trọng nhất
+### 1.1 Origins
+Fibonacci sequence: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144...
+Key ratios come from divisions within the sequence:
+- **61.8%** = 34/55 = "Golden Ratio" → most important
 - **38.2%** = 1 - 61.8%
 - **23.6%** = 13/55
 - **78.6%** = √61.8%
-- **50%** = không phải Fibonacci nhưng được dùng rộng rãi
+- **50%** = not Fibonacci but widely used
 
-### 1.2 Fibonacci Retracement (Hồi lại)
-**Mục đích:** Xác định vùng hỗ trợ/kháng cự khi giá điều chỉnh trong một trend
+### 1.2 Fibonacci Retracement
+**Purpose:** Identify support/resistance zones when price corrects within a trend
 
-**Cách vẽ:**
+**How to draw:**
 - **Uptrend:** Kéo từ đáy (Swing Low) → đỉnh (Swing High)
 - **Downtrend:** Kéo từ đỉnh (Swing High) → đáy (Swing Low)
 
-**Các mức retracement:**
+**Retracement levels:**
 | Mức | Ý nghĩa | Hành động |
 |-----|---------|-----------|
 | **23.6%** | Hồi nhẹ — trend rất mạnh | Mua ngay nếu confirm bounce |
@@ -31,7 +31,7 @@ Các tỷ lệ quan trọng đến từ phép chia trong dãy:
 | **78.6%** | Hồi rất sâu — trend yếu | Cẩn thận, có thể đảo chiều |
 | **100%** | Full retrace | Trend đã bị phá vỡ |
 
-**Ví dụ thực tế — Vàng XAUUSD:**
+**Real example — Vàng XAUUSD:**
 Đáy $1,810 (10/2023) → ATH $5,608 (01/2026):
 - 23.6%: ~$4,712
 - 38.2%: ~$4,157
@@ -39,16 +39,16 @@ Các tỷ lệ quan trọng đến từ phép chia trong dãy:
 - 61.8%: ~$3,261
 → **Hiện tại $4,362 → giữa 23.6% và 38.2% → vùng support quan trọng**
 
-**Ví dụ — MBB:**
+**Example — MBB:**
 Đáy 14,000 (2022) → Đỉnh 28,000 (2024):
 - 38.2%: ~22,650
 - 50.0%: ~21,000
 - 61.8%: ~19,350
 
-### 1.3 Fibonacci Extension (Mở rộng)
-**Mục đích:** Dự đoán target giá khi breakout
+### 1.3 Fibonacci Extension
+**Purpose:** Predict price targets on breakout
 
-| Mức | Dùng cho |
+| Mức | Used for |
 |-----|---------|
 | **100%** | Equal move (thường dùng cho sóng 3) |
 | **123.6%** | Target conservative |
@@ -66,12 +66,12 @@ Các tỷ lệ quan trọng đến từ phép chia trong dãy:
 
 ## 2. ELLIOTT WAVE THEORY
 
-### 2.1 Nguyên lý cơ bản
-- Thị trường di chuyển theo **sóng (waves)** lặp lại do tâm lý đám đông
+### 2.1 Basic Principles
+- Markets move in repeating **waves** driven by crowd psychology
 - Mô hình fractal — pattern lớn chứa pattern nhỏ bên trong
 - **Complete cycle = 8 sóng:** 5 sóng impulse + 3 sóng corrective
 
-### 2.2 Impulse Waves (Sóng đẩy — theo trend chính)
+### 2.2 Impulse Waves (With Main Trend)
 
 ```
         3
@@ -94,7 +94,7 @@ Các tỷ lệ quan trọng đến từ phép chia trong dãy:
 | **Wave 4** | Correction nhẹ, KHÔNG chồng lấn Wave 1 | Retrace 23.6-38.2% của W3 |
 | **Wave 5** | Kết thúc trend, momentum yếu | 61.8-100% của W1 |
 
-### 2.3 Corrective Waves (Sóng điều chỉnh — ngược trend)
+### 2.3 Corrective Waves (Against Trend)
 
 ```
 A
@@ -111,24 +111,24 @@ A
 | **Wave B** | Rally giả (bull trap), không vượt đỉnh W5 |
 | **Wave C** | Giảm mạnh, thường bằng hoặc vượt W-A | 
 
-**Corrective patterns phổ biến:**
+**Common corrective patterns:**
 - **Zigzag (5-3-5):** Sắc nhọn, C thường vượt A
 - **Flat (3-3-5):** B gần bằng đỉnh, C gần bằng đáy A
 - **Triangle (3-3-3-3-3):** ABCDE co dần, breakout cuối
 
-### 2.4 Quy tắc bắt buộc (Rules)
+### 2.4 Mandatory Rules
 1. ❌ **Wave 2 không retrace > 100% Wave 1**
 2. ❌ **Wave 3 không bao giờ là sóng ngắn nhất** trong 3 sóng impulse (1, 3, 5)
 3. ❌ **Wave 4 không chồng lấn vùng giá của Wave 1** (trong impulse standard)
 
-### 2.5 Guidelines (thường đúng nhưng không bắt buộc)
+### 2.5 Guidelines (usually true but not mandatory)
 - Wave 3 thường = 161.8% Wave 1
 - Wave 2 thường retrace 50-61.8%
 - Wave 4 thường retrace 38.2%
 - Wave 5 thường = Wave 1 hoặc 61.8% Wave 1
 - **Alternation:** Nếu W2 là zigzag thì W4 thường là flat, và ngược lại
 
-### 2.6 Ví dụ thực tế — VN-Index 2020-2026
+### 2.6 Real Example — VN-Index 2020-2026
 
 ```
 Đáy COVID (03/2020): ~650 → Start of Wave Cycle
@@ -145,34 +145,34 @@ Nhưng: VN-Index hiện tại 1,604, đang correction
 
 ## 3. VOLUME PROFILE
 
-### 3.1 Khác biệt với Volume truyền thống
-- **Volume bars (truyền thống):** Hiển thị volume theo THỜI GIAN (ngày/tuần)
-- **Volume Profile:** Hiển thị volume theo GIÁ → biết ở mức giá nào giao dịch nhiều nhất
+### 3.1 Difference from Traditional Volume
+- **Volume bars (truyền thống):** Shows volume over TIME (ngày/tuần)
+- **Volume Profile:** Shows volume over PRICE → know at which price level most trading occurred
 
-### 3.2 Thành phần chính
+### 3.2 Main Components
 
 #### Point of Control (POC)
-- Mức giá có **volume giao dịch lớn nhất** trong khoảng thời gian
+- Price level with **highest trading volume** trong khoảng thời gian
 - = "Giá công bằng" (fair value) mà thị trường đồng thuận
 - Giá thường quay về POC sau khi di chuyển xa
 
 #### Value Area (VA)
-- Vùng giá chứa **70% tổng volume** (tương tự ±1 standard deviation)
+- Price zone containing **70% of total volume** (tương tự ±1 standard deviation)
 - **VAH** (Value Area High): Biên trên
 - **VAL** (Value Area Low): Biên dưới
 - Giá ngoài VA = "bất thường" → có xu hướng quay về VA
 
 #### High Volume Nodes (HVN)
-- Vùng giá có volume dày đặc
+- Price zones with dense volume
 - Tác dụng: **Support/Resistance mạnh** → giá khó vượt qua
 - Ví dụ: MBB có HVN ở 22,000-23,000 → vùng này là support rất mạnh
 
 #### Low Volume Nodes (LVN)
-- Vùng giá có volume mỏng
+- Price zones with thin volume
 - Tác dụng: Giá di chuyển **NHANH** qua vùng này
 - Ví dụ: MBB có LVN ở 25,000-26,000 → nếu breakout 25k sẽ bay nhanh lên 26k+
 
-### 3.3 Chiến lược giao dịch
+### 3.3 Trading Strategies
 
 #### Strategy 1: POC Reversion
 ```
@@ -197,7 +197,7 @@ Target: HVN kế tiếp
 Risk: Thấp vì giá di chuyển nhanh qua LVN
 ```
 
-### 3.4 Kết hợp Volume Profile + Fibonacci
+### 3.4 Combining Volume Profile + Fibonacci
 
 **Confluence trading — khi nhiều tín hiệu trùng nhau = strong signal:**
 
@@ -217,9 +217,9 @@ MBB: Fibonacci 61.8% = 19,350 | HVN = 19,000-20,000 | EMA200 = 19,500
 
 ---
 
-## 4. KẾT HỢP 3 CÔNG CỤ — FRAMEWORK THỰC HÀNH
+## 4. COMBINING 3 TOOLS — PRACTICAL FRAMEWORK
 
-### 4.1 Bước phân tích
+### 4.1 Analysis Steps
 
 ```
 Bước 1: ELLIOTT WAVE — Xác định vị trí trong chu kỳ sóng
@@ -240,20 +240,20 @@ Bước 4: HÀNH ĐỘNG
 → Chỉ 1 signal → Chờ thêm confirmation
 ```
 
-### 4.2 Scoring bổ sung cho SKILL.md
+### 4.2 Additional Scoring for SKILL.md
 
-| Tiêu chí nâng cao | Điểm |
+| Advanced criteria | Points |
 |-------------------|------|
 | Giá tại Fibonacci 38.2-61.8% + HVN | +3 |
 | Elliott Wave 3 bắt đầu | +3 |
 | Volume Profile POC support | +2 |
 | Fibonacci Extension target > 30% upside | +2 |
 | Elliott Wave count rõ ràng | +1 |
-| **Tổng bổ sung tối đa** | **+11** |
+| **Max additional total** | **+11** |
 
 → Kết hợp với Score cơ bản (max 15) = **Score nâng cao max 26**
 
-### 4.3 Ví dụ phân tích hoàn chỉnh
+### 4.3 Complete Analysis Example
 
 **MBB — Phân tích 23/03/2026:**
 ```
@@ -273,14 +273,14 @@ Score nâng cao: +3 (Fib+HVN) + +3 (W3 setup) + +2 (POC) = +8
 
 ---
 
-## 5. TOOLS THỰC HÀNH
+## 5. PRACTICAL TOOLS
 
-### TradingView (miễn phí)
+### TradingView (free)
 - **Fibonacci tool:** Drawing tools → Fibonacci Retracement/Extension
 - **Volume Profile:** Indicators → Volume Profile (cần TradingView Plus cho Fixed Range)
 - **Elliott Wave:** Drawing tools → Elliott Impulse/Correction labels
 
-### Cách setup trên TradingView
+### TradingView Setup
 1. Chart daily/weekly cho tầm nhìn trung-dài hạn
 2. Vẽ Fibonacci từ swing low → swing high gần nhất
 3. Thêm Volume Profile Fixed Range cho 6 tháng gần nhất
@@ -289,7 +289,7 @@ Score nâng cao: +3 (Fib+HVN) + +3 (W3 setup) + +2 (POC) = +8
 
 ---
 
-## 6. CẢNH BÁO & HẠN CHẾ
+## 6. WARNINGS & LIMITATIONS
 
 ### Elliott Wave
 - ⚠️ **Chủ quan cao** — 2 analyst có thể đếm sóng khác nhau
@@ -308,4 +308,4 @@ Score nâng cao: +3 (Fib+HVN) + +3 (W3 setup) + +2 (POC) = +8
 
 ---
 
-*File này bổ sung kỹ thuật nâng cao cho framework TA cơ bản trong SKILL.md và financial-analysis-knowledge.md*
+*This file supplements advanced techniques for the basic TA framework in SKILL.md and financial-analysis-knowledge.md*

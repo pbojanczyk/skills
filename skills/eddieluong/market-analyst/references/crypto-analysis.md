@@ -1,9 +1,9 @@
 # Crypto & BNB Analysis Framework
-> Tổng hợp framework phân tích crypto toàn diện — On-chain, Tokenomics, DeFi, Technical
+> Comprehensive crypto analysis framework — On-chain, Tokenomics, DeFi, Technical
 
 ---
 
-## 1. ON-CHAIN ANALYSIS — Phân tích dữ liệu blockchain
+## 1. ON-CHAIN ANALYSIS — Blockchain Data Analysis
 
 ### 1.1 MVRV — Market Value to Realized Value
 **"P/E ratio" của crypto**
@@ -12,9 +12,9 @@
 - **Market Cap:** Giá hiện tại × Circulating Supply
 - **Realized Cap:** Tổng giá trị mỗi coin tại mức giá lần cuối nó di chuyển on-chain (= tổng cost basis)
 
-| MVRV | Ý nghĩa | Hành động |
+| MVRV | Meaning | Hành động |
 |------|---------|-----------|
-| < 1.0 | 🟢🟢 Đa số holder đang lỗ → vùng tích lũy | Mua mạnh (historically = bottom) |
+| < 1.0 | 🟢🟢 Most holders at loss → accumulation zone | Strong buy (historically = bottom) |
 | 1.0–2.0 | 🟢 Holder lãi vừa phải → healthy | DCA bình thường |
 | 2.0–3.5 | 🟡 Overvalued → profit-taking bắt đầu | Cẩn thận, bắt đầu chốt lời |
 | > 3.5 | 🔴 Extreme overvalued → bubble territory | Chốt lời mạnh |
@@ -23,14 +23,14 @@
 - Z > 7: Đỉnh chu kỳ (2017, 2021) → BÁN
 - Z < 0: Đáy chu kỳ → MUA
 
-**Nguồn data:** Glassnode, CryptoQuant, Santiment
+**Source data:** Glassnode, CryptoQuant, Santiment
 
 ### 1.2 NVT — Network Value to Transactions
 **"P/E ratio" dựa trên giao dịch thực tế**
 
 **Công thức:** NVT = Market Cap / Daily Transaction Volume (USD)
 
-| NVT | Ý nghĩa |
+| NVT | Meaning |
 |-----|---------|
 | < 20 | 🟢 Network undervalued so với usage → mua |
 | 20–50 | 🟡 Fair value |
@@ -54,9 +54,9 @@
 
 ---
 
-## 2. BNB — PHÂN TÍCH CHUYÊN SÂU
+## 2. BNB — DEEP ANALYSIS
 
-### 2.1 Tokenomics BNB (03/2026)
+### 2.1 BNB Tokenomics (03/2026)
 
 | Metric | Giá trị |
 |--------|---------|
@@ -67,7 +67,7 @@
 | **Staked Amount** | > 25.7 triệu BNB |
 | **Consensus** | Proof of Staked Authority (PoSA) |
 
-### 2.2 Cơ chế Burn (Deflationary)
+### 2.2 Burn Mechanism (Deflationary)
 
 **Dual Burn Strategy:**
 
@@ -81,14 +81,14 @@
    - ~281,000 BNB đã burn qua cơ chế này
    - Tạo áp lực giảm phát thường trực
 
-**Tại sao quan trọng:**
+**Why it matters:**
 ```
 Supply giảm liên tục (136M → target 100M)
 + Demand tăng (DeFi, trading, gas)
 = Áp lực tăng giá dài hạn
 ```
 
-### 2.3 Ecosystem BNB Chain (2025-2026)
+### 2.3 BNB Chain Ecosystem (2025-2026)
 
 | Metric | 2025 | Trend |
 |--------|------|-------|
@@ -105,7 +105,7 @@ Supply giảm liên tục (136M → target 100M)
 - Focus: High-performance EVM trading chain
 - Use cases: AI + RWA + advanced DeFi
 
-### 2.4 Các Yếu tố Ảnh hưởng Giá BNB
+### 2.4 Factors Affecting BNB Price
 
 **Bullish Factors:**
 - ✅ Deflationary tokenomics (burn liên tục)
@@ -122,9 +122,9 @@ Supply giảm liên tục (136M → target 100M)
 - ❌ Geopolitical risk → risk-off → crypto bán trước
 - ❌ Correlation cao với BTC (BTC giảm → BNB giảm)
 
-### 2.5 Dự báo Giá BNB 2026
+### 2.5 BNB Price Forecast 2026
 
-| Nguồn | Range | Kịch bản |
+| Source | Range | Kịch bản |
 |-------|-------|----------|
 | CoinCodex / Standard Chartered | $1,300 – $2,100 | Base case |
 | Coinpedia / DigitalCoinPrice | Lên tới $3,300 | Bull case |
@@ -134,9 +134,9 @@ Supply giảm liên tục (136M → target 100M)
 
 ---
 
-## 3. FRAMEWORK PHÂN TÍCH CRYPTO TỔNG HỢP
+## 3. COMPREHENSIVE CRYPTO ANALYSIS FRAMEWORK
 
-### 3.1 Quy trình 5 bước
+### 3.1 Five-Step Process
 
 ```
 Bước 1: MACRO CHECK
@@ -170,9 +170,9 @@ Bước 5: TECHNICAL ANALYSIS
 
 ### 3.2 Crypto Fear & Greed Index
 
-**Nguồn:** Alternative.me (0-100)
+**Source:** Alternative.me (0-100)
 
-| Giá trị | Trạng thái | Hành động |
+| Giá trị | State | Hành động |
 |---------|-----------|-----------|
 | 0-10 | 🟢🟢 Extreme Fear | Mua mạnh (lịch sử = đáy) |
 | 10-25 | 🟢 Fear | Tích lũy DCA |
@@ -182,7 +182,7 @@ Bước 5: TECHNICAL ANALYSIS
 
 ### 3.3 Bitcoin Dominance (BTC.D)
 
-| BTC.D | Ý nghĩa cho Altcoins (BNB) |
+| BTC.D | Meaning cho Altcoins (BNB) |
 |-------|---------------------------|
 | > 60% & tăng | 🔴 Money flowing to BTC, alts weak → chờ |
 | 50-60% | 🟡 Neutral |
@@ -191,7 +191,7 @@ Bước 5: TECHNICAL ANALYSIS
 
 ### 3.4 Funding Rate (Perpetual Futures)
 
-| Funding | Ý nghĩa |
+| Funding | Meaning |
 |---------|---------|
 | > 0.1% | 🔴 Quá nhiều long → overheated |
 | 0 – 0.05% | 🟡 Neutral |
@@ -200,9 +200,9 @@ Bước 5: TECHNICAL ANALYSIS
 
 ---
 
-## 4. DCA CRYPTO — Chiến lược tích lũy
+## 4. DCA CRYPTO — Accumulation Strategy
 
-### 4.1 Phân bổ trong portfolio crypto
+### 4.1 Allocation Within Crypto Portfolio
 ```
 BTC:  50-60% — Store of value, lowest risk trong crypto
 BNB:  20-30% — Ecosystem play, deflationary
@@ -210,12 +210,12 @@ ETH:  10-20% — DeFi + smart contracts
 Others: 0-10% — High risk, high reward
 ```
 
-### 4.2 Khi nào tăng/giảm DCA crypto?
+### 4.2 When to Increase/Decrease Crypto DCA?
 - **Tăng gấp đôi DCA khi:** Fear & Greed < 20, MVRV < 1, FED signal dovish
 - **Giữ nguyên DCA khi:** Market neutral, macro stable
 - **Giảm/dừng DCA khi:** Extreme Greed > 80, MVRV > 3, FED tăng lãi suất
 
-### 4.3 Nơi mua tại Việt Nam
+### 4.3 Where to Buy in Vietnam
 | Platform | BNB? | BTC? | Min | Fee |
 |----------|------|------|-----|-----|
 | Binance | ✅ | ✅ | $10 | 0.1% |
@@ -227,7 +227,7 @@ Others: 0-10% — High risk, high reward
 
 ---
 
-## 5. CÔNG CỤ THEO DÕI
+## 5. MONITORING TOOLS
 
 | Tool | Mục đích | Link |
 |------|---------|------|
@@ -243,14 +243,14 @@ Others: 0-10% — High risk, high reward
 
 ## 6. LESSONS LEARNED — Crypto Edition
 
-### ❌ Sai lầm phổ biến
+### ❌ Common Mistakes
 1. **FOMO mua đỉnh** khi Fear & Greed > 80 → luôn kiểm tra trước khi mua
 2. **Không set stop-loss** → crypto có thể giảm 80%+ trong bear market
 3. **All-in 1 coin** → diversify BTC/BNB/ETH
 4. **Trade futures không có kinh nghiệm** → leverage 10x+ = cháy tài khoản nhanh
 5. **Bỏ qua macro** → FED là driver #1 cho crypto
 
-### ✅ Best practices
+### ✅ Best Practices
 1. **DCA hàng tháng, bất kể giá** → simple & effective
 2. **Check MVRV trước khi mua lớn** → < 1 = cơ hội hiếm
 3. **Theo dõi BTC trước** → BTC dẫn dắt, alts theo sau
@@ -259,4 +259,4 @@ Others: 0-10% — High risk, high reward
 
 ---
 
-*Framework này kết hợp với technical analysis trong SKILL.md để phân tích crypto toàn diện.*
+*This framework combines with technical analysis in SKILL.md for comprehensive crypto analysis.*

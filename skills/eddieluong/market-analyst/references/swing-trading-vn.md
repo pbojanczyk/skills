@@ -1,29 +1,29 @@
-# Lướt Sóng Chứng Khoán VN — Swing Trading & Scalping
+# VN Stock Swing Trading & Scalping
 
-> Tài liệu tham khảo cho phân tích lướt sóng thị trường Việt Nam.
-> Cập nhật: 2026-03-23
+> Reference guide for swing trading analysis in the Vietnamese market.
+> Updated: 2026-03-23
 
 ---
 
-## 1. Swing Trading VN (Giữ 2–10 ngày)
+## 1. Swing Trading VN (Hold 2–10 Days)
 
 ### 1.1 Entry/Exit Signals
 
-#### RSI Divergence (Phân kỳ RSI)
+#### RSI Divergence
 
-RSI divergence là tín hiệu mạnh nhất cho swing trading, đặc biệt trên chart D1.
+RSI divergence is the strongest signal for swing trading, especially on D1 chart.
 
-**Bullish Divergence (phân kỳ tăng):**
+**Bullish Divergence:**
 - Giá tạo đáy thấp hơn (lower low), nhưng RSI tạo đáy cao hơn (higher low)
 - → Lực bán suy yếu, giá sắp đảo chiều tăng
 - **Ví dụ:** MBB giảm từ 22k xuống 18k (lower low), RSI từ 28 lên 35 (higher low) → buy signal
 
-**Bearish Divergence (phân kỳ giảm):**
+**Bearish Divergence:**
 - Giá tạo đỉnh cao hơn (higher high), nhưng RSI tạo đỉnh thấp hơn (lower high)
 - → Lực mua suy yếu, giá sắp đảo chiều giảm
 - **Ví dụ:** FPT tăng từ 130k lên 145k (higher high), RSI từ 72 xuống 65 (lower high) → sell signal
 
-**Hidden Divergence (phân kỳ ẩn — xác nhận xu hướng):**
+**Hidden Divergence (confirms trend):**
 - Bullish hidden: Giá higher low + RSI lower low → uptrend tiếp tục
 - Bearish hidden: Giá lower high + RSI higher high → downtrend tiếp tục
 
@@ -53,11 +53,11 @@ RSI divergence là tín hiệu mạnh nhất cho swing trading, đặc biệt tr
 - Histogram từ âm sang dương → momentum tăng dần
 - Histogram giảm dần từ đỉnh → momentum suy yếu, chuẩn bị exit
 
-**Settings cho swing VN:** MACD(12,26,9) trên D1 chart — settings mặc định, hoạt động tốt với chu kỳ 2-10 ngày.
+**Settings for VN swing:** MACD(12,26,9) trên D1 chart — settings mặc định, hoạt động tốt với chu kỳ 2-10 ngày.
 
 #### Bollinger Squeeze Breakout
 
-**Nhận diện Squeeze:**
+**Identifying Squeeze:**
 - Bollinger Bands co lại hẹp bất thường (Bandwidth < 10% so với 6 tháng)
 - Thị trường đang tích lũy, sắp bùng nổ
 
@@ -74,7 +74,7 @@ RSI divergence là tín hiệu mạnh nhất cho swing trading, đặc biệt tr
 
 ### 1.2 Volume Confirmation Patterns
 
-| Pattern | Mô tả | Tín hiệu |
+| Pattern | Description | Signal |
 |---------|--------|-----------|
 | Volume surge + breakout | Volume > 2x avg khi phá resistance | 🟢 Mua mạnh |
 | Volume giảm dần khi pullback | Giá giảm nhẹ + volume thấp | 🟢 Healthy pullback, chờ mua |
@@ -82,14 +82,14 @@ RSI divergence là tín hiệu mạnh nhất cho swing trading, đặc biệt tr
 | Volume thấp + giá tăng | Tăng giả, thiếu lực mua | 🟡 Cẩn thận, có thể bull trap |
 | Climax volume | Volume cực lớn (>3x) tại đỉnh/đáy | 🟡 Đảo chiều sắp xảy ra |
 
-**Quy tắc volume cho VN:**
+**Volume rules for VN:**
 - Mã VN30: Volume xác nhận khi > 1.5x avg 20 phiên
 - Midcap: Volume xác nhận khi > 2x avg 20 phiên
 - **Không trade mã có volume < 500K/ngày** — rủi ro thanh khoản cao
 
-### 1.3 Support/Resistance — Cách Xác Định
+### 1.3 Support/Resistance — How to Identify
 
-**Phương pháp xác định:**
+**Methods for identification:**
 
 1. **Swing highs/lows:** Các đỉnh/đáy rõ ràng trên chart D1
 2. **Round numbers:** Các mức giá tròn (10k, 20k, 50k, 100k) — tâm lý thị trường VN rất mạnh ở mức tròn
@@ -97,12 +97,12 @@ RSI divergence là tín hiệu mạnh nhất cho swing trading, đặc biệt tr
 4. **Volume Profile:** Vùng giá có volume giao dịch lớn nhất → support/resistance mạnh
 5. **Gap zones:** Vùng gap chưa lấp → act as S/R
 
-**Quy tắc:**
+**Rules:**
 - S/R được test nhiều lần → càng mạnh
 - Khi S bị phá → trở thành R (và ngược lại)
 - S/R kết hợp với Fibonacci retracement (38.2%, 50%, 61.8%) → confluence zone = vùng mua/bán tốt nhất
 
-**Ví dụ thực tế:**
+**Real-world example:**
 - VNM: Support mạnh tại 65k (EMA200 + round number + swing low 3 lần) → mỗi lần chạm 65k bounce lên 5-8%
 - HPG: Resistance 28k (đỉnh cũ + Fib 61.8%) → cần volume lớn để phá
 
@@ -117,16 +117,16 @@ RSI divergence là tín hiệu mạnh nhất cho swing trading, đặc biệt tr
 - Tương tự nhưng ngược lại
 - **Gap fill strategy:** ~70% gap được lấp trong 5 phiên → nếu gap down nhỏ (< 2%) + volume thấp → mua đón gap fill
 
-**Đặc thù VN:**
+**VN-specific:**
 - Biên độ giá HOSE: ±7%/ngày → gap tối đa 7%
 - HNX: ±10% → gap có thể lớn hơn
 - UPCoM: ±15%
 - Gap sau nghỉ lễ dài thường mạnh (tích lũy tin tức)
 
-### 1.5 Candlestick Patterns Quan Trọng
+### 1.5 Important Candlestick Patterns
 
-#### Patterns đảo chiều tăng (Bullish Reversal)
-| Pattern | Mô tả | Độ tin cậy |
+#### Bullish Reversal Patterns
+| Pattern | Description | Reliability |
 |---------|--------|------------|
 | **Hammer** | Thân nhỏ, bóng dưới dài ≥ 2x thân, xuất hiện ở đáy | ⭐⭐⭐ |
 | **Bullish Engulfing** | Nến xanh bao trùm hoàn toàn nến đỏ trước | ⭐⭐⭐⭐ |
@@ -134,8 +134,8 @@ RSI divergence là tín hiệu mạnh nhất cho swing trading, đặc biệt tr
 | **Piercing Line** | Nến xanh mở dưới low trước, đóng > 50% thân nến đỏ | ⭐⭐⭐ |
 | **Dragonfly Doji** | Doji với bóng dưới rất dài, ở đáy downtrend | ⭐⭐⭐ |
 
-#### Patterns đảo chiều giảm (Bearish Reversal)
-| Pattern | Mô tả | Độ tin cậy |
+#### Bearish Reversal Patterns
+| Pattern | Description | Reliability |
 |---------|--------|------------|
 | **Shooting Star** | Thân nhỏ, bóng trên dài ≥ 2x thân, ở đỉnh | ⭐⭐⭐ |
 | **Bearish Engulfing** | Nến đỏ bao trùm hoàn toàn nến xanh trước | ⭐⭐⭐⭐ |
@@ -143,13 +143,13 @@ RSI divergence là tín hiệu mạnh nhất cho swing trading, đặc biệt tr
 | **Dark Cloud Cover** | Nến đỏ mở trên high trước, đóng < 50% thân nến xanh | ⭐⭐⭐ |
 | **Gravestone Doji** | Doji với bóng trên rất dài, ở đỉnh uptrend | ⭐⭐⭐ |
 
-**Quy tắc sử dụng:**
+**Usage rules:**
 - Candlestick pattern CHỈ có ý nghĩa khi ở vùng S/R quan trọng
 - Phải có volume xác nhận (volume nến signal > avg)
 - Kết hợp với RSI/MACD để tăng xác suất
 - **Ví dụ:** MBB tạo Morning Star tại support 18k + RSI < 30 + volume tăng → xác suất tăng > 75%
 
-### 1.6 Risk Management cho Swing Trading
+### 1.6 Risk Management for Swing Trading
 
 **Stop Loss:**
 - Mã VN30 (blue chip): stop loss 3-5%
@@ -166,25 +166,25 @@ Số lượng = (100,000,000 × 2%) / (20,000 - 19,000) = 2,000 CP
 Giá trị vị thế = 2,000 × 20,000 = 40,000,000 (40% vốn)
 ```
 
-**Quy tắc bổ sung:**
+**Additional rules:**
 - Tối đa 3-5 vị thế swing cùng lúc
 - Không quá 30% vốn vào 1 ngành
 - Trailing stop: dời stop loss lên khi giá tăng (theo EMA20 hoặc swing low mới)
 
 ---
 
-## 2. Scalping / Day Trading VN (Trong ngày)
+## 2. Scalping / Day Trading VN (Intraday)
 
 ### 2.1 Phiên ATO/ATC Strategies
 
-**Giờ giao dịch HOSE:**
-| Phiên | Thời gian | Loại khớp |
+**HOSE trading hours:**
+| Phiên | Thời gian | Match type |
 |-------|-----------|-----------|
-| ATO | 09:00 – 09:15 | Khớp lệnh định kỳ mở cửa |
-| Liên tục sáng | 09:15 – 11:30 | Khớp lệnh liên tục |
+| ATO | 09:00 – 09:15 | Opening periodic matching |
+| Liên tục sáng | 09:15 – 11:30 | Continuous matching |
 | Nghỉ trưa | 11:30 – 13:00 | - |
-| Liên tục chiều | 13:00 – 14:30 | Khớp lệnh liên tục |
-| ATC | 14:30 – 14:45 | Khớp lệnh định kỳ đóng cửa |
+| Liên tục chiều | 13:00 – 14:30 | Continuous matching |
+| ATC | 14:30 – 14:45 | Closing periodic matching |
 
 **ATO Strategy:**
 1. **Gap & Go:** Nếu mã gap up > 2% tại ATO với volume lớn → mua ngay sau ATO (09:15-09:20), target +3-5% trong phiên
@@ -196,38 +196,38 @@ Giá trị vị thế = 2,000 × 20,000 = 40,000,000 (40% vốn)
 2. **ATC dump:** Bán ATC nếu mã tăng mạnh nhưng volume yếu → ngày mai có thể gap down
 3. **Smart money tracking:** Quan sát dư mua/bán ATC — nếu dư mua đột biến → tín hiệu tích cực cho ngày mai
 
-### 2.2 T+2.5 Rule VN
+### 2.2 T+2.5 Settlement Rule VN
 
-**Cách hoạt động:**
+**How it works:**
 - Mua CP ngày T → chứng khoán về tài khoản trưa ngày T+2
 - Có thể bán CHIỀU ngày T+2 (từ 13:00)
 - → Gọi là T+2.5
 
-**Chiến lược tận dụng T+2.5:**
+**Strategies leveraging T+2.5:**
 1. **Buy Friday afternoon, sell Tuesday afternoon:** Mua chiều thứ 6, bán chiều thứ 3
 2. **News trading:** Mua khi có tin tốt, bán T+2.5 khi giá đã phản ánh
 3. **Swing ngắn:** Mua chiều nay nếu setup đẹp → bán sáng kia (T+2.5) khi giá gap up
 
-**Lưu ý quan trọng:**
+**Important notes:**
 - Nếu mua **sáng T** → vẫn phải chờ **chiều T+2** mới bán được
 - Tính từ ngày giao dịch, không tính T6-CN
 - Một số CTCK cho phép bán trước T+2 nếu có ký quỹ (margin) — kiểm tra với broker
 
 ### 2.3 Order Flow Analysis
 
-**Phân tích dòng lệnh VN:**
+**VN order flow analysis:**
 - **Bước giá HOSE:** 10đ (< 10k), 50đ (10k-50k), 100đ (> 50k)
 - **3 giá tốt nhất:** Quan sát top 3 bid/ask
 - **Dư mua > dư bán:** Áp lực tăng giá
-- **Big lot (lô lớn > 10,000 CP):** Tín hiệu tổ chức/cá mập đang giao dịch
+- **Big lot (lô lớn > 10,000 CP):** Signal tổ chức/cá mập đang giao dịch
 
-**Cách đọc order flow:**
+**How to read order flow:**
 1. **Iceberg orders:** Lô lớn chia nhỏ, liên tục xuất hiện ở 1 mức giá → accumulation
 2. **Spoofing:** Đặt lệnh lớn rồi hủy → tạo tín hiệu giả (cẩn thận)
 3. **Market depth:** Nếu ask side mỏng + bid dày → giá dễ tăng
 4. **Tick-by-tick:** Quan sát mỗi lệnh khớp — nhiều lệnh mua chủ động (hit ask) → bullish
 
-### 2.4 Breakout Trading Intraday
+### 2.4 Intraday Breakout Trading
 
 **Setup:**
 1. Xác định range sáng (09:15-10:30): High và Low của phiên sáng
@@ -248,7 +248,7 @@ Giá trị vị thế = 2,000 × 20,000 = 40,000,000 (40% vốn)
 
 **VWAP (Volume Weighted Average Price)** = Giá trung bình có trọng số volume trong ngày.
 
-**Cách sử dụng:**
+**How to use:**
 - Giá > VWAP → Bullish bias intraday → tìm cơ hội mua
 - Giá < VWAP → Bearish bias intraday → tránh mua, hoặc bán
 - Giá bounce từ VWAP → Entry point tốt
@@ -268,20 +268,20 @@ vwap = sum(price_i * volume_i) / sum(volume_i)
 
 ---
 
-## 3. Chỉ Báo Đặc Biệt Cho Lướt Sóng
+## 3. Special Indicators for Swing Trading
 
 ### 3.1 Williams %R
 
-**Công thức:** %R = (Highest High - Close) / (Highest High - Lowest Low) × (-100)
+**Formula:** %R = (Highest High - Close) / (Highest High - Lowest Low) × (-100)
 
 **Phạm vi:** 0 đến -100
-| Vùng | Tín hiệu |
+| Vùng | Signal |
 |------|-----------|
 | 0 đến -20 | Overbought → chuẩn bị bán |
 | -80 đến -100 | Oversold → chuẩn bị mua |
 | -50 | Neutral |
 
-**Cách dùng cho swing VN:**
+**Usage for VN swing:**
 - Williams %R phản ứng NHANH hơn RSI → tốt cho scalping và swing ngắn
 - Mua khi %R vượt lên trên -80 (từ oversold)
 - Bán khi %R rơi xuống dưới -20 (từ overbought)
@@ -293,7 +293,7 @@ vwap = sum(price_i * volume_i) / sum(volume_i)
 
 **Phạm vi:** Không giới hạn, thường dao động -200 đến +200
 
-| Vùng | Tín hiệu |
+| Vùng | Signal |
 |------|-----------|
 | > +100 | Overbought / Strong uptrend |
 | +100 đến -100 | Neutral range |
@@ -301,7 +301,7 @@ vwap = sum(price_i * volume_i) / sum(volume_i)
 | > +200 | Cực overbought → đảo chiều |
 | < -200 | Cực oversold → đảo chiều |
 
-**Chiến lược CCI Swing:**
+**CCI Swing Strategy:**
 1. **Zero-line crossover:** CCI cắt lên 0 → bullish, cắt xuống 0 → bearish
 2. **Breakout +100/-100:** CCI phá trên +100 → trend mạnh bắt đầu → mua theo trend
 3. **Divergence:** Giá higher high + CCI lower high → sắp giảm
@@ -312,25 +312,25 @@ vwap = sum(price_i * volume_i) / sum(volume_i)
 
 MFI = "RSI có volume" — kết hợp giá VÀ volume để đo áp lực mua/bán.
 
-| Vùng | Tín hiệu |
+| Vùng | Signal |
 |------|-----------|
 | > 80 | Overbought (có volume xác nhận) |
 | < 20 | Oversold (có volume xác nhận) |
 
-**Ưu điểm so với RSI:**
+**Advantages over RSI:**
 - MFI tích hợp volume → ít false signal hơn RSI đơn thuần
 - Rất hữu ích cho thị trường VN nơi volume là yếu tố quan trọng
 
-**Chiến lược:**
+**Strategy:**
 - MFI < 20 + Price tại support + Volume spike → **Strong buy**
 - MFI > 80 + Price tại resistance + Volume giảm → **Sell signal**
 - MFI divergence tin cậy hơn RSI divergence vì có volume backing
 
-### 3.4 ADX (Average Directional Index) — Sức Mạnh Trend
+### 3.4 ADX (Average Directional Index) — Trend Strength
 
-ADX đo **sức mạnh** trend, KHÔNG chỉ hướng. Kết hợp +DI/-DI để xác định hướng.
+ADX measures trend **strength**, NOT direction. Kết hợp +DI/-DI để xác định hướng.
 
-| ADX | Ý nghĩa | Chiến lược |
+| ADX | Meaning | Strategy |
 |-----|---------|------------|
 | 0-20 | Không có trend / sideway | → Range trading, Bollinger Bands |
 | 20-25 | Trend đang hình thành | → Chuẩn bị entry |
@@ -338,15 +338,15 @@ ADX đo **sức mạnh** trend, KHÔNG chỉ hướng. Kết hợp +DI/-DI để
 | 50-75 | Trend rất mạnh | → Hold, trailing stop |
 | > 75 | Cực mạnh (hiếm) | → Cẩn thận đảo chiều |
 
-**Cách dùng:**
+**How to use:**
 1. ADX > 25 + (+DI > -DI) → **Uptrend mạnh → MUA**
 2. ADX > 25 + (-DI > +DI) → **Downtrend mạnh → TRÁNH**
 3. ADX < 20 → Sideway → dùng RSI/Bollinger thay vì MACD
-4. +DI cắt lên -DI + ADX đang tăng → **Tín hiệu mua tốt nhất**
+4. +DI cắt lên -DI + ADX đang tăng → **Signal mua tốt nhất**
 
 **Ví dụ:** FPT ADX = 35 (trend mạnh), +DI = 28 > -DI = 12 → uptrend mạnh, swing long.
 
-### 3.5 Ichimoku Cloud cho Swing
+### 3.5 Ichimoku Cloud for Swing
 
 **5 thành phần:**
 1. **Tenkan-Sen (Conversion):** (High9 + Low9) / 2 — momentum ngắn hạn
@@ -357,8 +357,8 @@ ADX đo **sức mạnh** trend, KHÔNG chỉ hướng. Kết hợp +DI/-DI để
 
 **Kumo (Mây):** Vùng giữa Span A và Span B
 
-**Tín hiệu swing:**
-| Signal | Mô tả | Hành động |
+**Signal swing:**
+| Signal | Description | Hành động |
 |--------|--------|-----------|
 | Price > Cloud | Uptrend | Tìm mua |
 | Price < Cloud | Downtrend | Tránh mua |
@@ -370,7 +370,7 @@ ADX đo **sức mạnh** trend, KHÔNG chỉ hướng. Kết hợp +DI/-DI để
 | Cloud mỏng | Volatility thấp | Dễ phá qua |
 | Cloud dày | S/R mạnh | Khó phá |
 
-**Ichimoku cho VN:** Dùng settings chuẩn (9,26,52) trên D1 chart. Rất hiệu quả với VN30 bluechip vì đủ thanh khoản.
+**Ichimoku for VN:** Dùng settings chuẩn (9,26,52) trên D1 chart. Rất hiệu quả với VN30 bluechip vì đủ thanh khoản.
 
 **Ví dụ:** VCB giá 85k, trên Cloud (bullish), Tenkan vừa cắt lên Kijun, Cloud xanh + dày → strong uptrend, swing long target 92k.
 
@@ -387,11 +387,11 @@ R3 = High + 2 × (PP - Low)
 S3 = Low - 2 × (High - PP)
 ```
 
-**Cách dùng:**
+**How to use:**
 - **Daily pivots:** Cho day trading/scalping
 - **Weekly pivots:** Cho swing trading 2-10 ngày
 
-**Chiến lược:**
+**Strategy:**
 1. **Bounce:** Giá chạm S1/S2 + nến đảo chiều → mua, target PP hoặc R1
 2. **Breakout:** Giá phá R1 + volume → mua, target R2
 3. **Range:** Giá dao động giữa S1 và R1 → mua S1, bán R1
@@ -400,11 +400,11 @@ S3 = Low - 2 × (High - PP)
 
 ---
 
-## 4. Quản Lý Vốn Lướt Sóng
+## 4. Swing Trading Capital Management
 
 ### 4.1 Kelly Criterion
 
-**Công thức:**
+**Formula:**
 ```
 Kelly % = W - [(1 - W) / R]
 ```
@@ -420,15 +420,15 @@ Kelly % = 0.55 - [(1 - 0.55) / 2.0] = 0.55 - 0.225 = 0.325 = 32.5%
 ```
 → Đặt tối đa 32.5% vốn cho mỗi trade.
 
-**⚠️ Fractional Kelly (KHUYẾN NGHỊ):**
+**⚠️ Fractional Kelly (RECOMMENDED):**
 - Full Kelly quá rủi ro cho thực tế → dùng **Half Kelly (50%)** hoặc **Quarter Kelly (25%)**
 - Ví dụ trên: Half Kelly = 16.25%, Quarter Kelly = 8.1% per trade
-- **Khuyến nghị cho VN:** Quarter Kelly đến Half Kelly, tối đa 15-20% per trade
+- **Recommendation for VN:** Quarter Kelly đến Half Kelly, tối đa 15-20% per trade
 
 **Code tính Kelly:**
 ```python
 def kelly_criterion(win_rate, avg_win, avg_loss):
-    """Tính Kelly % cho position sizing"""
+    """Calculate Kelly % for position sizing"""
     R = avg_win / avg_loss
     kelly = win_rate - ((1 - win_rate) / R)
     half_kelly = kelly / 2
@@ -449,7 +449,7 @@ print(f"Half Kelly (recommended): {result['half_kelly']}%")
 
 ### 4.2 Risk/Reward Ratio
 
-**Quy tắc cứng: R:R tối thiểu 1:2**
+**Hard rule: minimum R:R 1:2**
 
 | R:R | Đánh giá | Breakeven Win Rate |
 |-----|----------|-------------------|
@@ -472,11 +472,11 @@ Reward = 2,000 VND
 R:R = 2,000 / 1,000 = 1:2 ✅
 ```
 
-**Quy tắc:** Nếu R:R < 1:2 → KHÔNG TRADE, dù setup đẹp đến mấy.
+**Rules:** Nếu R:R < 1:2 → KHÔNG TRADE, dù setup đẹp đến mấy.
 
 ### 4.3 Max Drawdown Rules
 
-**Giới hạn drawdown:**
+**Drawdown limits:**
 | Level | Drawdown | Hành động |
 |-------|----------|-----------|
 | 🟡 Warning | -5% tổng vốn | Giảm position size 50% |
@@ -490,7 +490,7 @@ R:R = 2,000 / 1,000 = 1:2 ✅
 **Tracking drawdown:**
 ```python
 def check_drawdown(portfolio_value, peak_value):
-    """Check drawdown level và đưa ra cảnh báo"""
+    """Check drawdown level and raise alerts"""
     drawdown = (peak_value - portfolio_value) / peak_value * 100
     if drawdown >= 15:
         return f"⛔ CIRCUIT BREAKER: -{drawdown:.1f}% — DỪNG TRADE 1 THÁNG"
@@ -504,7 +504,7 @@ def check_drawdown(portfolio_value, peak_value):
 
 ### 4.4 Pyramiding vs Averaging Down
 
-**Pyramiding (Tháp — ĐÚNG):**
+**Pyramiding (CORRECT):**
 - Thêm vị thế khi trade ĐANG LỜI → "winners ride"
 - Mỗi lần thêm nhỏ hơn lần trước (ví dụ: 100 → 60 → 40 CP)
 - Dời stop loss lên breakeven cho phần gốc
@@ -518,7 +518,7 @@ Stop loss dời lên 20.5k (breakeven cho lần 1)
 Target: 23.5k → Tổng lời: ~13.5tr
 ```
 
-**Averaging Down (Bình quân giá — NGUY HIỂM):**
+**Averaging Down (DANGEROUS):**
 - Thêm vị thế khi trade ĐANG LỖ → "catching falling knife"
 - **CHỈ chấp nhận** khi:
   1. Cổ phiếu cơ bản tốt (ROE > 15%, FCF dương)
@@ -527,28 +527,28 @@ Target: 23.5k → Tổng lời: ~13.5tr
   4. Max 3 lần average down
   5. Vẫn tuân thủ max drawdown rules
 
-**Quy tắc vàng:**
+**Golden rule:**
 > "Pyramiding khi đúng, cắt lỗ khi sai. KHÔNG BAO GIỜ averaging down với mã lướt sóng."
 
 Averaging down chỉ dành cho **đầu tư dài hạn DCA** với cổ phiếu fundamentals tốt (MBB, FPT, VNM...), KHÔNG dùng cho swing/scalping.
 
 ---
 
-## 5. Screening Criteria Cho Mã Lướt Sóng VN
+## 5. VN Swing Trading Screening Criteria
 
-### 5.1 Tiêu chí cứng
+### 5.1 Hard Criteria
 
-| Tiêu chí | Ngưỡng | Lý do |
+| Tiêu chí | Threshold | Reason |
 |----------|--------|-------|
-| Volume trung bình 20 phiên | > 1,000,000 CP/ngày | Đảm bảo thanh khoản, vào/ra dễ |
-| ATR(14) / Giá | > 3% | Biên độ đủ lớn để có lời |
-| Beta | > 1.2 | Biến động mạnh hơn thị trường |
-| Rổ | VN30, VNMID, VN100 | Thanh khoản tốt, ít bị thao túng |
-| Free-float | > 30% | Đủ CP lưu hành để giao dịch |
+| Volume trung bình 20 phiên | > 1,000,000 CP/ngày | Ensures liquidity, easy entry/exit |
+| ATR(14) / Giá | > 3% | Amplitude large enough for profit |
+| Beta | > 1.2 | More volatile than market |
+| Rổ | VN30, VNMID, VN100 | Good liquidity, less manipulation |
+| Free-float | > 30% | Enough float for trading |
 
-### 5.2 Tiêu chí mềm (ưu tiên)
+### 5.2 Soft Criteria (preferred)
 
-| Tiêu chí | Mô tả |
+| Tiêu chí | Description |
 |----------|-------|
 | Sector momentum | Ngành đang có dòng tiền chảy vào |
 | Near support | Giá gần vùng support quan trọng |
@@ -556,7 +556,7 @@ Averaging down chỉ dành cho **đầu tư dài hạn DCA** với cổ phiếu 
 | MACD sắp crossover | Momentum đang chuyển hướng |
 | Có catalyst | KQKD sắp công bố, tin ngành tốt |
 
-### 5.3 Danh sách mã lướt sóng VN phổ biến
+### 5.3 Popular VN Swing Trading Tickers
 
 **VN30 — Blue chip thanh khoản cao:**
 - **Ngân hàng:** MBB, TCB, VPB, STB, CTG, BID, ACB
@@ -572,18 +572,18 @@ Averaging down chỉ dành cho **đầu tư dài hạn DCA** với cổ phiếu 
 - **Xây dựng:** CTD, HBC
 - **Tiêu dùng:** PNJ, MWG
 
-### 5.4 Script Screening Lướt Sóng
+### 5.4 Swing Screening Script
 
 ```python
 #!/usr/bin/env python3
 """
-Swing Trading Screener cho thị trường VN
-Scan TradingView tìm mã phù hợp lướt sóng
+Swing Trading Screener for VN market
+Scan TradingView for swing trading candidates
 """
 import urllib.request, json
 
 def scan_swing_candidates():
-    """Scan mã VN phù hợp swing trading"""
+    """Scan VN stocks suitable for swing trading"""
     payload = {
         "filter": [
             {"left": "volume", "operation": "greater", "right": 1000000},
@@ -641,7 +641,7 @@ def scan_swing_candidates():
                     "atr_pct": round(atr_pct, 1),
                 })
 
-    # Sắp xếp theo RSI (oversold nhất trước)
+    # Sort by RSI (most oversold first)
     results.sort(key=lambda x: x["rsi"] if x["rsi"] else 100)
     return results
 
@@ -659,9 +659,9 @@ if __name__ == "__main__":
 
 ---
 
-## 6. Tổng Hợp — Swing Trading Checklist
+## 6. Summary — Swing Trading Checklist
 
-### ✅ Checklist trước khi vào lệnh
+### ✅ Checklist Before Entering a Trade
 
 1. **Trend:** EMA200 → uptrend hay downtrend?
 2. **Momentum:** RSI, MACD, ADX → momentum có ủng hộ?
@@ -674,25 +674,25 @@ if __name__ == "__main__":
 9. **Catalyst:** Có tin tức hỗ trợ?
 10. **Max exposure:** Tổng vị thế < 80% vốn?
 
-### 📊 Combo tín hiệu mạnh nhất
+### 📊 Strongest Signal Combos
 
-| Combo | Mô tả | Xác suất thắng |
+| Combo | Description | Win probability |
 |-------|--------|----------------|
 | RSI divergence + Hammer tại support + Volume spike | Đảo chiều từ đáy | ~70-75% |
 | Bollinger squeeze breakout + MACD crossover + ADX > 25 | Breakout trend mới | ~65-70% |
 | Ichimoku TK cross + Price trên Cloud + Volume tăng | Swing theo trend | ~65-70% |
 | MFI < 20 + Williams %R < -80 + Price tại S1 pivot | Oversold cực mạnh | ~70% |
 
-### ⚠️ Những sai lầm phổ biến
+### ⚠️ Common Mistakes
 
 1. **FOMO:** Đuổi giá khi đã tăng mạnh → mua đỉnh
 2. **Không cắt lỗ:** "Chờ nó về" → từ swing thành "ôm hàng"
 3. **Over-trading:** Trade quá nhiều, phí ăn hết lời
 4. **Averaging down mã lướt sóng:** Sai lầm chết người
 5. **Không có kế hoạch:** Entry/exit/stop loss phải có TRƯỚC khi đặt lệnh
-6. **Ignore volume:** Tín hiệu không có volume = tín hiệu yếu
+6. **Ignore volume:** Signal không có volume = tín hiệu yếu
 7. **Trade mã thanh khoản thấp:** Vào dễ, ra khó
 
 ---
 
-*⚠️ Tài liệu mang tính tham khảo giáo dục, không phải khuyến nghị đầu tư. Luôn DYOR và quản lý rủi ro.*
+*⚠️ Educational reference material, not investment advice. Always DYOR and manage risk.*

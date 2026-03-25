@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
 Market Scanner — finds oversold stocks with good fundamentals
-Hỗ trợ: HOSE, HNX, UPCOM (VN) + NASDAQ, NYSE, AMEX (US)
+Supports: HOSE, HNX, UPCOM (VN) + NASDAQ, NYSE, AMEX (US)
 Usage:
   python3 scan_market.py [--rsi 40] [--exchange HOSE] [--limit 20]
   python3 scan_market.py --exchange NASDAQ --rsi 35 --limit 30
   python3 scan_market.py --exchange NYSE --rsi 40
 
-Với crypto, forex, commodities → dùng scan_global.py
+For crypto, forex, commodities → use scan_global.py
 """
 import urllib.request, json, sys, argparse
 
@@ -31,7 +31,7 @@ def scan(rsi_threshold=40, exchange="HOSE", limit=20):
         {"left": "exchange", "operation": "equal", "right": exchange},
         {"left": "volume", "operation": "greater", "right": min_volume},
     ]
-    # US markets: lọc thêm market cap > $2B
+    # US markets: additional filter market cap > $2B
     if is_us:
         filters.append({"left": "market_cap_basic", "operation": "greater", "right": 2_000_000_000})
 
@@ -65,23 +65,23 @@ def scan(rsi_threshold=40, exchange="HOSE", limit=20):
 
         if rsi and rsi < 30:
             score += 3
-            signals.append("RSI cực oversold")
+            signals.append("RSI extreme oversold")
         elif rsi and rsi < 40:
             score += 2
             signals.append(f"RSI oversold ({rsi:.1f})")
 
         if close and ema200 and close > ema200:
             score += 2
-            signals.append("Trên EMA200 ✓")
+            signals.append("Above EMA200 ✓")
         if close and ema50 and close < ema50:
             score += 1
-            signals.append("Dưới EMA50 (điều chỉnh)")
+            signals.append("Below EMA50 (correction)")
         if macd and macd_sig and macd > macd_sig:
             score += 1
             signals.append("MACD bullish")
         if close and bb_low and close <= bb_low * 1.02:
             score += 2
-            signals.append("Gần BB Lower")
+            signals.append("Near BB Lower")
 
         pos52 = ((close - l52) / (h52 - l52) * 100) if (h52 and l52 and h52 != l52) else None
 
@@ -96,7 +96,7 @@ def scan(rsi_threshold=40, exchange="HOSE", limit=20):
 
     market_label = "US" if is_us else "VN"
     print(f"\n🔍 {market_label} Market Scanner — {exchange} | RSI < {rsi_threshold}")
-    print(f"{'Mã':<8} {'Giá':>10} {'%':>7} {'RSI':>6} {'Score':>6} {'Vol(M)':>8}  Tín hiệu")
+    print(f"{'Mã':<8} {'Giá':>10} {'%':>7} {'RSI':>6} {'Score':>6} {'Vol(M)':>8}  Signals")
     print("-" * 90)
 
     for r in results:
@@ -105,11 +105,11 @@ def scan(rsi_threshold=40, exchange="HOSE", limit=20):
         signals_str = ", ".join(r['signals'][:2])
         print(f"{r['symbol']:<8} {r['close']:>10,.0f} {r['change']:>+6.2f}% {r['rsi']:>6.1f} {r['score']:>6}  {vol_m:>6}M  {signals_str} {pos}")
 
-    print(f"\nTổng: {len(results)} cổ phiếu")
+    print(f"\nTotal: {len(results)} stocks")
     return results
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Market Scanner — tìm cổ phiếu oversold (VN + US)")
+    parser = argparse.ArgumentParser(description="Market Scanner — tìm stocks oversold (VN + US)")
     parser.add_argument("--rsi", type=float, default=40, help="RSI threshold (default: 40)")
     parser.add_argument("--exchange", default="HOSE",
                        help="Exchange: HOSE, HNX, UPCOM, NASDAQ, NYSE, AMEX (default: HOSE)")

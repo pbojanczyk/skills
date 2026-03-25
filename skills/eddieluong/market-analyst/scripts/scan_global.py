@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Global Market Scanner — scan US, crypto, forex, commodities qua TradingView
+Global Market Scanner — scan US, crypto, forex, commodities via TradingView
 Usage:
   python3 scan_global.py --market us [--rsi 40] [--limit 20]
   python3 scan_global.py --market crypto [--rsi 40]
@@ -10,7 +10,7 @@ Usage:
 """
 import urllib.request, json, sys, argparse
 
-# TradingView scanner endpoints & configs cho từng market
+# TradingView scanner endpoints & configs per market
 MARKET_CONFIGS = {
     "us": {
         "url": "https://scanner.tradingview.com/america/scan",
@@ -94,7 +94,7 @@ MARKET_CONFIGS = {
 
 
 def scan_market(market, rsi_threshold=None, limit=20):
-    """Scan một market cụ thể qua TradingView scanner."""
+    """Scan a specific market via TradingView scanner."""
     if market not in MARKET_CONFIGS:
         print(f"❌ Market '{market}' không hợp lệ. Chọn: {', '.join(MARKET_CONFIGS.keys())}")
         return []
@@ -102,11 +102,11 @@ def scan_market(market, rsi_threshold=None, limit=20):
     config = MARKET_CONFIGS[market]
     filters = list(config["filters"])
 
-    # Thêm RSI filter nếu có
+    # Add RSI filter if specified
     if rsi_threshold:
         filters.append({"left": "RSI", "operation": "less", "right": rsi_threshold})
 
-    # Thêm volume filter
+    # Add volume filter
     if config["volume_min"] > 0:
         filters.append({"left": "volume", "operation": "greater", "right": config["volume_min"]})
 
@@ -117,7 +117,7 @@ def scan_market(market, rsi_threshold=None, limit=20):
         "range": [0, limit],
     }
 
-    # Forex/commodities dùng symbols thay vì filter
+    # Forex/commodities use symbols instead of filter
     if market in ("forex", "commodities"):
         symbols_list = config["filters"][0]["right"]
         # Forex: dùng FX_IDC prefix, commodities: dùng TVC
@@ -141,7 +141,7 @@ def scan_market(market, rsi_threshold=None, limit=20):
         with urllib.request.urlopen(req, timeout=15) as r:
             data = json.loads(r.read())
     except Exception as e:
-        print(f"⚠️ Lỗi kết nối {config['label']}: {e}")
+        print(f"⚠️ Connection error {config['label']}: {e}")
         return []
 
     results = []
@@ -152,7 +152,7 @@ def scan_market(market, rsi_threshold=None, limit=20):
         d = item["d"]
 
         if is_equity:
-            # Equities/crypto có volume column
+            # Equities/crypto have volume column
             name, close, chg, vol = d[0], d[1], d[2], d[3]
             rsi, ema20, ema50, ema200 = d[4], d[5], d[6], d[7]
             macd, macd_sig = d[8], d[9]
@@ -161,7 +161,7 @@ def scan_market(market, rsi_threshold=None, limit=20):
             mcap = d[13] if len(d) > 13 else None
             pe = d[14] if len(d) > 14 else None
         else:
-            # Forex/commodities không có volume
+            # Forex/commodities have no volume
             name, close, chg = d[0], d[1], d[2]
             vol = None
             rsi, ema20, ema50, ema200 = d[3], d[4], d[5], d[6]
@@ -179,26 +179,26 @@ def scan_market(market, rsi_threshold=None, limit=20):
 
         if rsi is not None:
             if rsi < 30:
-                score += 3; signals.append("RSI cực oversold")
+                score += 3; signals.append("RSI extreme oversold")
             elif rsi < 40:
                 score += 2; signals.append(f"RSI oversold ({rsi:.1f})")
             elif rsi > 70:
                 signals.append(f"⚠️ Overbought ({rsi:.1f})")
 
         if close and ema200 and close > ema200:
-            score += 2; signals.append("Trên EMA200 ✓")
+            score += 2; signals.append("Above EMA200 ✓")
         elif close and ema200:
-            signals.append("Dưới EMA200 ✗")
+            signals.append("Below EMA200 ✗")
 
         if macd is not None and macd_sig is not None and macd > macd_sig:
             score += 1; signals.append("MACD bullish")
 
         if close and bb_low and close <= bb_low * 1.02:
-            score += 2; signals.append("Gần BB Lower")
+            score += 2; signals.append("Near BB Lower")
 
         pos52 = ((close - l52) / (h52 - l52) * 100) if (h52 and l52 and h52 != l52) else None
         if pos52 is not None and pos52 < 20:
-            score += 2; signals.append(f"Gần đáy 52W ({pos52:.0f}%)")
+            score += 2; signals.append(f"Near 52W low ({pos52:.0f}%)")
 
         results.append({
             "symbol": sym, "name": name, "close": close, "change": chg,
@@ -214,7 +214,7 @@ def scan_market(market, rsi_threshold=None, limit=20):
     print(f"{'='*95}")
 
     if is_equity:
-        print(f"{'Mã':<10} {'Giá':>10} {'%':>7} {'RSI':>6} {'Score':>6} {'Vol(M)':>8} {'P/E':>7}  Tín hiệu")
+        print(f"{'Mã':<10} {'Giá':>10} {'%':>7} {'RSI':>6} {'Score':>6} {'Vol(M)':>8} {'P/E':>7}  Signals")
         print("-" * 95)
         for r in results:
             vol_m = f"{r['volume']/1e6:.1f}" if r['volume'] else "N/A"
@@ -222,19 +222,19 @@ def scan_market(market, rsi_threshold=None, limit=20):
             signals_str = ", ".join(r['signals'][:3])
             print(f"{r['symbol']:<10} {r['close']:>10,.2f} {r['change']:>+6.2f}% {r['rsi'] or 0:>6.1f} {r['score']:>6}  {vol_m:>6}M {pe_str:>7}  {signals_str}")
     else:
-        print(f"{'Mã':<12} {'Giá':>12} {'%':>7} {'RSI':>6} {'Score':>6}  Tín hiệu")
+        print(f"{'Mã':<12} {'Giá':>12} {'%':>7} {'RSI':>6} {'Score':>6}  Signals")
         print("-" * 95)
         for r in results:
             signals_str = ", ".join(r['signals'][:3])
             rsi_val = f"{r['rsi']:.1f}" if r['rsi'] else "N/A"
             print(f"{r['symbol']:<12} {r['close']:>12,.4f} {r['change']:>+6.2f}% {rsi_val:>6} {r['score']:>6}  {signals_str}")
 
-    print(f"\nTổng: {len(results)} kết quả")
+    print(f"\nTotal: {len(results)} results")
     return results
 
 
 def scan_all(rsi_threshold=None, limit=10):
-    """Scan tất cả markets."""
+    """Scan all markets."""
     all_results = {}
     for market in ["us", "crypto", "forex", "commodities"]:
         all_results[market] = scan_market(market, rsi_threshold, limit)

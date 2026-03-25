@@ -1,6 +1,6 @@
-# Global ETF Guide — Hướng dẫn đầu tư ETF toàn cầu
+# Global ETF Guide — Worldwide ETF Investment Guide
 
-## S&P 500 ETFs — So sánh Top 4
+## S&P 500 ETFs — Top 4 Comparison
 
 | ETF | Tên đầy đủ | Expense Ratio | AUM | Đặc điểm |
 |-----|-----------|---------------|-----|-----------|
@@ -9,7 +9,7 @@
 | **IVV** | iShares Core S&P 500 | 0.03% | ~$350B+ | BlackRock, phí ngang VOO |
 | **SPLG** | SPDR Portfolio S&P 500 | 0.02% | ~$35B | Phí thấp nhất, AUM nhỏ hơn |
 
-### Chọn cái nào?
+### Which One to Choose?
 - **DCA dài hạn → VOO hoặc IVV** (phí thấp nhất, track record dài)
 - **Trading options → SPY** (thanh khoản options vượt trội)
 - **Phí thấp tuyệt đối → SPLG** (0.02%)
@@ -48,14 +48,14 @@
 | **Index** | MVIS Vietnam Index |
 | **Giao dịch** | NYSE Arca (giờ Mỹ) |
 
-### Đặc điểm VNM ETF:
+### VNM ETF Characteristics:
 - **Không chỉ cổ VN:** Bao gồm cả công ty nước ngoài có revenue >50% từ VN
 - **Top holdings:** FPT, VHM, VIC, HPG, MBB, VNM (dairy), TCB
 - **Tracking error:** Cao hơn so với mua trực tiếp trên HOSE
 - **Premium/Discount:** Thường trade at discount to NAV
 - **FTSE upgrade 2026:** Nếu VN được nâng hạng → VNM sẽ hưởng lợi lớn
 
-### Khi nào mua VNM ETF thay vì mua trực tiếp VN?
+### When to Buy VNM ETF Instead of Buying VN Directly?
 - ✅ NĐT ở nước ngoài, không mở được tài khoản CTCK VN
 - ✅ Muốn exposure VN qua tài khoản IBKR/eToro
 - ✅ Đa dạng hóa portfolio toàn cầu, cần VN allocation
@@ -72,7 +72,7 @@
 | **IEMG** | iShares Core MSCI EM | 0.09% | Phí thấp, bao gồm small-cap |
 | **SCHE** | Schwab EM | 0.11% | Phí thấp, Schwab clients |
 
-### Top Countries trong EM ETFs:
+### Top Countries in EM ETFs:
 1. **China:** ~25-30% (BABA, Tencent, ICBC)
 2. **India:** ~15-20% (Reliance, Infosys, HDFC)
 3. **Taiwan:** ~15-18% (TSMC, MediaTek)
@@ -98,31 +98,31 @@
 | **HYG** | High Yield Corporate | ~6-7% | ~4 năm | Junk bonds, rủi ro cao hơn |
 | **TIP** | TIPS (Inflation-Protected) | ~2% + CPI | ~7 năm | Hedge lạm phát |
 
-### Khi nào nên hold Bond ETFs?
+### When to Hold Bond ETFs?
 - **FED sắp cắt lãi suất → mua TLT** (bond price tăng khi rate giảm)
 - **Muốn income ổn định → BND/AGG** (yield ~4.5%, ít biến động)
 - **Parking cash → SHV** (yield ~5%, gần như không mất vốn)
 - **Lo lạm phát → TIP** (adjusted theo CPI)
 
-### Hiện tại (Q1/2026):
+### Currently (Q1/2026):
 - FED giữ 3.5-3.75%, dự kiến chỉ 1 lần cắt 2026
 - TLT: Cơ hội nếu FED cắt thêm; rủi ro nếu lạm phát dai dẳng
 - SHV/BIL: Safe parking cash yield ~5%
 
 ---
 
-## DCA Strategy cho ETF
+## DCA Strategy for ETF
 
-### Nguyên tắc DCA ETF:
+### DCA ETF Principles:
 1. **Chọn ETF** phù hợp mục tiêu (VOO cho core, QQQ cho growth)
 2. **Đặt lịch cố định** — cùng ngày mỗi tháng (VD: ngày 1 hoặc 15)
 3. **Số tiền cố định** — không thay đổi theo thị trường
 4. **KHÔNG time the market** — DCA hoạt động vì bỏ qua timing
 
-### Phân bổ theo Risk Profile:
+### Allocation by Risk Profile:
 
 **🟢 Bảo thủ (Conservative):**
-| ETF | Tỷ trọng | Vai trò |
+| ETF | Tỷ trọng | Role |
 |-----|----------|---------|
 | VOO | 40% | Core US equity |
 | BND | 30% | Bond stability |
@@ -130,7 +130,7 @@
 | GLD | 15% | Inflation hedge |
 
 **🟡 Cân bằng (Balanced):**
-| ETF | Tỷ trọng | Vai trò |
+| ETF | Tỷ trọng | Role |
 |-----|----------|---------|
 | VOO | 45% | Core US equity |
 | QQQ | 20% | Tech/growth |
@@ -139,7 +139,7 @@
 | GLD | 10% | Gold hedge |
 
 **🔴 Tích cực (Aggressive):**
-| ETF | Tỷ trọng | Vai trò |
+| ETF | Tỷ trọng | Role |
 |-----|----------|---------|
 | QQQ | 35% | Tech/AI growth |
 | VOO | 25% | Core US |
@@ -147,7 +147,7 @@
 | ARKK/SOXX | 10% | Thematic bets |
 | GLD/BTC ETF | 10% | Alternative |
 
-### DCA Calculator cho ETF:
+### DCA Calculator for ETF:
 ```
 Monthly: $500/tháng → VOO
 Sau 10 năm (CAGR 12%): ~$115,000 (gốc $60,000, lãi ~$55,000)
@@ -162,7 +162,7 @@ Sau 30 năm (CAGR 12%): ~$1,750,000 (gốc $180,000, lãi ~$1,570,000)
 
 ---
 
-## Global/All-World ETFs (Một ETF cho tất cả)
+## Global/All-World ETFs (One ETF for Everything)
 
 | ETF | Coverage | Expense | Đặc điểm |
 |-----|----------|---------|-----------|
@@ -170,11 +170,11 @@ Sau 30 năm (CAGR 12%): ~$1,750,000 (gốc $180,000, lãi ~$1,570,000)
 | **VXUS** | Ex-US | 0.07% | Tất cả trừ US, đa dạng hóa geographic |
 | **ACWI** | All Country World | 0.32% | MSCI ACWI, ~3000 stocks |
 
-### Chiến lược "Lazy Portfolio":
+### "Lazy Portfolio" Strategy:
 - **100% VT** = đầu tư toàn cầu, tự động rebalance, phí cực thấp
 - Phù hợp cho người không muốn quản lý nhiều ETF
 - Jack Bogle: "Just buy the whole market"
 
 ---
 
-*⚠️ Tham khảo, không phải khuyến nghị đầu tư. DYOR.*
+*⚠️ For reference only, not investment advice. DYOR.*
