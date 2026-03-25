@@ -1,11 +1,17 @@
 {
   "owner": "dttnpole-commits",
   "slug": "ai-tiktok-ad-script-generator-shopify",
-  "displayName": "AI TikTok Ad Script Generator for Shopify",
+  "displayName": "Generate High-Converting TikTok Ads for Shopify (UGC + Viral Hooks + A/B Testing)",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1774144457472,
-    "commit": "https://github.com/openclaw/skills/commit/999dc122e6a58914ac548f732045667d0ad5887c"
+    "version": "1.0.2",
+    "publishedAt": 1774159510091,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1774144457472,
+      "commit": "https://github.com/openclaw/skills/commit/999dc122e6a58914ac548f732045667d0ad5887c"
+    }
+  ]
 }
