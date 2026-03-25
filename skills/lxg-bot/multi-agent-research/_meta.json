@@ -1,0 +1,11 @@
+{
+  "owner": "lxg-bot",
+  "slug": "multi-agent-research",
+  "displayName": "多智能体联合研究框架",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774152690215,
+    "commit": null
+  },
+  "history": []
+}
