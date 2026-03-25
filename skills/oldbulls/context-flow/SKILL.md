@@ -29,17 +29,13 @@ Read `references/anti-patterns.md` when a collaboration thread becomes noisy, a 
 
 Read `references/feishu-usage.md` when the task is happening in a Feishu group and you need phrase-to-response guidance, examples of when to enter real collaboration mode, examples of when not to fake collaboration, or guidance on how to use `收口` in a noisy thread.
 
-## Recovery lessons
+## Lessons (recovery + reflection)
 
-Read `references/recovery-lessons.md` when the task is being resumed after interruption, when the active line is unclear, or when old injected history may be polluting the current task.
-
-## Reflection lessons
-
-Read `references/reflection-lessons.md` when repeated coordination mistakes need to be turned into stable rules, templates, or anti-patterns.
+Read `references/lessons.md` when resuming interrupted work, when the active line is unclear, when old injected history may be polluting the current task, or when repeated coordination mistakes need to be turned into stable rules.
 
 ## Packaging
 
-Read `references/packaging.md` when preparing this skill for packaging, review, or sharing.
+Read `PACKAGING.md` (skill root) when preparing this skill for packaging, review, or sharing.
 
 ## Overload signals
 
@@ -52,6 +48,7 @@ Do a checkpoint when two or more of these appear:
 - group-visible status no longer matches actual execution state
 - one agent is carrying too many sub-goals in one active thread
 - a subagent starts reasoning about the full task line instead of its local scope
+- a background plugin (memory-reflection, self-improvement, etc.) times out and causes gateway disconnection or message loss
 
 ## Recommended workflow
 
@@ -66,6 +63,10 @@ Do a checkpoint when two or more of these appear:
 ## Companion docs
 
 This skill works well with local collaboration-governance docs if the workspace already has them, but it does not require any workspace-specific files.
+
+## Related skill
+
+For collaboration infrastructure setup, diagnostics, and config repair, see `collab-setup`. That skill handles the "how to configure and fix multi-agent collaboration" layer; this skill handles the "how to manage context during collaboration" layer. They are independent and can be used separately.
 
 Typical helpful local companions include:
 - a collaboration state-machine doc
