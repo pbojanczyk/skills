@@ -94,3 +94,14 @@ If repo-wide typecheck is already noisy, do not claim unrelated errors belong to
 Read these before editing:
 - `references/file-map.md`
 - `references/runtime-precedence.md`
+
+For the concrete implementation that originally shipped this feature, read:
+- `references/implementation-notes.txt`
+- `references/agents-panel-subagents.ts.txt`
+- `references/agents.ts.txt`
+- `references/app.ts.txt`
+- `references/app-view-state.ts.txt`
+- `references/app-render.subagents.txt`
+- `references/agents.test.ts.txt`
+
+Use those files as the exact reference implementation when recreating or porting the feature to another OpenClaw tree.
