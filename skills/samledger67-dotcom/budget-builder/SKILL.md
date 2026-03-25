@@ -12,7 +12,6 @@ description: >
   NOT for: multi-entity consolidations, tax preparation, real-time bookkeeping, or ad-hoc P&L
   analysis without a budget baseline (use pl-deep-analysis instead).
 version: 1.0.0
-author: PrecisionLedger
 tags:
   - finance
   - accounting
@@ -23,15 +22,15 @@ tags:
   - forecasting
 ---
 
-# Budget Builder + Budget vs Actual — Pipeline #9
+# Budget Builder + Budget vs Actual
 
 ## Overview
 
-This pipeline handles the full FP&A budget cycle for PrecisionLedger clients:
+This pipeline handles the full FP&A budget cycle for QBO-connected clients:
 1. **Build** an annual budget from QBO history with seasonal patterns + growth assumptions
 2. **Compare** YTD actuals vs. budget with material flags, commentary, and rolling forecast
 
-Both modes output Excel workbooks matching PrecisionLedger's standard suite format (Calibri, dark header, F/U coloring, CDC log).
+Both modes output Excel workbooks in a standard suite format (Calibri, dark header, F/U coloring, CDC log).
 
 ---
 
@@ -75,16 +74,16 @@ scripts/pipelines/budget-builder.py
 
 ```bash
 # Basic — use default growth rates (revenue +5%, COGS +3%, expenses +3%)
-python3 budget-builder.py --slug pl --build --year 2026
+python3 budget-builder.py --slug <client-slug> --build --year 2026
 
 # Custom growth assumptions
-python3 budget-builder.py --slug pl --build --year 2026 --assumptions growth.json
+python3 budget-builder.py --slug <client-slug> --build --year 2026 --assumptions growth.json
 
 # With manual overrides for specific accounts
-python3 budget-builder.py --slug pl --build --year 2026 --overrides overrides.csv
+python3 budget-builder.py --slug <client-slug> --build --year 2026 --overrides overrides.csv
 
 # Custom output directory
-python3 budget-builder.py --slug pl --build --year 2026 --out ~/Desktop/reports
+python3 budget-builder.py --slug <client-slug> --build --year 2026 --out ~/Desktop/reports
 ```
 
 ### Assumptions JSON Format
@@ -150,19 +149,19 @@ Columns: `account` + `section_type` + one column per YYYY-MM (or Jan/Feb/Mar sho
 
 ```bash
 # Default: compare through last completed month, use cached budget
-python3 budget-builder.py --slug pl --compare
+python3 budget-builder.py --slug <client-slug> --compare
 
 # Specify through month
-python3 budget-builder.py --slug pl --compare --through 2026-02
+python3 budget-builder.py --slug <client-slug> --compare --through 2026-02
 
 # Use explicit budget file
-python3 budget-builder.py --slug pl --compare --budget-file ~/Desktop/Budget_pl_2026.json
+python3 budget-builder.py --slug <client-slug> --compare --budget-file ~/Desktop/Budget_client_2026.json
 
 # Use manually-prepared budget CSV
-python3 budget-builder.py --slug pl --compare --budget-file my_budget.csv
+python3 budget-builder.py --slug <client-slug> --compare --budget-file my_budget.csv
 
 # Custom output
-python3 budget-builder.py --slug pl --compare --through 2026-03 --out ~/Desktop/reports
+python3 budget-builder.py --slug <client-slug> --compare --through 2026-03 --out ~/Desktop/reports
 ```
 
 ### Budget CSV Format (for --budget-file)
@@ -230,28 +229,12 @@ CDC is appended, not overwritten — it accumulates across fiscal years.
 
 ---
 
-## PrecisionLedger SOP Integration
-
-For `--slug pl`:
-- Fiscal year: calendar year (Jan–Dec)
-- Revenue growth target: >20% YoY (see USER.md and sop.md)
-- Watch: API cost per client, cash runway, MoM revenue growth
-- Multi-stream revenue: retainers (monthly), setup fees (point-in-time), crypto/bounties (variable)
-- Budget should be built separately for each revenue stream when history allows
-
-For `--slug sb-paulson`:
-- Seasonal: Q4 likely spike (holiday retail), summer potential dip
-- Watch: Gross margin compression, interest expense ratio, retail mix
-- No AR → cash collection same month as service delivery
-
----
-
 ## Workflow Integration
 
 ```
 1. [Month 1 of new FY] Run --build to generate annual budget
    → Saves: .cache/budget-builder/{slug}_budget_{year}.json
-   → Share Excel with Irfan for review/approval before using in BvA
+   → Share Excel with the reviewer for approval before using in BvA
 
 2. [Each month after close] Run --compare
    → Pulls actuals from QBO automatically
@@ -280,8 +263,7 @@ For `--slug sb-paulson`:
 
 ```bash
 pip install openpyxl
-# Node.js qbo-client must be configured with valid auth tokens
-# Path: integrations/qbo-client/
+# Node.js QBO client must be configured with valid auth tokens
 ```
 
 ---
@@ -289,31 +271,31 @@ pip install openpyxl
 ## Output File Naming
 
 ```
-Mode A: Budget_{slug}_{year}.xlsx              (e.g., Budget_pl_2026.xlsx)
-Mode B: BvA_{slug}_{month_label}.xlsx         (e.g., BvA_pl_Feb_26.xlsx)
+Mode A: Budget_{slug}_{year}.xlsx              (e.g., Budget_acme_2026.xlsx)
+Mode B: BvA_{slug}_{month_label}.xlsx         (e.g., BvA_acme_Feb_26.xlsx)
 Cache:  .cache/budget-builder/{slug}_budget_{year}.json
 CDC:    .cache/budget-builder/{slug}_cdc.json
 ```
 
 ---
 
-## Example: Full PL FY2026 Cycle
+## Example: Full FY2026 Cycle
 
 ```bash
 # January 2026: Build the budget
-python3 budget-builder.py --slug pl --build --year 2026 \
-  --assumptions clients/pl/budget-assumptions-2026.json
+python3 budget-builder.py --slug <client-slug> --build --year 2026 \
+  --assumptions clients/<client-slug>/budget-assumptions-2026.json
 
 # February 28 (after Jan close):
-python3 budget-builder.py --slug pl --compare --through 2026-01
+python3 budget-builder.py --slug <client-slug> --compare --through 2026-01
 
 # March 31 (after Feb close):
-python3 budget-builder.py --slug pl --compare --through 2026-02
+python3 budget-builder.py --slug <client-slug> --compare --through 2026-02
 
 # Q2 reforecast (after March close):
-python3 budget-builder.py --slug pl --compare --through 2026-03
+python3 budget-builder.py --slug <client-slug> --compare --through 2026-03
 # Review CDC log — which categories need budget adjustment?
 # Build revised budget with Q1 actuals as overrides:
-python3 budget-builder.py --slug pl --build --year 2026 \
-  --overrides clients/pl/q1-actuals-overrides.csv
+python3 budget-builder.py --slug <client-slug> --build --year 2026 \
+  --overrides clients/<client-slug>/q1-actuals-overrides.csv
 ```
