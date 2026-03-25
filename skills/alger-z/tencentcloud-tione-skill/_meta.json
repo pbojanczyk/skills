@@ -3,9 +3,15 @@
   "slug": "tencentcloud-tione-skill",
   "displayName": "Tencent Cloud TIONE",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1773833523278,
-    "commit": "https://github.com/openclaw/skills/commit/3b9dfbecd0610dc01d088cb6d536acec56a44e3c"
+    "version": "1.0.4",
+    "publishedAt": 1773983269627,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1773833523278,
+      "commit": "https://github.com/openclaw/skills/commit/3b9dfbecd0610dc01d088cb6d536acec56a44e3c"
+    }
+  ]
 }

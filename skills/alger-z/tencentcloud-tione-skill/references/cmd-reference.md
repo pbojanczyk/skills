@@ -1,6 +1,6 @@
-# TI-ONE 脚本参数参考
+# TI-ONE 工具参数参考
 
-本文档列出各脚本支持的详细参数和过滤条件。
+本文档列出各工具支持的详细参数、过滤条件与使用示例。
 
 ## 训练任务模块
 
@@ -303,3 +303,154 @@
 | `--id` | 资源 ID | 是 |
 | `--region` | 地域 | 默认值 |
 | `--workspace-id` | 工作空间 ID | 0 |
+
+## 典型使用示例
+
+### 1. 排查训练任务问题（标准流程：指定训练任务 ID train-xxx 时）
+
+```bash
+# 步骤 1: 查看训练任务详情，获取 LatestInstanceId 和 StartTime/EndTime
+./scripts/training/describe-training-task.sh --region ap-shanghai --id train-xxx
+# 从返回中获取:
+#   LatestInstanceId (如 train-xxx-yyy) — 日志/事件查询必需
+#   StartTime / EndTime — 用作日志时间范围
+
+# 步骤 2: 使用 LatestInstanceId + 时间范围查询日志
+./scripts/log/describe-logs.sh --region ap-shanghai --service TRAIN \
+  --service-id train-xxx-yyy \
+  --start-time "2026-03-10T02:50:56Z" --end-time "2026-03-10T03:30:00Z" --limit 50
+
+# 步骤 3: 如需查看指定 Pod 日志，先获取 Pod 列表
+./scripts/training/describe-training-task-pods.sh --region ap-shanghai --id train-xxx
+# 从返回结果获取 Pod 名称
+
+# 步骤 4: 使用 Pod 名称查询指定 Pod 日志
+./scripts/log/describe-logs.sh --region ap-shanghai --service TRAIN \
+  --service-id train-xxx-yyy --pod-name <pod-name> --limit 50
+
+# 查看训练事件
+./scripts/event/describe-events.sh --region ap-shanghai --service TRAIN \
+  --service-id train-xxx-yyy --start-time "2026-03-10T02:50:56Z"
+```
+
+### 1.1 按状态查询训练任务
+
+```bash
+# 查询运行中的训练任务 → 优先用 Status filter
+./scripts/training/describe-training-tasks.sh --region ap-shanghai --filters "Name=Status,Values=RUNNING"
+
+# 查询失败的任务
+./scripts/training/describe-training-tasks.sh --region ap-shanghai --filters "Name=Status,Values=FAILED"
+
+# 查询活跃状态的任务（运行中+启动中+停止中）
+./scripts/training/describe-training-tasks.sh --region ap-shanghai --filters "Name=Status,Values=RUNNING;STARTING;STOPPING"
+```
+
+### 2. 排查在线服务问题（标准流程：指定服务组 ID ms-xxx 时）
+
+```bash
+# 步骤 1: 查看服务组详情，获取服务实例 ID 和 Pod 名称
+./scripts/service/describe-model-service-group.sh --region ap-shanghai --id ms-xxx
+# 从 Services[].ServiceId 获取实例 ID，如 ms-xxx-1, ms-xxx-2
+
+# 步骤 2: 使用服务实例 ID 查询日志
+./scripts/log/describe-logs.sh --region ap-shanghai --service INFER --service-id ms-xxx-1 --limit 100
+
+# 步骤 3: 如需指定 Pod，从步骤 1 返回中获取 Pod 名称
+./scripts/log/describe-logs.sh --region ap-shanghai --service INFER --service-id ms-xxx-1 --pod-name <pod-name>
+
+# 查看单个服务实例详情
+./scripts/service/describe-model-service.sh --region ap-shanghai --service-id ms-xxx-1
+
+# 查看服务调用信息
+./scripts/service/describe-model-service-callinfo.sh --region ap-shanghai --service-group-id ms-xxx
+
+# 查看推理事件
+./scripts/event/describe-events.sh --region ap-shanghai --service INFER --service-id ms-xxx-1
+```
+
+### 2.1 按状态查询在线服务
+
+```bash
+# 查询异常服务 → 优先用 Status filter
+./scripts/service/describe-model-service-groups.sh --region ap-shanghai --filters "Name=Status,Values=Abnormal"
+
+# 查询正常运行的服务
+./scripts/service/describe-model-service-groups.sh --region ap-shanghai --filters "Name=Status,Values=Normal"
+
+# 查询活跃状态的服务
+./scripts/service/describe-model-service-groups.sh --region ap-shanghai --filters "Name=Status,Values=Normal;Waiting;Pending"
+```
+
+### 3. 查看 Notebook 状态
+
+```bash
+# 查看 Notebook 列表
+./scripts/notebook/describe-notebooks.sh --region ap-shanghai
+
+# 查看某个 Notebook 详情
+./scripts/notebook/describe-notebook.sh --region ap-shanghai --id nb-xxx
+```
+
+### 3.1 排查 Notebook 日志（标准流程）
+
+```bash
+# 步骤 1: 查看 Notebook 详情，获取 PodName 和 StartTime
+./scripts/notebook/describe-notebook.sh --region ap-shanghai --id nb-xxx
+# 从 NotebookDetail 获取:
+#   PodName (如 nb-xxx-yyy) — 日志查询必需
+#   StartTime — 用作日志时间范围起点
+
+# 步骤 2: 使用 PodName + 时间范围查询日志
+./scripts/log/describe-logs.sh --region ap-shanghai --service NOTEBOOK \
+  --service-id nb-xxx-yyy --start-time "2026-03-17T19:23:21Z" --limit 50
+
+# 查看 Notebook 事件
+./scripts/event/describe-events.sh --region ap-shanghai --service NOTEBOOK \
+  --service-id nb-xxx-yyy --start-time "2026-03-17T19:23:21Z"
+```
+
+### 3.2 按状态查询开发机
+
+```bash
+# 查询运行中的开发机 → 优先用 Status filter
+./scripts/notebook/describe-notebooks.sh --region ap-shanghai --filters "Name=Status,Values=Running"
+
+# 查询已停止的开发机
+./scripts/notebook/describe-notebooks.sh --region ap-shanghai --filters "Name=Status,Values=Stopped"
+
+# 查询活跃状态的开发机（运行中+启动中+停止中）
+./scripts/notebook/describe-notebooks.sh --region ap-shanghai --filters "Name=Status,Values=Running;Starting;Stopping"
+```
+
+### 4. 查看资源与计费
+
+```bash
+# 查看所有资源组
+./scripts/resource/describe-billing-resource-groups.sh --region ap-shanghai
+
+# 查询有可用节点的资源组 → 优先用 filter 排除空组
+./scripts/resource/describe-billing-resource-groups.sh --region ap-shanghai --filters "Name=AvailableNodeCount,Values=1;2;3;4;5;6;7;8;9;10"
+
+# 按名称模糊搜索资源组
+./scripts/resource/describe-billing-resource-groups.sh --region ap-shanghai --filters "Name=ResourceGroupName,Values=test,Fuzzy=true"
+
+# 查看资源组节点
+./scripts/resource/describe-billing-resource-group.sh --region ap-shanghai --resource-group-id rg-xxx
+```
+
+### 5. 生成控制台链接
+
+```bash
+# 生成训练任务控制台链接
+./scripts/utils/generate-console-url.sh --type training --id train-xxx
+
+# 生成 Notebook 控制台链接
+./scripts/utils/generate-console-url.sh --type notebook --id nb-xxx --region ap-beijing
+
+# 生成推理服务控制台链接（指定工作空间）
+./scripts/utils/generate-console-url.sh --type service --id ms-xxx --workspace-id 12345
+
+# 生成资源组控制台链接
+./scripts/utils/generate-console-url.sh --type resource-group --id rsg-xxx
+```
