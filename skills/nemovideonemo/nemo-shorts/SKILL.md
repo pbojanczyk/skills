@@ -1,11 +1,16 @@
 ---
 name: nemo-shorts
+version: "1.8.3"
+displayName: "NemoShorts - Short Video Maker: TikTok, Reels, YouTube Shorts"
 author: nemovideonemo
 description: >
-  AI short video maker via chat — make TikTok, make Reels, YouTube Shorts, crop to 9:16, add captions, add background music, export vertical video. No timeline. Trigger: make TikTok, TikTok maker, Instagram Reels, YouTube Shorts, short video, vertical video, 9:16 crop, CapCut alternative, reels maker.
-  中文场景：做短视频、制作短视频、做TikTok、做抖音视频、做竖屏视频、竖屏视频制作、
-  9比16竖屏、视频加字幕短视频、短视频加背景音乐、短视频剪辑、视频裁剪竖屏、
-  把横版视频变竖版、做Reels、YouTube Shorts制作、剪短视频、帮我做一个短视频。
+  Short video maker, reels maker, and TikTok video maker — generate vertical video for
+  TikTok, Instagram Reels, and YouTube Shorts from a text description or existing footage.
+  Auto-crops to 9:16 portrait, adds captions with platform-matched styling, layers trending
+  background music, and exports a scroll-ready vertical video. Handles the full short form
+  video pipeline: script to screen in one conversation, no timeline or editing software.
+  Built for creators who need daily vertical content without manual editing. Supports mp4,
+  mov, webm.
 metadata:
   openclaw:
     emoji: 📱
