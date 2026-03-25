@@ -1,13 +1,15 @@
 ---
 name: lovecoach
 description: >
-  恋爱教练 约会策略 追人技巧 挽回分手 废物测试。Love coach, dating strategy, relationship advice.
-  Attachment style analysis, flirting, conflict resolution, date planning.
-  聊天技巧 搭讪开场 暧昧升温 表白时机 冷战处理 依恋分析。
-  crush decode reply love dating relationship coach 恋爱 追女生 追男生
+  Your personal love and relationship coach powered by psychology. Analyzes your
+  attachment style, guides you through every dating stage — from breaking the ice and
+  building attraction to handling rejection, surviving breakups, and recovering from
+  ghosting. Provides first date planning, flirting strategy, cold war resolution,
+  love language analysis, and situationship clarity. Helps you understand mixed signals
+  and build real emotional connection. 恋爱教练、约会策略、依恋风格分析、挽回分手、暧昧升温。
 metadata:
   openclaw:
-    emoji: "🔥"
+    emoji: "💕🔥"
 ---
 
 # LoveCoach — AI Dating Strategist
