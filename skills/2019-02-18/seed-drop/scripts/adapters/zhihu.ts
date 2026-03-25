@@ -13,16 +13,23 @@ import type {
   RateLimitInfo,
   BrowserInstruction,
 } from '../types.js';
-import { BROWSER_INSTRUCTION_ID } from '../types.js';
+import { BROWSER_INSTRUCTION_ID, buildApiHeaders, buildBrowserHeaders, fetchWithRetry } from '../types.js';
 
 const ZHIHU_API = 'https://www.zhihu.com/api/v4';
 
-function buildHeaders(credential: Credential): Record<string, string> {
-  return {
-    'Cookie': credential.value,
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Referer': 'https://www.zhihu.com',
-  };
+function searchApiHeaders(credential: Credential): Record<string, string> {
+  return buildApiHeaders(credential.value, {
+    'Referer': 'https://www.zhihu.com/search',
+    'Origin': 'https://www.zhihu.com',
+    'x-requested-with': 'fetch',
+  });
+}
+
+function checkApiHeaders(credential: Credential): Record<string, string> {
+  return buildApiHeaders(credential.value, {
+    'Referer': 'https://www.zhihu.com/',
+    'Origin': 'https://www.zhihu.com',
+  });
 }
 
 export class ZhihuAdapter implements PlatformAdapter {
@@ -37,17 +44,29 @@ export class ZhihuAdapter implements PlatformAdapter {
   ): Promise<Post[]> {
     try {
       const params = new URLSearchParams({
+        gk_version: 'gz-gaokao',
         t: 'general',
         q: keyword,
         correction: '1',
         offset: '0',
         limit: '20',
+        filter_fields: '',
+        lc_idx: '0',
+        show_all_topics: '0',
+        search_source: 'Normal',
       });
 
-      const response = await fetch(`${ZHIHU_API}/search_v3?${params}`, {
-        headers: buildHeaders(credential),
-      });
+      const response = await fetchWithRetry(
+        `${ZHIHU_API}/search_v3?${params}`,
+        { headers: searchApiHeaders(credential) },
+      );
 
+      if (response.status === 403) {
+        console.error(
+          '[zhihu] Search blocked (403). Likely missing x-zse-96 signature. Use browserSearch() fallback.',
+        );
+        return [];
+      }
       if (!response.ok) {
         console.error(`[zhihu] Search failed: ${response.status}`);
         return [];
@@ -58,6 +77,7 @@ export class ZhihuAdapter implements PlatformAdapter {
           type?: string;
           object?: {
             id?: number;
+            type?: string;
             question?: { id?: number; title?: string };
             title?: string;
             excerpt?: string;
@@ -102,6 +122,24 @@ export class ZhihuAdapter implements PlatformAdapter {
     }
   }
 
+  browserSearch(keyword: string, _target?: string): BrowserInstruction {
+    const url = `https://www.zhihu.com/search?type=content&q=${encodeURIComponent(keyword)}`;
+    return {
+      mode: 'browser',
+      action: 'search',
+      steps: [
+        { action: 'navigate', url },
+        { action: 'wait', selector: '.SearchResult-Card' },
+        {
+          action: 'extract',
+          selector: '.SearchResult-Card',
+          fields: ['href', 'title', 'text'],
+        },
+      ],
+      cookies: undefined,
+    };
+  }
+
   async reply(
     postId: string,
     content: string,
@@ -129,9 +167,11 @@ export class ZhihuAdapter implements PlatformAdapter {
 
   async check(credential: Credential): Promise<CheckResult> {
     try {
-      const response = await fetch(`${ZHIHU_API}/me`, {
-        headers: buildHeaders(credential),
-      });
+      const response = await fetchWithRetry(
+        `${ZHIHU_API}/me`,
+        { headers: checkApiHeaders(credential) },
+        2,
+      );
       if (!response.ok) return { valid: false, error: `HTTP ${response.status}` };
 
       const data = await response.json() as { id?: string; name?: string; error?: { message?: string } };
@@ -149,7 +189,7 @@ export class ZhihuAdapter implements PlatformAdapter {
       requestsPerMinute: 10,
       repliesPerDay: 10,
       minReplyIntervalSeconds: 300,
-      notes: '知乎: z_c0有效期~30天, 反爬严格, 高频触发验证码. 写入需x-zse-96签名(当前用browser模式)',
+      notes: '知乎: z_c0有效期~30天, 反爬严格(需x-zse-96签名), 高频触发验证码. 写入用browser模式. 搜索被403时使用browserSearch()回退.',
     };
   }
 }
@@ -163,5 +203,6 @@ if (isMainModule && process.argv[2] === 'test') {
     platformId: adapter.platformId,
     platformName: adapter.platformName,
     rateLimit: adapter.rateLimitInfo(),
+    hasBrowserSearch: typeof adapter.browserSearch === 'function',
   }));
 }
