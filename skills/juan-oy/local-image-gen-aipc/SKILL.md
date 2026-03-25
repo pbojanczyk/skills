@@ -1,125 +1,81 @@
 ---
 name: local-image-generation
+# Local Text-to-Image (Windows · Z-Image-Turbo · OpenVINO)
 description: >
   generate an image, create a picture, draw something, make an image of, text to image,
-  paint a picture, illustrate, visualize, local image generation, AI art, image synthesis.
+  paint a picture, illustrate, visualize, local image generation, AI art, image synthesis,
+  offline image generation, no API key, local inference, generate art, create artwork,
+  produce an image, render an image, AI drawing, image from text.
   Runs Z-Image-Turbo on-device on Windows via Intel OpenVINO. Prioritizes Intel iGPU
   (Xe / Arc), falls back to CPU. Bilingual prompts (English + Chinese) supported.
-  SETUP requires network: downloads Python/git installers from python.org and github.com,
-  pip dependencies (some via git+https pinned commits) from GitHub, and the model (~10 GB)
+  SETUP requires network: downloads pip dependencies from GitHub and the model (~10 GB)
   from modelscope.cn. INFERENCE is fully offline after setup — no cloud API calls.
 os: windows
 requires:
   - python>=3.10
   - git
 network:
-  setup: required    # python.org, github.com, modelscope.cn (~10 GB model)
+  setup: required    # github.com (pip deps), modelscope.cn (~10 GB model)
   inference: offline
 user-invocable: true
-allowed-tools: Bash(python *), Bash(pip *), Bash(cd *), Bash(call *), Bash(git *), Bash(winget *), Read, Glob, Write, message
+allowed-tools: Bash(python *), Bash(pip *), Bash(git *), Read, Glob, Write, message
 ---
 
-# Local Text-to-Image (Windows · Z-Image-Turbo · OpenVINO)
-
 **Model**: `snake7gun/Z-Image-Turbo-int4-ov` (ModelScope INT4)  
-**Interface**: `optimum.intel.OVZImagePipeline`  
-**Skill dir**: `{baseDir}` — contains `SKILL.md` and `requirements_imagegen.txt`  
-**SKILL_VERSION**: `v1.0.0` ← used in Step 4 to decide whether to overwrite the script
+**SKILL_VERSION**: `v1.0.2`
 
-> **Network usage**: Setup downloads from `python.org`, `github.com` (pip deps, some pinned
-> to git+https commits), and `modelscope.cn` (model ~10 GB, resume supported).
+> **Network usage**: Setup downloads pip dependencies (some pinned to git+https commits)
+> from `github.com`, and the model (~10 GB, resume supported) from `modelscope.cn`.
 > Inference is fully offline — no network calls once setup is complete.
+
+> **First time?** Before using this skill, run these two scripts once in a terminal:
+>
+> ```
+> python setup.py          # creates venv, installs dependencies (~5 min)
+> python download_model.py # downloads the model (~10 GB, resumable)
+> ```
+>
+> Both scripts are in the skill directory alongside this SKILL.md.
 
 ## Directory layout (all auto-created)
 
 ```
-<IMAGE_GEN_DIR>\
-├── image_gen\                 ← venv (created in Step 2)
-├── generate_image.py          ← written in Step 4
-├── Z-Image-Turbo-int4-ov\     ← downloaded in Step 3 (~10 GB)
-└── outputs\YYYYMMDD_HHMMSS_topic.png
+{USERNAME}_openvino\
+├── venv\                          ← shared venv (created by setup.py)
+└── imagegen\
+    ├── state.json                 ← written by setup.py
+    ├── generate_image.py          ← written in Step 2
+    ├── Z-Image-Turbo-int4-ov\    ← downloaded by download_model.py (~10 GB)
+    └── outputs\YYYYMMDD_HHMMSS_topic.png
 ```
 
 ---
 
 ## ⚠️ Agent instructions
 
-1. Run one command at a time; wait for output before proceeding.
-2. On any error, stop and consult the troubleshooting table at the end.
-3. Wrap all paths in double quotes.
-4. `{baseDir}` is injected at runtime as the absolute path of this SKILL.md's directory. If injection fails, replace it manually. `requirements_imagegen.txt` lives there.
-5. **Goal**: generate an image and preview it in the conversation.
+1. **Windows / PowerShell only.** Never use Linux commands (`ls`, `rm`, `cat`). Never use `&&` or `call`.
+2. **Every step reads `state.json` itself** — do not pass paths between steps manually.
+3. **Use `VENV_PY` from state.json for all python calls** — never use system python for inference.
+4. **CRITICAL — Never skip Step 2.** Always run the version-check python script to write `generate_image.py`. Never use the Write tool to create or modify it manually.
+5. **CRITICAL — If `generate_image.py` fails**, do NOT rewrite it manually. Delete it and re-run Step 2's python script to regenerate.
+6. **Goal**: generate an image and send the preview to the conversation.
 
-**Pipeline (do not skip steps)**:
+**Auto-recovery policy — try before asking user:**
+
+- If `STATE=MISSING` or `VENV_PY=BROKEN`: automatically run `setup.py` (up to 3 attempts). Only ask user if all 3 fail.
+- If `MODEL_STATUS=MISSING`: automatically run `download_model.py` (up to 3 attempts). Stop if a single attempt exceeds 20 minutes — download supports resume, partial progress is not lost.
+- Always announce before each attempt: `⚙️ Auto-installing environment (attempt N/3)…`
+
+**Pipeline — follow exactly in order, no skipping:**
+
 ```
-Pre-flight: check Python ≥3.10 + git       → PYTHON_OK + GIT_OK
-Step 0:     expand prompt + extract topic  → show to user
-Step 1:     locate working directory       → IMAGE_GEN_DIR
-Step 2:     activate venv, verify deps     → DEP_CHECK=PASS
-Step 3:     check disk + model             → MODEL_STATUS=READY (skip download)
-Step 4:     write inference script         → SCRIPT_UPDATE=DONE/SKIPPED
-Step 5:     generate + preview             → send image to conversation
+Step 0: expand prompt       → EXPANDED_PROMPT, TOPIC
+Step 1: verify environment  → VENV_PY, IMAGE_GEN_DIR confirmed ready
+         ↳ if STATE=MISSING or VENV_BROKEN: auto-run setup.py (3 attempts)
+         ↳ if MODEL_STATUS=MISSING: auto-run download_model.py (3 attempts)
+Step 2: verify deps + write generate_image.py → SCRIPT_UPDATE=DONE/SKIPPED  ← NEVER skip
+Step 3: generate + send     → [SUCCESS] + image preview
 ```
-
-Announce each step before running it: `🔍 Pre-flight: checking environment…`
-
----
-
-## Pre-flight: check Python and git (required on first use)
-
-> 🔍 Pre-flight: checking Python and git…
-
-### Python
-
-```bat
-python --version
-```
-
-| Output | Action |
-|--------|--------|
-| `Python 3.10.x` or higher | ✅ `PYTHON_OK`, check git next |
-| `Python 3.8 / 3.9` | ⛔ Too old — install 3.12 (see below) |
-| `'python' is not recognized` | ⛔ Not installed — install (see below) |
-
-**Silent install via PowerShell (no admin required):**
-
-```powershell
-$f = "$env:TEMP\python-installer.exe"
-Invoke-WebRequest "https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe" -OutFile $f
-Start-Process $f -ArgumentList "/quiet InstallAllUsers=0 PrependPath=1 Include_pip=1" -Wait
-Remove-Item $f
-```
-
-Restart the terminal, then confirm with `python --version`.  
-Manual alternative: download **https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe** and check **"Add python.exe to PATH"** during install.
-
-### git
-
-```bat
-git --version
-```
-
-| Output | Action |
-|--------|--------|
-| `git version 2.x.x` | ✅ `GIT_OK` — Pre-flight passed |
-| `'git' is not recognized` | ⛔ Not installed — install (see below) |
-
-**Silent install via PowerShell:**
-
-```powershell
-$f = "$env:TEMP\git-installer.exe"
-Invoke-WebRequest "https://github.com/git-for-windows/git/releases/download/v2.49.0.windows.1/Git-2.49.0-64-bit.exe" -OutFile $f
-Start-Process $f -ArgumentList "/VERYSILENT /NORESTART /NOCANCEL /SP- /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS /COMPONENTS=icons,ext\reg\shellhere,assoc,assoc_sh" -Wait
-Remove-Item $f
-```
-
-Restart the terminal, then confirm with `git --version`.  
-Manual alternative: **https://git-scm.com/download/win** — keep all defaults.
-
-> git is required for `git+https://` entries in `requirements_imagegen.txt`. Without it, pip will fail with `git: command not found`.
-
-**Pass criteria**: `python --version` ≥ 3.10 and `git --version` has output.  
-Announce: `✅ Python and git ready.`
 
 ---
 
@@ -147,71 +103,158 @@ Show the result before proceeding:
 
 ---
 
-## Step 1: locate working directory
+## Step 1: verify environment and model
 
-> 🔍 Step 1/5: locating working directory…
+> 🔍 Step 1/3: checking environment and model…
 
-```python
+```
 python -c "
-import string, shutil
+import json, os, string, subprocess
 from pathlib import Path
-drives = [f'{d}:\\\\' for d in string.ascii_uppercase if Path(f'{d}:\\\\').exists()]
-print(f'[INFO] Drives found: {drives}')
-found = None
-for drive in drives:
-    candidate = Path(drive) / 'image-gen-local'
-    if candidate.exists():
-        found = candidate
+
+state = None
+for d in string.ascii_uppercase:
+    sf = Path(f'{d}:\\\\') / f'{os.environ.get(\"USERNAME\",\"user\").lower()}_openvino' / 'imagegen' / 'state.json'
+    if sf.exists():
+        state = json.loads(sf.read_text(encoding='utf-8'))
         break
-if not found:
-    best = max(drives, key=lambda d: shutil.disk_usage(d).free)
-    found = Path(best) / 'image-gen-local'
-    found.mkdir(parents=True, exist_ok=True)
-    print(f'[INFO] Created: {found}')
-print(f'IMAGE_GEN_DIR={found}')
+
+if not state:
+    print('STATE=MISSING')
+    exit(1)
+
+venv_py      = Path(state['VENV_PY'])
+imagegen_dir = Path(state['IMAGE_GEN_DIR'])
+model_dir    = imagegen_dir / 'Z-Image-Turbo-int4-ov'
+
+r = subprocess.run([str(venv_py), '--version'], capture_output=True, timeout=10)
+if r.returncode != 0:
+    print('VENV_PY=BROKEN')
+    exit(1)
+
+print(f'VENV_PY={venv_py}')
+print(f'IMAGE_GEN_DIR={imagegen_dir}')
+
+required = ['transformer', 'vae_decoder', 'text_encoder']
+missing  = [r for r in required if not (model_dir / r).exists()]
+if not missing:
+    total = sum(f.stat().st_size for f in model_dir.rglob('*') if f.is_file()) / 1024**3
+    print(f'MODEL_STATUS=READY  ({total:.2f} GB)')
+else:
+    print(f'MODEL_STATUS=MISSING  missing={missing}')
+    exit(1)
 "
 ```
 
-**Pass**: output contains `IMAGE_GEN_DIR=`. Record the path and substitute it for `<IMAGE_GEN_DIR>` in all subsequent commands.
+**On success**: record `VENV_PY` and `IMAGE_GEN_DIR` from output, proceed to Step 2.
 
 ---
 
-## Step 2: activate venv and verify dependencies
+### If STATE=MISSING or VENV_PY=BROKEN → auto-run setup.py
 
-> ⚙️ Step 2/5: verifying Python environment and dependencies…
-
-```bat
-call "<IMAGE_GEN_DIR>\image_gen\Scripts\activate.bat"
-python -c "import sys; print(sys.executable)"
 ```
-
-**Pass**: path contains `image_gen`.
-
-**If venv does not exist** (activate.bat errors), run each command separately in order:
-```bat
-python -m ensurepip --upgrade
-```
-```bat
-python -m venv "<IMAGE_GEN_DIR>\image_gen"
-```
-```bat
-call "<IMAGE_GEN_DIR>\image_gen\Scripts\activate.bat"
-```
-```bat
-python -m pip install --upgrade pip
-```
-```bat
-pip install -r "{baseDir}\requirements_imagegen.txt"
-```
-
-> ⚠️ **Critical**: run `pip install` only after `activate.bat`. Installing before activation puts packages into system Python, causing venv dep checks to fail. Successful activation shows `(image_gen)` as the prompt prefix.
-
-**Verify dependencies (always run):**
-
-> ⚠️ Confirm prompt prefix is `(image_gen)` before running. If not, run `call "<IMAGE_GEN_DIR>\image_gen\Scripts\activate.bat"` first.
-
-```python
 python -c "
+from pathlib import Path
+p = Path(r'{baseDir}') / 'setup.py'
+print(f'SETUP_PY={p}') if p.exists() else print('SETUP_PY=NOT_FOUND')
+"
+```
+
+Announce and run (up to 3 attempts):
+```
+⚙️ Environment not initialized — auto-installing (attempt 1/3)…
+```
+```
+python "<SETUP_PY path>"
+```
+
+Re-run Step 1's check after each attempt. If all 3 fail, show manual fallback below.
+
+---
+
+### If MODEL_STATUS=MISSING → auto-run download_model.py
+
+```
+python -c "
+from pathlib import Path
+p = Path(r'{baseDir}') / 'download_model.py'
+print(f'DOWNLOAD_PY={p}') if p.exists() else print('DOWNLOAD_PY=NOT_FOUND')
+"
+```
+
+Announce to user and ask how to proceed:
+```
+📥 Model not found — download required (~10 GB)
+   Estimated time:
+   • 100 Mbps → ~15 min
+   •  50 Mbps → ~30 min
+   •  10 Mbps → ~2 hr
+   Download supports resume — safe to interrupt and retry.
+
+   ✅ Start auto-download
+   📂 I'll download manually — show me the link
+```
+
+**Auto-download** (up to 3 attempts, stop if a single attempt exceeds 20 minutes):
+```
+python "<DOWNLOAD_PY path>"
+```
+
+Re-run Step 1's check after each attempt.
+
+**Manual download fallback:**
+
+ModelScope page: **https://modelscope.cn/models/snake7gun/Z-Image-Turbo-int4-ov/files**
+
+Place all files under `<IMAGE_GEN_DIR>\Z-Image-Turbo-int4-ov\`. Required subdirs:
+```
+Z-Image-Turbo-int4-ov\
+├── transformer\
+├── vae_decoder\
+└── text_encoder\
+```
+
+Then re-run Step 1's check to verify.
+
+---
+
+### Manual fallback (only if all 3 setup auto-attempts fail)
+
+```
+python -c "
+from pathlib import Path
+skill_dir = Path(r'{baseDir}')
+for script in ['setup.py', 'download_model.py']:
+    p = skill_dir / script
+    if p.exists(): print(f'{script}={p}')
+"
+```
+
+Show user:
+```
+⚠️ Auto-install failed. Please run manually in a terminal:
+
+① Install environment:
+   python "<full path to setup.py>"
+   Takes ~5 min, fully automated.
+
+② Download model (~10 GB):
+   python "<full path to download_model.py>"
+   Resumable — safe to interrupt and retry.
+
+Come back here when done.
+```
+
+---
+
+## Step 2: verify deps and write generate_image.py
+
+> ✍️ Step 2/3: checking dependencies and script version…
+
+**First verify dependencies** (run via VENV_PY):
+
+```
+& "<VENV_PY>" -c "
 import json, site
 from pathlib import Path
 
@@ -233,7 +276,6 @@ def get_git_commit(pkg_name):
     return 'not_found'
 
 results = {}
-
 for pkg, imp in [('openvino','openvino'),('torch','torch'),('Pillow','PIL'),('modelscope','modelscope')]:
     try:
         ver = getattr(__import__(imp), '__version__', 'OK')
@@ -266,226 +308,55 @@ print('DEP_CHECK=PASS' if all_ok else 'DEP_CHECK=FAIL')
 
 | Output | Action |
 |--------|--------|
-| `DEP_CHECK=PASS` | ✅ Proceed to Step 3. Announce: `✅ Environment ready.` |
-| `DEP_CHECK=FAIL` (MISSING) | ⛔ Run `pip install -r "{baseDir}\requirements_imagegen.txt"` and re-verify |
-| `DEP_CHECK=FAIL` (`@commit` WRONG) | ⛔ Force reinstall (see below) |
+| `DEP_CHECK=PASS` | ✅ Proceed to write script below |
+| `DEP_CHECK=FAIL` (MISSING) | ⛔ Re-run `setup.py` and retry |
+| `DEP_CHECK=FAIL` (`@commit` WRONG) | ⛔ Force reinstall: `& "<VENV_PY>" -m pip uninstall optimum-intel diffusers -y` then `& "<VENV_PY>" -m pip install -r "{baseDir}\requirements_imagegen.txt" --no-cache-dir` |
 
-**Force reinstall on commit mismatch:**
-```bat
-pip uninstall optimum-intel diffusers -y
-pip install -r "{baseDir}\requirements_imagegen.txt" --no-cache-dir
+**Then write generate_image.py:**
+
 ```
-
----
-
-## Step 3: check disk space + model
-
-> 📦 Step 3/5: checking disk space and model files…
-
-**Check disk space** (model ~10 GB + venv ~3 GB — need at least 15 GB free):
-
-```python
 python -c "
-import shutil
+import json, os, string, re
 from pathlib import Path
-target = Path(r'<IMAGE_GEN_DIR>')
-free_gb = shutil.disk_usage(target).free / (1024**3)
-print(f'DISK_FREE={free_gb:.1f}GB')
-if free_gb < 15:
-    print('DISK_STATUS=LOW')
-    print('[WARN] Less than 15 GB free — download may fail mid-way')
-else:
-    print('DISK_STATUS=OK')
-"
-```
 
-| Output | Action |
-|--------|--------|
-| `DISK_STATUS=OK` | ✅ Continue to model check |
-| `DISK_STATUS=LOW` | ⚠️ Ask user to free space, or confirm they want to proceed anyway |
+state = None
+for d in string.ascii_uppercase:
+    sf = Path(f'{d}:\\\\') / f'{os.environ.get(\"USERNAME\",\"user\").lower()}_openvino' / 'imagegen' / 'state.json'
+    if sf.exists():
+        state = json.loads(sf.read_text(encoding='utf-8'))
+        break
 
-**Check model files:**
+if not state:
+    print('[ERROR] state.json not found — re-run Step 1')
+    exit(1)
 
-```python
-python -c "
-from pathlib import Path
-model_dir = Path(r'<IMAGE_GEN_DIR>') / 'Z-Image-Turbo-int4-ov'
-required = ['transformer', 'vae_decoder', 'text_encoder']
-missing = [r for r in required if not (model_dir / r).exists()]
-print('MODEL_STATUS=READY') if not missing else print('MODEL_STATUS=MISSING')
-print(f'MODEL_DIR={model_dir}')
-if missing: print(f'MISSING_DIRS={missing}')
-"
-```
+imagegen_dir = Path(state['IMAGE_GEN_DIR'])
+CURRENT_VERSION = 'v2.0.0'
+script = imagegen_dir / 'generate_image.py'
 
-| Output | Action |
-|--------|--------|
-| `MODEL_STATUS=READY` | ✅ Skip to Step 4. Announce: `✅ Model ready.` |
-| `MODEL_STATUS=MISSING` | Read the notice below, then choose auto or manual download |
-
----
-
-### 📋 First-time download notice (MODEL_STATUS=MISSING)
-
-Announce to user and ask how to proceed:
-
-```
-📥 Model download: ~10 GB
-   Estimated time:
-   • 100 Mbps → ~15 min
-   •  50 Mbps → ~30 min
-   •  10 Mbps → ~2 hr
-   Download supports resume — if interrupted, re-run this step to continue from where it stopped.
-
-   ✅ Start auto-download
-   📂 I'll download manually — show me the link
-```
-
-Proceed based on user choice.
-
----
-
-### 🤖 Auto-download (tqdm progress bar + background monitor)
-
-```python
-python -c "
-import sys, time, threading
-from pathlib import Path
-from modelscope import snapshot_download
-
-model_dir = Path(r'<IMAGE_GEN_DIR>') / 'Z-Image-Turbo-int4-ov'
-model_dir.mkdir(parents=True, exist_ok=True)
-
-_stop = threading.Event()
-
-def watchdog():
-    prev = 0
-    while not _stop.wait(30):
-        try:
-            total = sum(f.stat().st_size for f in model_dir.rglob('*') if f.is_file())
-            speed = (total - prev) / 30
-            print(f'[Progress] {total/1024**3:.2f} GB downloaded  {speed/1024**2:.1f} MB/s', flush=True)
-            prev = total
-        except Exception:
-            pass
-
-t = threading.Thread(target=watchdog, daemon=True)
-t.start()
-
-try:
-    snapshot_download(
-        'snake7gun/Z-Image-Turbo-int4-ov',
-        local_dir=str(model_dir),
-        ignore_file_pattern=[r'\.git.*']
-    )
-    print('MODEL_DOWNLOAD=DONE')
-except KeyboardInterrupt:
-    print('[WARN] Download interrupted. Progress saved — re-run this step to resume.')
-    print('MODEL_DOWNLOAD=INTERRUPTED')
-except Exception as e:
-    err = str(e).lower()
-    if 'disk' in err or 'space' in err or 'no space' in err:
-        print(f'[ERROR] Disk full: {e}')
-        print('MODEL_DOWNLOAD=FAIL_DISK')
-    elif 'timeout' in err or 'connection' in err or 'network' in err:
-        print(f'[ERROR] Network error: {e}')
-        print('MODEL_DOWNLOAD=FAIL_NETWORK')
-    else:
-        print(f'[ERROR] Unknown error: {e}')
-        print('MODEL_DOWNLOAD=FAIL_UNKNOWN')
-finally:
-    _stop.set()
-"
-```
-
-| Output | Action |
-|--------|--------|
-| `MODEL_DOWNLOAD=DONE` | ✅ Proceed to Step 4. Announce: `✅ Model downloaded.` |
-| `MODEL_DOWNLOAD=INTERRUPTED` | ⚠️ Tell user to re-run this step — download will resume automatically |
-| `MODEL_DOWNLOAD=FAIL_DISK` | ⛔ Ask user to free disk space and retry |
-| `MODEL_DOWNLOAD=FAIL_NETWORK` | ⛔ Ask user to check network/proxy, or use manual download below |
-| `MODEL_DOWNLOAD=FAIL_UNKNOWN` | ⛔ Show raw error, suggest manual download |
-
----
-
-### 📂 Manual download fallback
-
-> Use this if the network is unstable or you prefer a download manager (IDM, aria2, etc.).
-
-**① Download the model**
-
-ModelScope page: **https://modelscope.cn/models/snake7gun/Z-Image-Turbo-int4-ov/files**
-
-Or via CLI (supports resume — re-run to continue if interrupted):
-```bat
-pip install modelscope
-python -c "from modelscope import snapshot_download; snapshot_download('snake7gun/Z-Image-Turbo-int4-ov', local_dir=r'<IMAGE_GEN_DIR>\Z-Image-Turbo-int4-ov')"
-```
-
-**② Confirm directory structure** (all three subdirs required):
-```
-<IMAGE_GEN_DIR>\Z-Image-Turbo-int4-ov\
-├── transformer\
-├── vae_decoder\
-└── text_encoder\
-```
-
-**③ Re-verify:**
-```python
-python -c "
-from pathlib import Path
-model_dir = Path(r'<IMAGE_GEN_DIR>') / 'Z-Image-Turbo-int4-ov'
-required = ['transformer', 'vae_decoder', 'text_encoder']
-missing = [r for r in required if not (model_dir / r).exists()]
-print('MODEL_STATUS=READY') if not missing else print(f'MODEL_STATUS=MISSING  missing: {missing}')
-"
-```
-
-Once `MODEL_STATUS=READY`, continue to Step 4.
-
----
-
-## Step 4: write inference script (version check)
-
-> ✍️ Step 4/5: checking script version…
-
-```python
-python -c "
-from pathlib import Path
-import re
-
-CURRENT_VERSION = 'v2.0'
-script = Path(r'<IMAGE_GEN_DIR>') / 'generate_image.py'
-
-existing_version = None
+existing = None
 if script.exists():
     m = re.search(r\"SKILL_VERSION\s*=\s*[\\\"'](.*?)[\\\"']\", script.read_text(encoding='utf-8', errors='ignore'))
-    if m: existing_version = m.group(1)
+    if m: existing = m.group(1)
 
-if existing_version == CURRENT_VERSION:
-    print('SCRIPT_UPDATE=SKIPPED (already up to date)')
-    print(f'EXISTS={script.exists()}')
+if existing == CURRENT_VERSION:
+    print('SCRIPT_UPDATE=SKIPPED')
 else:
-    print(f'SCRIPT_VERSION_OLD={existing_version} -> NEW={CURRENT_VERSION}')
-    print('SCRIPT_UPDATE=WRITING...')
-    code = r'''
-SKILL_VERSION = \"v2.0\"
-
-import sys, io, os, subprocess, argparse, string, re
+    code = r\'\'\'
+SKILL_VERSION = \"v1.0.2\"
+import sys, io, os, json, string, argparse, re, subprocess
 from datetime import datetime
 from pathlib import Path
-import openvino as ov
-import torch
-from optimum.intel import OVZImagePipeline
-from PIL import Image
 
-def get_image_gen_dir():
+def get_state():
     for d in string.ascii_uppercase:
-        c = Path(f\"{d}:\\\\\") / \"image-gen-local\"
-        if c.exists(): return c
-    return Path(__file__).resolve().parent
+        sf = Path(f\"{d}:\\\\\") / f\"{os.environ.get('USERNAME','user').lower()}_openvino\" / \"imagegen\" / \"state.json\"
+        if sf.exists():
+            return json.loads(sf.read_text(encoding='utf-8'))
+    return None
 
 def get_device():
+    import openvino as ov
     core = ov.Core()
     devs = core.available_devices
     print(f\"[INFO] Available devices: {devs}\")
@@ -496,37 +367,48 @@ def get_device():
     print(\"[INFO] Using CPU\")
     return \"CPU\"
 
-def make_filename(prompt, topic):
-    date_str = datetime.now().strftime(\"%Y%m%d_%H%M%S\")
+def make_filename(topic, prompt):
+    date_str = datetime.now().strftime('%Y%m%d_%H%M%S')
     src = topic if topic else prompt[:30]
     safe = re.sub(r'[^\\w]', '_', src.strip())[:30].strip('_')
     return f\"{date_str}_{safe}.png\"
 
 def generate(prompt, topic='', steps=9, width=512, height=512, seed=42, output_path=None):
-    root = get_image_gen_dir()
-    model_dir = root / \"Z-Image-Turbo-int4-ov\"
-    out_dir = root / \"outputs\"
+    state = get_state()
+    if not state:
+        print(\"[ERROR] state.json not found — run setup.py\")
+        sys.exit(1)
+
+    imagegen_dir = Path(state['IMAGE_GEN_DIR'])
+    model_dir    = imagegen_dir / 'Z-Image-Turbo-int4-ov'
+    out_dir      = imagegen_dir / 'outputs'
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    missing = [r for r in [\"transformer\",\"vae_decoder\",\"text_encoder\"] if not (model_dir/r).exists()]
+    required = ['transformer', 'vae_decoder', 'text_encoder']
+    missing  = [r for r in required if not (model_dir / r).exists()]
     if missing:
-        print(f\"[ERROR] Model incomplete: {missing} — re-run Step 3\")
+        print(f\"[ERROR] Model incomplete: {missing} — run download_model.py\")
         sys.exit(1)
 
     device = get_device()
     print(f\"[INFO] Loading model: {model_dir}\")
+
+    import torch
+    from optimum.intel import OVZImagePipeline
     pipe = OVZImagePipeline.from_pretrained(str(model_dir), device=device)
     print(\"[INFO] Model loaded\")
 
-    gen = torch.Generator(\"cpu\").manual_seed(seed) if seed >= 0 else None
+    gen = torch.Generator('cpu').manual_seed(seed) if seed >= 0 else None
     print(f\"[INFO] Inference: steps={steps}, {width}x{height}, seed={seed}\")
-    image = pipe(prompt=prompt, height=height, width=width,
-                 num_inference_steps=steps, guidance_scale=0.0, generator=gen).images[0]
+    image = pipe(
+        prompt=prompt, height=height, width=width,
+        num_inference_steps=steps, guidance_scale=0.0, generator=gen
+    ).images[0]
 
     if output_path is None:
-        output_path = str(out_dir / make_filename(prompt, topic))
+        output_path = str(out_dir / make_filename(topic, prompt))
     image.save(output_path)
-    print(f\"[SUCCESS] Image saved: {output_path}\")
+    print(f\"[SUCCESS] {output_path}\")
     try:
         subprocess.Popen(['explorer', output_path])
         print(\"[INFO] Opened in default viewer\")
@@ -535,18 +417,26 @@ def generate(prompt, topic='', steps=9, width=512, height=512, seed=42, output_p
     return output_path
 
 if __name__ == \"__main__\":
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-    p = argparse.ArgumentParser()
-    p.add_argument(\"--prompt\", required=True)
-    p.add_argument(\"--topic\",  default='')
-    p.add_argument(\"--steps\",  type=int, default=9)
-    p.add_argument(\"--width\",  type=int, default=512)
-    p.add_argument(\"--height\", type=int, default=512)
-    p.add_argument(\"--seed\",   type=int, default=42)
-    p.add_argument(\"--output\", default=None)
-    args = p.parse_args()
-    print(generate(args.prompt, args.topic, args.steps, args.width, args.height, args.seed, args.output))
-'''
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace', line_buffering=True)
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace', line_buffering=True)
+    try:
+        p = argparse.ArgumentParser()
+        p.add_argument(\"--prompt\", required=True)
+        p.add_argument(\"--topic\",  default='')
+        p.add_argument(\"--steps\",  type=int, default=9)
+        p.add_argument(\"--width\",  type=int, default=512)
+        p.add_argument(\"--height\", type=int, default=512)
+        p.add_argument(\"--seed\",   type=int, default=42)
+        p.add_argument(\"--output\", default=None)
+        args = p.parse_args()
+        print(generate(args.prompt, args.topic, args.steps, args.width, args.height, args.seed, args.output))
+        sys.stdout.flush()
+    except Exception as e:
+        import traceback
+        print(f\"[FATAL] {type(e).__name__}: {e}\", flush=True)
+        traceback.print_exc()
+        sys.exit(1)
+\'\'\'
     script.write_text(code.strip(), encoding='utf-8')
     print('SCRIPT_UPDATE=DONE')
 
@@ -554,38 +444,38 @@ print(f'EXISTS={script.exists()}')
 "
 ```
 
-| Output | Meaning |
-|--------|---------|
-| `SCRIPT_UPDATE=SKIPPED` | ✅ Already up to date — proceed to Step 5 |
-| `SCRIPT_UPDATE=DONE` | ✅ Script written — proceed to Step 5 |
-| `EXISTS=False` | ⛔ Write failed — check directory permissions |
-
-Announce: `✅ Script v2.0 ready.`
+| Output | Action |
+|--------|--------|
+| `SCRIPT_UPDATE=SKIPPED` | ✅ Already up to date, proceed to Step 3 |
+| `SCRIPT_UPDATE=DONE` | ✅ Script written, proceed to Step 3 |
+| `EXISTS=False` | ⛔ Write failed — check directory permissions on `IMAGE_GEN_DIR` |
 
 ---
 
-## Step 5: generate image and preview
+## Step 3: generate image and send preview
 
-> 🎨 Step 5/5: running inference…
+> 🎨 Step 3/3: running inference…
 
-```bat
-set PYTHONUTF8=1 && call "<IMAGE_GEN_DIR>\image_gen\Scripts\activate.bat" && python "<IMAGE_GEN_DIR>\generate_image.py" --prompt "expanded prompt from Step 0" --topic "topic slug from Step 0" --steps 9 --seed 42
+Run these two commands separately:
+
+```
+$env:PYTHONUTF8 = "1"
 ```
 
-> ⚠️ All three commands are chained with `&&` to ensure `PYTHONUTF8=1` and venv activation apply to the same shell session. If `&&` is not supported, run them as three separate commands.
-
-**Pass**: the last line of stdout is a `.png` absolute path — record it as `<IMAGE_PATH>`.
-
-The script calls `subprocess.Popen(['explorer', path])` internally to open the image in the system default viewer. No extra command needed.
-
-**Send preview via `message` tool:**
 ```
-action: "send"  filePath: "<IMAGE_PATH>"  message: "✅ {topic slug}"
+& "<VENV_PY>" "<IMAGE_GEN_DIR>\generate_image.py" --prompt "EXPANDED_PROMPT" --topic "TOPIC" --steps 9 --seed 42
+```
+
+**Pass**: stdout contains `[SUCCESS]`. Record `OUTPUT_PATH` from the `[SUCCESS]` line.
+
+Send preview via `message` tool:
+```
+action: "send"  filePath: "OUTPUT_PATH"  message: "✅ TOPIC"
 ```
 
 **Final announcement:**
 ```
-✅ Done! Path: <IMAGE_PATH>
+✅ Done! Path: <OUTPUT_PATH>
 📝 Prompt: {expanded prompt}
 ⚙️ steps=9, 512×512, seed=42 | device: {CPU/GPU}
 ```
@@ -611,18 +501,15 @@ action: "send"  filePath: "<IMAGE_PATH>"  message: "✅ {topic slug}"
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `'python' is not recognized` | Python not installed or not in PATH | Silent install via PowerShell (see Pre-flight), restart terminal |
-| `Python 3.8/3.9` | Version too old | Reinstall 3.12 (same as above) |
-| `'git' is not recognized` | git not installed or not in PATH | Silent install via PowerShell (see Pre-flight), restart terminal |
-| `No module named pip` | pip missing | `python -m ensurepip --upgrade` |
-| `DEP_CHECK=FAIL` but packages seem installed | venv was not active during `pip install` — packages went to system Python | Activate venv, then re-run `pip install -r requirements_imagegen.txt` |
-| `DEP_CHECK=FAIL` / `OVZImagePipeline MISSING` | optimum-intel not installed or wrong version | `pip install -r "{baseDir}\requirements_imagegen.txt"` |
-| `@commit` shows WRONG | PyPI release installed instead of pinned commit | `pip uninstall optimum-intel diffusers -y` then `pip install -r requirements_imagegen.txt --no-cache-dir` |
-| `@commit` shows `not installed via git+https` | git missing when pip ran — skipped git deps | Complete Pre-flight git install, then reinstall deps |
-| `DISK_STATUS=LOW` | Less than 15 GB free | Free space and retry |
-| `[ERROR] Model incomplete` | Download was interrupted | Delete model dir, re-run Step 3 |
-| `activate.bat not found` | venv not created | Run Step 2 creation commands |
+| `STATE=MISSING` | setup.py never run | Run `python setup.py` from the skill directory |
+| `VENV_PY=BROKEN` | venv corrupted | Re-run `python setup.py` — rebuilds venv automatically |
+| `MODEL_STATUS=MISSING` | download never run or interrupted | Run `python download_model.py` — resumes automatically |
+| `DEP_CHECK=FAIL` (MISSING) | packages not installed in venv | Re-run `setup.py` |
+| `DEP_CHECK=FAIL` (`@commit` WRONG) | PyPI release installed instead of pinned commit | Uninstall optimum-intel + diffusers, reinstall with `--no-cache-dir` |
+| `@commit` shows `not installed via git+https` | git was missing when pip ran | Confirm git is installed, re-run `setup.py` |
+| `[ERROR] Model incomplete` | Download interrupted mid-file | Re-run `download_model.py` — resumes automatically |
+| `[ERROR] state.json not found` | state.json missing | Re-run Step 1 |
+| `EXISTS=False` | No write permission on `IMAGE_GEN_DIR` | Check directory permissions |
 | `RuntimeError` on GPU | Insufficient VRAM | Lower resolution or hardcode `return "CPU"` in `get_device()` |
-| Black/noisy output | Too few steps | Use `--steps` ≥ 4; 9 recommended |
-| Download timeout | Network issue | Configure proxy and retry |
-| `EXISTS=False` | No write permission | Confirm directory is writable |
+| Black / noisy output | Too few steps | Use `--steps` ≥ 4; 9 recommended |
+| Download timeout | Network issue or proxy needed | Configure proxy and retry — download supports resume |
