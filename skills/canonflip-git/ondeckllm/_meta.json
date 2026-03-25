@@ -1,0 +1,11 @@
+{
+  "owner": "canonflip-git",
+  "slug": "ondeckllm",
+  "displayName": "OnDeckLLM",
+  "latest": {
+    "version": "1.4.3",
+    "publishedAt": 1774237900595,
+    "commit": null
+  },
+  "history": []
+}
