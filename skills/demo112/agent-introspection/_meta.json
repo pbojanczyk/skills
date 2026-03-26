@@ -1,0 +1,11 @@
+{
+  "owner": "demo112",
+  "slug": "agent-introspection",
+  "displayName": "Agent Introspection",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774402733076,
+    "commit": null
+  },
+  "history": []
+}
