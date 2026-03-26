@@ -1,0 +1,11 @@
+{
+  "owner": "chartgen-ai",
+  "slug": "chart-ai",
+  "displayName": "Chart AI",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774320858959,
+    "commit": null
+  },
+  "history": []
+}
