@@ -1,0 +1,11 @@
+{
+  "owner": "wzdavid",
+  "slug": "wechat-writer",
+  "displayName": "微信公众号文章写作技能（大卫风格），可将assets中的参考文章替换为自己的文章，并定制为自己的风格",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774248090937,
+    "commit": null
+  },
+  "history": []
+}
