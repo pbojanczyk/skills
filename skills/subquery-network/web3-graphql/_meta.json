@@ -1,0 +1,11 @@
+{
+  "owner": "subquery-network",
+  "slug": "web3-graphql",
+  "displayName": "Web3 Graphql",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774421229412,
+    "commit": null
+  },
+  "history": []
+}
