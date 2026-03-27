@@ -1,0 +1,11 @@
+{
+  "owner": "emergenceronearth",
+  "slug": "agentic-evidence-retriever",
+  "displayName": "证据检索与 Grounding (Agentic AI 科研平台)",
+  "latest": {
+    "version": "0.1.0",
+    "publishedAt": 1774615276377,
+    "commit": null
+  },
+  "history": []
+}
