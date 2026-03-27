@@ -1,0 +1,11 @@
+{
+  "owner": "scnet-sugon",
+  "slug": "train-ticket-ocr",
+  "displayName": "Train Ticket Ocr",
+  "latest": {
+    "version": "0.1.0",
+    "publishedAt": 1774605119907,
+    "commit": null
+  },
+  "history": []
+}
