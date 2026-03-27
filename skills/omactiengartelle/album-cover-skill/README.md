@@ -1,5 +1,7 @@
 # AI Album Cover Generator
 
+> Powered by the **Neta AI image generation API** (`api.talesofai.com`) — the same service as [neta.art](https://www.neta.art/open/).
+
 Generate stunning album cover art from a text description using AI. Powered by the Neta talesofai API — get back a direct image URL in seconds.
 
 ---
@@ -62,51 +64,15 @@ node albumcover.js "lo-fi beats cover art" --token YOUR_TOKEN_HERE
 
 ---
 
-## About Neta
+## Token Setup
 
-[Neta](https://www.neta.art/) (by TalesofAI) is an AI image and video generation platform with a powerful open API. It uses a **credit-based system (AP — Action Points)** where each image generation costs a small number of credits. Subscriptions are available for heavier usage.
+This skill requires a Neta API token (free trial available at <https://www.neta.art/open/>).
 
-### Register & Get Token
-
-| Region | Sign up | Get API token |
-|--------|---------|---------------|
-| Global | [neta.art](https://www.neta.art/) | [neta.art/open](https://www.neta.art/open/) |
-| China  | [nieta.art](https://app.nieta.art/) | [nieta.art/security](https://app.nieta.art/security) |
-
-New accounts receive free credits to get started. No credit card required to try.
-
-### Pricing
-
-Neta uses a pay-per-generation credit model. View current plans on the [pricing page](https://www.neta.art/pricing).
-
-- **Free tier:** limited credits on signup — enough to test
-- **Subscription:** monthly AP allowance via Stripe
-- **Credit packs:** one-time top-up as needed
-
-### Set up your token
+Pass it via the `--token` flag:
 
 ```bash
-# Step 1 — get your token:
-#   Global: https://www.neta.art/open/
-#   China:  https://app.nieta.art/security
-
-# Step 2 — set it
-export NETA_TOKEN=your_token_here
-
-# Step 3 — run
-node albumcover.js "your prompt"
+node <script> "your prompt" --token YOUR_TOKEN
 ```
-
-Or pass it inline:
-```bash
-node albumcover.js "your prompt" --token your_token_here
-```
-
-> **API endpoint:** defaults to `api.talesofai.com` (Open Platform tokens).  
-> China users: set `NETA_API_BASE_URL=https://api.talesofai.com` to use the China endpoint.
-
-
----
 
 ## Output
 
@@ -125,6 +91,10 @@ When no prompt is provided, the script uses:
 
 > professional album cover art, dramatic lighting, bold composition, music album aesthetic, high contrast, visually striking, suitable for streaming platforms
 
+## Example Output
+
+![Generated example](https://oss.talesofai.cn/picture/3ad8410d-cfab-4c14-91dd-70b52fae9ba6.webp)
+
 ---
 
-Built with [Claude Code](https://claude.ai/claude-code) · Powered by [Neta](https://www.neta.art/) · [Open Portal](https://www.neta.art/open/)
+This skill requires a Neta API token (free trial available at https://www.neta.art/open/).
