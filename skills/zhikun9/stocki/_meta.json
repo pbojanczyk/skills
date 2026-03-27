@@ -3,11 +3,16 @@
   "slug": "stocki",
   "displayName": "Stocki",
   "latest": {
-    "version": "0.2.2",
-    "publishedAt": 1774513694926,
-    "commit": "https://github.com/openclaw/skills/commit/dd49e27d5b4d2d7c7d6afc7dddf8ba5128c50afb"
+    "version": "0.2.3",
+    "publishedAt": 1774574917592,
+    "commit": null
   },
   "history": [
+    {
+      "version": "0.2.2",
+      "publishedAt": 1774513694926,
+      "commit": "https://github.com/openclaw/skills/commit/dd49e27d5b4d2d7c7d6afc7dddf8ba5128c50afb"
+    },
     {
       "version": "0.1.0",
       "publishedAt": 1774428047792,
