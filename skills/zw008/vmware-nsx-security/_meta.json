@@ -1,0 +1,11 @@
+{
+  "owner": "zw008",
+  "slug": "vmware-nsx-security",
+  "displayName": "Vmware Nsx Security",
+  "latest": {
+    "version": "1.3.0",
+    "publishedAt": 1774575154102,
+    "commit": null
+  },
+  "history": []
+}
