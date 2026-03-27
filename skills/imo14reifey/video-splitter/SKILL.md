@@ -1,157 +1,135 @@
 ---
 name: video-splitter
 version: "1.0.0"
-displayName: "Video Splitter - Split and Cut Video into Clips with AI Chat"
+displayName: "Video Splitter — Split, Segment and Divide Videos into Clips Automatically with AI"
 description: >
-  Video splitter that splits long videos into shorter clips through AI chat. Upload a
-  video and describe how to divide it: by time intervals, by scene changes, by topic
-  sections, or by specific timestamps. The AI detects natural break points and splits
-  the video into separate files automatically. Split a 30-minute recording into 5-minute
-  segments, extract highlight clips from a long stream, divide a lecture by topic
-  changes, or cut a podcast into episode chapters. Describe the split points in plain
-  language — "split every 60 seconds" or "separate each scene" or "cut at 2:30, 5:15,
-  and 8:00" — and get individual clips back. Batch split multiple videos in one session.
-  Combine with other edits after splitting: add subtitles to each clip, trim dead air
-  from segments, or merge selected clips into a new sequence. No timeline dragging
-  needed. Export each clip as MP4. Supports mp4, mov, avi, webm, mkv input.
+  Split any video into multiple clips automatically using AI scene detection, silence detection, or custom timestamps. NemoVideo divides long recordings into shareable segments, detects scene changes and topic transitions, splits by equal duration or file size for upload limits, extracts the best moments for short-form repurposing, and batch-exports every clip with consistent naming — turning a 60-minute recording into 15 ready-to-post clips without touching a timeline.
 metadata: {"openclaw": {"emoji": "✂️", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
 ---
 
-# Video Splitter - Break Long Videos into Clips
+# Video Splitter — Split and Segment Videos into Clips Automatically
 
-## 1. Role & Environment
+Long-form content is where the value lives. Short-form content is where the audience lives. The bridge between them is splitting — taking a 60-minute podcast, a 45-minute webinar, a 30-minute lecture, or a 20-minute YouTube video and extracting the 8-15 moments that work as standalone short-form clips on TikTok, Reels, Shorts, and LinkedIn. A human editor doing this manually watches the entire source video at 2x speed (30 minutes for a 60-minute source), identifies clip-worthy moments, sets in/out points, and exports each clip — a process that takes 2-4 hours per source video and produces 8-12 clips if the editor is fast. NemoVideo automates the entire pipeline: it analyzes the source video using scene detection (visual changes), silence detection (pauses between topics), transcript analysis (topic boundaries from what's being said), and energy detection (audience laughter, applause, speaker emphasis) — then generates clips at every identified split point, ranked by predicted engagement. The creator reviews the clips, selects the strongest ones, and posts. The 4-hour editing session becomes a 15-minute review session.
 
-You are an OpenClaw agent acting as the **interface layer** between the user and NemoVideo's backend AI Agent. The backend handles video generation/editing but assumes a GUI exists. Your job:
+## Use Cases
 
-1. **Relay** user requests to the backend via SSE
-2. **Intercept** backend responses — replace GUI references with API actions
-3. **Supplement** — handle export/render, credits, file delivery directly
-4. **Translate** — present results in user's language with clear status
+1. **Podcast → Short-Form Clips (60 min → 10-15 clips)** — A weekly podcast episode. NemoVideo analyzes the transcript, identifies topic changes, and extracts: every story/anecdote (beginning to punchline), every strong opinion (high-energy speech segments), and every quotable moment (sentences under 15 seconds with high confidence scores). Each clip is auto-trimmed to start 0.5 seconds before the first word and end 1 second after the last, with fade-to-black outro. Exported 9:16 with captions for TikTok/Reels.
+2. **Webinar → Chapter Segments (45 min → 5-8 chapters)** — A recorded webinar for a SaaS company. NemoVideo splits at topic transitions: intro, problem statement, demo section 1, demo section 2, Q&A, and closing CTA. Each chapter exported as a standalone video with title card, for the company's learning library and YouTube chapters.
+3. **Lecture Recording → Study Segments (90 min → 12-15 segments)** — A university professor's recorded lecture. NemoVideo detects slide changes (visual scene detection) and splits at each new slide topic. Each segment becomes a study module: titled by the slide heading, trimmed of transition dead-time, and chaptered for the LMS platform.
+4. **Gaming Stream → Highlight Clips (3 hours → 20 clips)** — A Twitch stream. NemoVideo identifies: kill moments (crowd/audio energy spikes), funny reactions (laughter detection), clutch plays (rapid input followed by energy spike), and raid/donation moments (on-screen alert detection). Each clip: 15-60 seconds, auto-titled by game moment, exported for YouTube Shorts and TikTok.
+5. **Equal-Duration Split for Upload Limits** — A 2-hour training video needs to be uploaded to a platform with a 15-minute file limit. NemoVideo splits into 8 equal segments of 15 minutes each, with 2-second overlap at each boundary (so viewers don't miss content at split points), sequentially numbered, and each segment opens with a "Part X of 8" title card.
 
-### Environment Variables
+## How It Works
 
-| Variable | Required | Default |
-|----------|----------|---------|
-| `NEMO_TOKEN` | No | Auto-generated on first use |
-| `NEMO_API_URL` | No | `https://mega-api-prod.nemovideo.ai` |
-| `NEMO_WEB_URL` | No | `https://nemovideo.com` |
-| `NEMO_CLIENT_ID` | No | Auto-generated UUID, persisted to `~/.config/nemovideo/client_id` |
-| `SKILL_SOURCE` | No | Auto-detected from install path |
+### Step 1 — Upload Source Video
+Provide the long-form video. NemoVideo accepts any length — from 5 minutes to 8+ hours. All major formats supported.
 
-If `NEMO_TOKEN` is not set:
+### Step 2 — Choose Split Method
+Select: scene detection (visual), silence detection (audio gaps), transcript analysis (topic boundaries), energy detection (engagement peaks), equal duration, or custom timestamps.
+
+### Step 3 — Generate
 ```bash
-CLIENT_ID="${NEMO_CLIENT_ID:-$(cat ~/.config/nemovideo/client_id 2>/dev/null)}"
-if [ -z "$CLIENT_ID" ]; then
-  CLIENT_ID=$(uuidgen 2>/dev/null || echo "client-$(date +%s)-$RANDOM")
-  mkdir -p ~/.config/nemovideo && echo "$CLIENT_ID" > ~/.config/nemovideo/client_id
-fi
-curl -s -X POST "$API/api/auth/anonymous-token" -H "X-Client-Id: $CLIENT_ID"
-```
-Save `token` as `NEMO_TOKEN`. Expires after 7 days; re-request with same `X-Client-Id`.
-
-## 2. Request Router
-
-| User says... | Action | Skip SSE? |
-|-------------|--------|-----------|
-| "export" / "download" / "send me the video" | → §3.5 Export | ✅ |
-| "credits" / "balance" | → §3.3 Credits | ✅ |
-| "status" / "show tracks" | → §3.4 State | ✅ |
-| "upload" / user sends file | → §3.2 Upload | ✅ |
-| Everything else | → §3.1 SSE | ❌ |
-
-## 3. Core Flows
-
-`$API` = `${NEMO_API_URL:-https://mega-api-prod.nemovideo.ai}`, `$TOKEN` = `${NEMO_TOKEN}`, `$WEB` = `${NEMO_WEB_URL:-https://nemovideo.com}`.
-
-All API requests MUST include:
-```
-X-Skill-Source: $SKILL_NAME
-X-Skill-Version: $SKILL_VERSION
-X-Skill-Platform: $SKILL_SOURCE
+curl -X POST https://mega-api-prod.nemovideo.ai/api/v1/generate \
+  -H "Authorization: Bearer $NEMO_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "skill": "video-splitter",
+    "prompt": "Split a 55-minute podcast episode into short-form clips for TikTok and Reels. Use transcript analysis to find: (1) complete stories/anecdotes from beginning to punchline, (2) strong opinions with emotional emphasis, (3) quotable one-liner moments under 15 seconds. Target clip length: 30-90 seconds each. Trim each clip to start 0.5 sec before first word and end 1 sec after last word. Add 1-second fade-to-black at end of each clip. Export each clip as separate 9:16 MP4 with auto-captions (bold white, black outline). Rank clips by predicted engagement score.",
+    "split_method": "transcript-analysis",
+    "clip_length": "30-90 sec",
+    "captions": true,
+    "fade_out": true,
+    "rank_by": "engagement-prediction",
+    "format": "9:16"
+  }'
 ```
 
-### 3.0 Create Session
-```bash
-curl -s -X POST "$API/api/tasks/me/with-session/nemo_agent" \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" \
-  -d '{"task_name":"project","language":"<lang>"}'
+### Step 4 — Review Ranked Clips and Publish
+NemoVideo presents all clips ranked by predicted engagement. Preview the top 5, select the best 3-5 for immediate posting, and schedule the rest across the week.
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|:--------:|-------------|
+| `prompt` | string | ✅ | Describe the source video and splitting requirements |
+| `split_method` | string | | "scene-detection", "silence-detection", "transcript-analysis", "energy-detection", "equal-duration", "custom-timestamps" |
+| `clip_length` | string | | Target range: "15-60 sec", "30-90 sec", "5-15 min" |
+| `timestamps` | array | | Custom split points: ["0:00", "5:32", "12:15", "18:40"] |
+| `equal_segments` | integer | | Number of equal-duration segments |
+| `captions` | boolean | | Auto-caption each clip (default: false) |
+| `fade_out` | boolean | | Add fade-to-black at clip end (default: true) |
+| `title_cards` | boolean | | Add title card with clip topic at start (default: false) |
+| `rank_by` | string | | "engagement-prediction", "energy-level", "chronological" |
+| `format` | string | | "16:9", "9:16", "1:1" |
+
+## Output Example
+
+```json
+{
+  "job_id": "vspl-20260328-001",
+  "status": "completed",
+  "source_duration_minutes": 55,
+  "clips_generated": 14,
+  "clips": [
+    {
+      "clip": 1,
+      "title": "Why I Quit My $300K Job",
+      "start": "04:22",
+      "end": "05:48",
+      "duration_seconds": 86,
+      "engagement_score": 0.94,
+      "type": "story-anecdote",
+      "file": "clip-01-quit-job.mp4"
+    },
+    {
+      "clip": 2,
+      "title": "The Worst Career Advice I Ever Got",
+      "start": "12:05",
+      "end": "13:12",
+      "duration_seconds": 67,
+      "engagement_score": 0.91,
+      "type": "strong-opinion",
+      "file": "clip-02-worst-advice.mp4"
+    },
+    {
+      "clip": 3,
+      "title": "Nobody Tells You This About Startups",
+      "start": "28:40",
+      "end": "29:22",
+      "duration_seconds": 42,
+      "engagement_score": 0.88,
+      "type": "quotable-moment",
+      "file": "clip-03-startup-truth.mp4"
+    }
+  ],
+  "split_stats": {
+    "method": "transcript-analysis",
+    "topics_detected": 8,
+    "energy_peaks": 22,
+    "clips_ranked": 14
+  }
+}
 ```
-Save `session_id`, `task_id`.
 
-### 3.1 Send Message via SSE
-```bash
-curl -s -X POST "$API/run_sse" \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -H "Accept: text/event-stream" -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" --max-time 900 \
-  -d '{"app_name":"nemo_agent","user_id":"me","session_id":"<sid>","new_message":{"parts":[{"text":"<msg>"}]}}'
-```
-SSE: text → show; tools → wait; heartbeat → "⏳ Working..."; close → summarize. Silent edits (~30%): Query §3.4, report changes.
+## Tips
 
-### 3.2 Upload
-**File**: `curl -s -X POST "$API/api/upload-video/nemo_agent/me/<sid>" -H "Authorization: Bearer $TOKEN" -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" -F "files=@/path/to/file"`
+1. **Transcript analysis produces the best podcast clips** — Scene detection is useless on a static two-camera podcast. Transcript analysis finds topic boundaries and complete stories that make sense as standalone clips.
+2. **Energy detection finds viral moments** — Laughter, raised voices, dramatic pauses, and rapid speech indicate emotionally charged content. These moments have the highest share probability on short-form platforms.
+3. **30-90 seconds is the clip sweet spot** — Under 15 seconds lacks context. Over 90 seconds loses short-form audiences. NemoVideo targets this range by default for social repurposing.
+4. **Overlap at split boundaries prevents information loss** — For sequential viewing (lecture parts), 2-second overlaps ensure the viewer doesn't miss a sentence at the cut point.
+5. **Batch-export with consistent naming saves hours** — `clip-01-topic.mp4`, `clip-02-topic.mp4` with auto-generated titles from transcript topics. Import directly to scheduling tools.
 
-**URL**: same endpoint, `-d '{"urls":["<url>"],"source_type":"url"}'`
+## Output Formats
 
-Supported: mp4, mov, avi, webm, mkv, jpg, png, gif, webp, mp3, wav, m4a, aac.
+| Format | Resolution | Use Case |
+|--------|-----------|----------|
+| MP4 9:16 | 1080x1920 | TikTok / Reels / Shorts clips |
+| MP4 16:9 | 1920x1080 | YouTube chapters / website |
+| MP4 1:1 | 1080x1080 | LinkedIn / Twitter / Facebook |
+| CSV manifest | — | Clip list with timestamps, titles, scores |
 
-### 3.3 Credits
-```bash
-curl -s "$API/api/credits/balance/simple" -H "Authorization: Bearer $TOKEN" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE"
-```
+## Related Skills
 
-### 3.4 Query State
-```bash
-curl -s "$API/api/state/nemo_agent/me/<sid>/latest" -H "Authorization: Bearer $TOKEN" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE"
-```
-Draft: `t`=tracks, `tt`=type (0=video, 1=audio, 7=text), `sg`=segments, `d`=duration(ms).
-
-### 3.5 Export & Deliver
-Export is free. Pre-check §3.4, then:
-```bash
-curl -s -X POST "$API/api/render/proxy/lambda" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" \
-  -d '{"id":"render_<ts>","sessionId":"<sid>","draft":<json>,"output":{"format":"mp4","quality":"high"}}'
-```
-Poll `GET $API/api/render/proxy/lambda/<id>` every 30s. Download `output.url`, deliver with task link.
-
-### 3.6 Disconnect Recovery
-Don't re-send. Wait 30s → §3.4. After 5 unchanged → report failure.
-
-## 4. GUI Translation
-
-| Backend says | You do |
-|-------------|--------|
-| "click Export" | §3.5 render + deliver |
-| "open timeline" | Show state §3.4 |
-| "drag/drop" | Send edit via SSE |
-| "check account" | §3.3 |
-
-## 5. Splitting Tips
-
-**By time**: "Split every 2 minutes" creates uniform segments from any length video.
-
-**By content**: "Split at each scene change" uses AI detection for natural break points.
-
-**Selective**: "Keep only segments 2 and 5" after splitting lets you cherry-pick the best parts.
-
-## 6. Limitations
-
-- Aspect ratio change after generation → must regenerate
-- YouTube/Spotify music URLs → "Built-in library has similar styles"
-- Photo editing → "I can make a slideshow from images"
-- Local files → send in chat or provide URL
-
-## 7. Error Handling
-
-| Code | Meaning | Action |
-|------|---------|--------|
-| 0 | Success | Continue |
-| 1001 | Token expired | Re-auth |
-| 1002 | Session gone | New session |
-| 2001 | No credits | Show registration URL |
-| 4001 | Unsupported file | Show formats |
-| 402 | Export restricted | "Register at nemovideo.ai" |
-| 429 | Rate limited | Wait 30s, retry |
+- [auto-caption-video](/skills/auto-caption-video) — Add captions to clips
+- [video-cropper](/skills/video-cropper) — Reframe clips per platform
+- [speed-ramp-video](/skills/speed-ramp-video) — Add speed effects to clips
