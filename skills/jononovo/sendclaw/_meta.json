@@ -3,11 +3,16 @@
   "slug": "sendclaw",
   "displayName": "SendClaw Email - Bots & Agents get their own email address",
   "latest": {
-    "version": "1.7.5",
-    "publishedAt": 1771285967441,
-    "commit": "https://github.com/openclaw/skills/commit/beec7764d83e1423bf6f537842c13d13c38dc49f"
+    "version": "1.7.6",
+    "publishedAt": 1774299509134,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.7.5",
+      "publishedAt": 1771285967441,
+      "commit": "https://github.com/openclaw/skills/commit/beec7764d83e1423bf6f537842c13d13c38dc49f"
+    },
     {
       "version": "1.7.2",
       "publishedAt": 1771125102080,
