@@ -3,9 +3,15 @@
   "slug": "openclaw-dual-cleanup",
   "displayName": "Openclaw Dual Cleanup",
   "latest": {
-    "version": "1.2.1",
-    "publishedAt": 1774579365982,
-    "commit": "https://github.com/openclaw/skills/commit/928910a4ae63630941eff81814db83606963a0dd"
+    "version": "2.0.0",
+    "publishedAt": 1774721679595,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.2.1",
+      "publishedAt": 1774579365982,
+      "commit": "https://github.com/openclaw/skills/commit/928910a4ae63630941eff81814db83606963a0dd"
+    }
+  ]
 }
