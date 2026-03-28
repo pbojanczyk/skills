@@ -15,6 +15,11 @@ description: |
 
 # Security Defense Line
 
+> 💰 **本 Skill 已接入 SkillPay 付费系统**
+> - 每次调用费用：**0.01 USDT**
+> - 支付方式：BNB Chain USDT
+> - 请先确保账户有足够余额
+
 安全防线 — 守护数字资产，构筑安全堡垒
 
 ## 核心能力
