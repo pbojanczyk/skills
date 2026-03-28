@@ -2,139 +2,108 @@
 
 Use this file for messenger dialogs, chats, history, notifications, and file delivery into chats.
 
-> **Channels** (каналы / объявления) — see `references/channels.md`. Channels use the same `im.*` methods but with `ENTITY_TYPE=ANNOUNCEMENT` and `type: openChannel`.
+> **Channels** (broadcast chats) -- see `references/channels.md`.
+> **Bots** -- see `references/bots.md`.
 
-## Separate `im.*` From `imbot.*`
+## Endpoints
 
-Use `im.*` for normal IM REST methods (webhook-compatible):
+| Action | Command |
+|--------|---------|
+| Recent chats | `vibe.py --raw GET /v1/chats/recent --json` |
+| Find chat | `vibe.py --raw GET '/v1/chats/find?query=project' --json` |
+| Get chat info | `vibe.py --raw GET /v1/chats/123 --json` |
+| Create group chat | `vibe.py --raw POST /v1/chats --body '{"type":"chat","title":"Project discussion","userIds":[1,2]}' --confirm-write --json` |
+| Update chat | `vibe.py --raw PATCH /v1/chats/123 --body '{"title":"Updated title"}' --confirm-write --json` |
+| Get messages | `vibe.py --raw GET /v1/chats/123/messages --json` |
+| Search messages | `vibe.py --raw GET '/v1/chats/123/messages?search=contract' --json` |
+| Send message | `vibe.py --raw POST /v1/chats/123/messages --body '{"message":"Hello team"}' --confirm-write --json` |
+| Update message | `vibe.py --raw PATCH /v1/chats/123/messages/456 --body '{"message":"Updated text"}' --confirm-write --json` |
+| Delete message | `vibe.py --raw DELETE /v1/chats/123/messages/456 --confirm-destructive --json` |
+| Mark as read | `vibe.py --raw POST /v1/chats/read-all --confirm-write --json` |
+| Send notification | `vibe.py --raw POST /v1/notifications --body '{"userId":5,"message":"Alert!"}' --confirm-write --json` |
 
-- `im.message.add` — send message
-- `im.message.update` / `im.message.delete`
-- `im.message.share` — create entity (task/event/post) from a message
-- `im.chat.add` / `im.chat.get` / `im.chat.update`
-- `im.chat.user.add` / `im.chat.user.delete` / `im.chat.user.list`
-- `im.dialog.get` / `im.dialog.messages.get`
-- `im.dialog.messages.search` — search messages in a specific chat
-- `im.dialog.users.list` — list dialog participants
-- `im.dialog.read.all` — mark all chats as read
-- `im.recent.list` / `im.recent.get`
-- `im.dialog.writing` — typing indicator
+## Key Fields
 
-Use `imbot.*` for bot scenarios (requires `CLIENT_ID`):
+All field names use camelCase:
 
-- `imbot.message.add` / `imbot.message.update` / `imbot.message.delete`
-- `imbot.chat.add` / `imbot.dialog.get`
-- `imbot.chat.sendTyping`
-
-Do not mix `im.*` and `imbot.*` — pick the family that matches the integration.
-
-## Notifications
-
-- `im.notify.system.add` — system notification (app context only)
-- `im.notify.personal.add` — personal notification (app context only)
-- `im.notify.read` — mark notification as read
-
-Important: `im.notify.system.add` and `im.notify.personal.add` work only through an application, not plain webhooks. If you get auth errors, this is likely the reason.
+- `chatId` -- chat identifier
+- `type` -- chat type (`chat`, `open`, `openChannel`)
+- `title` -- chat name
+- `userIds` -- array of participant user IDs
+- `message` -- message text
+- `messageId` -- message identifier
 
 ## Dialog Addressing
 
-- `123` — direct dialog with user 123
-- `chat456` — group chat 456
-- `sg789` — group or project chat
+Chats are addressed by numeric `chatId`. Direct dialogs use user ID.
 
 ## Common Use Cases
 
 ### Send a message to a chat
 
 ```bash
-python3 scripts/bitrix24_call.py im.message.add \
-  --param 'DIALOG_ID=chat42' \
-  --param 'MESSAGE=Hello team' \
-  --json
+python3 scripts/vibe.py --raw POST /v1/chats/42/messages \
+  --body '{"message":"Hello team"}' \
+  --confirm-write --json
 ```
 
-### Read dialog history
+### Read chat history
 
 ```bash
-python3 scripts/bitrix24_call.py im.dialog.messages.get \
-  --param 'DIALOG_ID=chat42' \
-  --param 'LIMIT=20' \
-  --json
-```
-
-### Send a Disk file to chat
-
-```bash
-python3 scripts/bitrix24_call.py im.disk.file.commit \
-  --param 'CHAT_ID=42' \
-  --param 'FILE_ID[]=5249' \
-  --param 'MESSAGE=Project files' \
-  --json
-```
-
-### Create a group chat
-
-```bash
-python3 scripts/bitrix24_call.py im.chat.add \
-  --param 'TYPE=CHAT' \
-  --param 'TITLE=Project discussion' \
-  --param 'USERS[]=1' \
-  --param 'USERS[]=2' \
-  --json
+python3 scripts/vibe.py --raw GET '/v1/chats/42/messages?limit=20' --json
 ```
 
 ### Search messages in a chat
 
 ```bash
-python3 scripts/bitrix24_call.py im.dialog.messages.search \
-  --param 'CHAT_ID=42' \
-  --param 'SEARCH_MESSAGE=contract' \
-  --param 'LIMIT=20' \
-  --json
+python3 scripts/vibe.py --raw GET '/v1/chats/42/messages?search=contract&limit=20' --json
 ```
 
-Supports date filters: `DATE_FROM`, `DATE_TO` (ISO 8601), `DATE` (single day).
-Search string must be longer than 2 characters. Returns messages, users, and files.
+Supports date filters via query params: `dateFrom`, `dateTo` (ISO 8601).
 
-### Create task from a chat message
+### Create a group chat
 
 ```bash
-python3 scripts/bitrix24_call.py im.message.share \
-  --param 'MESSAGE_ID=34261' \
-  --param 'DIALOG_ID=chat42' \
-  --param 'TYPE=TASK' \
-  --json
+python3 scripts/vibe.py --raw POST /v1/chats \
+  --body '{"type":"chat","title":"Project discussion","userIds":[1,2,5]}' \
+  --confirm-write --json
 ```
 
-`TYPE` values: `TASK` (task), `CALEND` (calendar event), `POST` (feed post), `CHAT` (forward to chat).
-Get `MESSAGE_ID` from `im.dialog.messages.get` or `im.dialog.messages.search`.
-
-### Mark all chats as read
+### List chat participants
 
 ```bash
-python3 scripts/bitrix24_call.py im.dialog.read.all --json
+python3 scripts/vibe.py --raw GET /v1/chats/42/users --json
 ```
 
-No parameters needed. Marks all dialogs as read for the current user.
+### Add users to chat
 
-## `CLIENT_ID` for Bots
+```bash
+python3 scripts/vibe.py --raw POST /v1/chats/42/users \
+  --body '{"userIds":[5,6,7]}' \
+  --confirm-write --json
+```
 
-For `imbot.*` methods:
+### Remove user from chat
 
-- Provide `CLIENT_ID` when registering the bot
-- Persist it and reuse in every `imbot.*` call
-- Treat `CLIENT_ID` as a secret
+```bash
+python3 scripts/vibe.py --raw DELETE /v1/chats/42/users/5 --confirm-destructive --json
+```
+
+### Send a notification
+
+```bash
+python3 scripts/vibe.py --raw POST /v1/notifications \
+  --body '{"userId":5,"message":"Your deal was approved!"}' \
+  --confirm-write --json
+```
 
 ## Formatting
 
 Bitrix24 chat uses BB-code. Do not double-convert if Markdown is already converted to BB-code.
 
-## Good MCP Queries
+## Common Pitfalls
 
-- `im message add chat`
-- `im message share`
-- `im dialog messages search`
-- `im dialog read all`
-- `imbot message`
-- `im dialog messages get`
-- `im disk file commit`
+- Use numeric `chatId`, not string prefixes like `chat42`.
+- Send notification requires `userId` -- you cannot notify by chat ID.
+- Search string must be longer than 2 characters.
+- Write operations require `--confirm-write`, delete operations require `--confirm-destructive`.

@@ -1,143 +1,115 @@
 # Time Tracking and Work Reports
 
-Use this file for work day management, time tracking on tasks, absence reports, and work schedules.
-
-Scope: `timeman`
+Use this file for work day management, time tracking, and work schedules.
 
 ## Work Day Management
 
-- `timeman.status` — get current work day status (OPENED/CLOSED/PAUSED/EXPIRED)
-- `timeman.open` — start or resume work day
-- `timeman.pause` — pause work day
-- `timeman.close` — end work day
-- `timeman.settings` — get work time settings for a user
-- `timeman.schedule.get` — get work schedule by ID
+| Action | Command |
+|--------|---------|
+| Open day | `vibe.py --raw POST /v1/workday/open --confirm-write --json` |
+| Close day | `vibe.py --raw POST /v1/workday/close --confirm-write --json` |
+| Pause | `vibe.py --raw POST /v1/workday/pause --confirm-write --json` |
+| Status | `vibe.py --raw GET /v1/workday/status --json` |
+| Status (other user) | `vibe.py --raw GET '/v1/workday/status?userId=42' --json` |
+| Settings | `vibe.py --raw GET /v1/workday/settings --json` |
+| User settings | `vibe.py --raw GET '/v1/workday/settings?userId=42' --json` |
+| Schedule | `vibe.py --raw GET /v1/workday/schedule --json` |
 
-Status values from `timeman.status`:
+## Key Fields
 
-- `OPENED` — work day is active
-- `CLOSED` — work day is finished
-- `PAUSED` — work day is paused
-- `EXPIRED` — opened before today and never closed
+- `status` -- work day status: `OPENED`, `CLOSED`, `PAUSED`, `EXPIRED`
+- `userId` -- user ID (defaults to current user)
 
-## Time Control and Absence Reports
+Status values:
 
-- `timeman.timecontrol.reports.get` — get absence report for a user/month
-- `timeman.timecontrol.reports.users.get` — list users in department with access level
-- `timeman.timecontrol.report.add` — submit absence explanation
-- `timeman.timecontrol.settings.get` / `.set` — time control module settings
-- `timeman.timecontrol.reports.settings.get` — report UI settings
+- `OPENED` -- work day is active
+- `CLOSED` -- work day is finished
+- `PAUSED` -- work day is paused
+- `EXPIRED` -- opened before today and never closed
+
+## Absence Reports
+
+| Action | Command |
+|--------|---------|
+| Get absence report | `vibe.py --raw GET '/v1/workday/reports/absence?userId=42&month=3&year=2026' --json` |
+| List department users | `vibe.py --raw GET '/v1/workday/reports/users?departmentId=5' --json` |
+| Submit absence explanation | `vibe.py --raw POST /v1/workday/reports/absence --body '{"userId":42,"dateFrom":"2026-03-10","dateTo":"2026-03-10","reason":"Doctor appointment"}' --confirm-write --json` |
 
 ## Task Time Tracking
 
-- `task.elapseditem.add` — add time spent on a task
-- `task.elapseditem.getlist` — list time entries for a task
-- `task.elapseditem.get` — get a single time entry
-- `task.elapseditem.update` — update time entry
-- `task.elapseditem.delete` — delete time entry
+Task time tracking is in `references/tasks.md`. Use:
 
-## Office Network
+```bash
+# Get time entries for a task
+python3 scripts/vibe.py --raw GET /v1/tasks/456/time --json
 
-- `timeman.networkrange.get` — get office network ranges
-- `timeman.networkrange.set` — set office network ranges
-- `timeman.networkrange.check` — check if IP is in office network
+# Add time entry
+python3 scripts/vibe.py --raw POST /v1/tasks/456/time \
+  --body '{"seconds":3600,"comment":"Development work"}' \
+  --confirm-write --json
+```
 
 ## Common Use Cases
 
 ### Check work day status
 
 ```bash
-python3 scripts/bitrix24_call.py timeman.status --json
+python3 scripts/vibe.py --raw GET /v1/workday/status --json
 ```
 
-### Check work day status for another user
+### Check another user's status
 
 ```bash
-python3 scripts/bitrix24_call.py timeman.status \
-  --param 'USER_ID=42' \
-  --json
+python3 scripts/vibe.py --raw GET '/v1/workday/status?userId=42' --json
 ```
 
 ### Start work day
 
 ```bash
-python3 scripts/bitrix24_call.py timeman.open --json
+python3 scripts/vibe.py --raw POST /v1/workday/open --confirm-write --json
 ```
 
 ### End work day
 
 ```bash
-python3 scripts/bitrix24_call.py timeman.close --json
+python3 scripts/vibe.py --raw POST /v1/workday/close --confirm-write --json
 ```
 
-### Get absence report for a user
+### Pause work day
 
 ```bash
-python3 scripts/bitrix24_call.py timeman.timecontrol.reports.get \
-  --param 'USER_ID=42' \
-  --param 'MONTH=3' \
-  --param 'YEAR=2026' \
-  --json
-```
-
-### List department users for time reports
-
-```bash
-python3 scripts/bitrix24_call.py timeman.timecontrol.reports.users.get \
-  --param 'DEPARTMENT_ID=5' \
-  --json
-```
-
-### Get time spent on a task
-
-```bash
-python3 scripts/bitrix24_call.py task.elapseditem.getlist \
-  --param 'TASKID=456' \
-  --json
-```
-
-### Log time on a task
-
-```bash
-python3 scripts/bitrix24_call.py task.elapseditem.add \
-  --param 'TASKID=456' \
-  --param 'FIELDS[SECONDS]=3600' \
-  --param 'FIELDS[COMMENT_TEXT]=Development work' \
-  --json
+python3 scripts/vibe.py --raw POST /v1/workday/pause --confirm-write --json
 ```
 
 ### Get user work schedule
 
 ```bash
-python3 scripts/bitrix24_call.py timeman.settings \
-  --param 'USER_ID=42' \
-  --json
+python3 scripts/vibe.py --raw GET '/v1/workday/settings?userId=42' --json
+```
+
+### Get absence report
+
+```bash
+python3 scripts/vibe.py --raw GET '/v1/workday/reports/absence?userId=42&month=3&year=2026' --json
 ```
 
 ## Building Department Reports
 
 To build a time report for a department:
 
-1. Get department employees: `im.department.employees.get`
-2. For each employee, get work day status: `timeman.status` with `USER_ID`
-3. For detailed reports: `timeman.timecontrol.reports.get` with `USER_ID`, `MONTH`, `YEAR`
-4. For task time: `task.elapseditem.getlist` per task
+1. Get department employees: `vibe.py --raw GET '/v1/workday/reports/users?departmentId=5' --json`
+2. For each employee, get status: `vibe.py --raw GET '/v1/workday/status?userId=ID' --json`
+3. For detailed reports: `vibe.py --raw GET '/v1/workday/reports/absence?userId=ID&month=3&year=2026' --json`
+4. For task time: `vibe.py --raw GET /v1/tasks/TASKID/time --json`
 
-## Working Rules
+## Common Pitfalls
 
-- `timeman.status` returns current user by default — pass `USER_ID` for other users.
-- `timeman.timecontrol.reports.get` requires `USER_ID`, `MONTH`, and `YEAR` (all mandatory).
+- Status defaults to current user -- pass `userId` query param for other users.
+- Absence reports require `userId`, `month`, and `year` (all mandatory).
 - Access to other users' reports depends on role (manager/admin).
-- `task.elapseditem.*` uses `TASKID` (not `TASK_ID`).
-- Time entries use `SECONDS` field, not hours.
+- Time entries use `seconds` field, not hours.
+- Write operations require `--confirm-write`.
 
 ## Note: No Email API
 
-Bitrix24 has `mailservice.*` methods for configuring SMTP/IMAP mail services, but there is **no REST API for reading or sending individual emails** from Bitrix24 mailboxes.
-
-## Good MCP Queries
-
-- `timeman status open close`
-- `timeman timecontrol reports`
-- `task elapseditem time spent`
-- `timeman schedule settings`
+Bitrix24 has no REST API for reading or sending individual emails from Bitrix24 mailboxes.

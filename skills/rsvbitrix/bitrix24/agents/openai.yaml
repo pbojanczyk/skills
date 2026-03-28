@@ -1,7 +1,7 @@
 interface:
   display_name: "Bitrix24"
-  short_description: "Bitrix24 CRM, tasks, chat, and MCP workflows"
-  default_prompt: "Use $bitrix24 to work with Bitrix24 CRM, tasks, chat, calendar, drive, users, and MCP docs."
+  short_description: "Bitrix24 CRM, tasks, chat via Vibe Platform and MCP workflows"
+  default_prompt: "Use $bitrix24 to work with Bitrix24 CRM, tasks, chat, calendar, drive, users via Vibe Platform, and MCP docs."
 dependencies:
   tools:
     - type: "mcp"

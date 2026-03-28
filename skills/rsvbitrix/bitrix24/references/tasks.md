@@ -1,50 +1,50 @@
 # Tasks
 
-Use this file for task CRUD, delegation, checklists, comments, planner data, and filtering.
+Use this file for task CRUD, searching, time tracking, and filtering.
 
-## Core Methods
+## Entity CRUD
 
-- `tasks.task.list` — list tasks with filters, sorting, and pagination
-- `tasks.task.get` — get one task by ID
-- `tasks.task.add` — create task
-- `tasks.task.update` — update task
-- `tasks.task.complete` — mark task as completed
-- `tasks.task.renew` — reopen task
-- `tasks.task.delegate` — delegate task
-- `tasks.task.delete` — delete task
-- `tasks.task.favorite.add` / `tasks.task.favorite.remove`
+| Action | Command |
+|--------|---------|
+| List tasks | `vibe.py tasks --json` |
+| Get task | `vibe.py tasks/123 --json` |
+| Create task | `vibe.py tasks --create --body '{"title":"Task","responsibleId":5,"deadline":"2026-04-01"}' --confirm-write --json` |
+| Update task | `vibe.py tasks/123 --update --body '{"title":"Updated title"}' --confirm-write --json` |
+| Delete task | `vibe.py tasks/123 --delete --confirm-destructive --json` |
+| Search tasks | `vibe.py tasks/search --body '{"filter":{"responsibleId":{"$eq":5},"status":{"$ne":5}}}' --json` |
+| Complete task | `vibe.py tasks/123 --update --body '{"status":5}' --confirm-write --json` |
+| Fields | `vibe.py tasks/fields --json` |
 
-Checklist:
+## Time Tracking
 
-- `task.checklistitem.add` / `task.checklistitem.getlist`
-- `task.checklistitem.complete` / `task.checklistitem.renew`
-- `task.checklistitem.delete`
+```bash
+# Get time entries for a task
+python3 scripts/vibe.py --raw GET /v1/tasks/123/time --json
 
-Comments:
+# Add time entry
+python3 scripts/vibe.py --raw POST /v1/tasks/123/time \
+  --body '{"seconds":3600,"comment":"Work done"}' \
+  --confirm-write --json
+```
 
-- `task.commentitem.add` / `task.commentitem.getlist`
+## Key Fields
 
-Planner:
+All field names use camelCase:
 
-- `task.planner.getlist` — returns task IDs from current user's "Plan for the day"
+- `title` — task name
+- `responsibleId` — assigned user
+- `createdById` — task creator
+- `deadline` — due date/time
+- `status` — task status (see Statuses below)
+- `priority` — task priority
+- `description` — task description
+- `groupId` — project group ID
 
-Deprecated: `task.item.*` methods — do not use.
+Use `tasks/fields` to discover all available fields including custom fields:
 
-## Critical: Filter Syntax
-
-`tasks.task.list` uses prefix operators on filter keys:
-
-- `>=DEADLINE` — deadline on or after date
-- `<=DEADLINE` — deadline on or before date
-- `!STATUS` — status not equal to value
-- `RESPONSIBLE_ID` — assigned user
-- `CREATED_BY` — creator
-- `GROUP_ID` — project group
-
-Dates in filters use `YYYY-MM-DD` format.
-
-**Wrong:** `filter[DEADLINE]=2026-03-10` — this does not filter by exact date.
-**Right:** `filter[>=DEADLINE]=2026-03-10` + `filter[<=DEADLINE]=2026-03-10` for tasks with deadline on that day.
+```bash
+python3 scripts/vibe.py tasks/fields --json
+```
 
 ## Statuses
 
@@ -55,100 +55,73 @@ Dates in filters use `YYYY-MM-DD` format.
 - `5` — completed
 - `6` — deferred
 
-To exclude deferred tasks: `filter[!STATUS]=6`
+## Filter Syntax
+
+MongoDB-style operators:
+
+| Operator | Meaning | Example |
+|----------|---------|---------|
+| `$eq` | Equals | `{"responsibleId":{"$eq":5}}` |
+| `$ne` | Not equal | `{"status":{"$ne":5}}` |
+| `$gt` | Greater than | `{"priority":{"$gt":0}}` |
+| `$gte` | Greater or equal | `{"deadline":{"$gte":"2026-03-10"}}` |
+| `$lt` | Less than | `{"deadline":{"$lt":"2026-03-08"}}` |
+| `$lte` | Less or equal | `{"deadline":{"$lte":"2026-03-10"}}` |
+| `$contains` | Contains substring | `{"title":{"$contains":"urgent"}}` |
+| `$in` | In list | `{"status":{"$in":[1,2,3]}}` |
 
 ## Common Use Cases
 
-### Overdue tasks (for proactive warnings)
+### Overdue tasks
 
 Tasks where deadline has passed but task is not completed or deferred:
 
 ```bash
-python3 scripts/bitrix24_call.py tasks.task.list \
-  --param 'filter[RESPONSIBLE_ID]=1' \
-  --param 'filter[<DEADLINE]=2026-03-08' \
-  --param 'filter[<REAL_STATUS]=5' \
-  --param 'select[]=ID' \
-  --param 'select[]=TITLE' \
-  --param 'select[]=DEADLINE' \
-  --param 'select[]=STATUS' \
-  --param 'order[DEADLINE]=asc' \
-  --json
+python3 scripts/vibe.py tasks/search \
+  --body '{"filter":{"responsibleId":{"$eq":1},"deadline":{"$lt":"2026-03-24"},"status":{"$lt":5}}}' --json
 ```
 
-`<DEADLINE` = deadline before today. `<REAL_STATUS` = status less than 5 (excludes completed=5 and deferred=6).
-
-Use this in morning briefing and task lists to flag overdue items with "⚠️".
-
-### Show active tasks for current user
-
-First get user ID, then list active tasks:
+### Active tasks for a user
 
 ```bash
-python3 scripts/bitrix24_call.py user.current --json
-python3 scripts/bitrix24_call.py tasks.task.list \
-  --param 'filter[RESPONSIBLE_ID]=1' \
-  --param 'filter[!STATUS]=5' \
-  --param 'filter[!STATUS]=6' \
-  --param 'select[]=ID' \
-  --param 'select[]=TITLE' \
-  --param 'select[]=STATUS' \
-  --param 'select[]=DEADLINE' \
-  --param 'order[DEADLINE]=asc' \
-  --json
-```
+# Get current user ID
+python3 scripts/vibe.py --raw GET /v1/me --json
 
-Note: to exclude both statuses 5 and 6, use `REAL_STATUS` with range filter or pass `filter[<REAL_STATUS]=5`.
+# List active (non-completed, non-deferred) tasks
+python3 scripts/vibe.py tasks/search \
+  --body '{"filter":{"responsibleId":{"$eq":1},"status":{"$in":[1,2,3,4]}}}' --json
+```
 
 ### Tasks with deadline on a specific date
 
 ```bash
-python3 scripts/bitrix24_call.py tasks.task.list \
-  --param 'filter[>=DEADLINE]=2026-03-10' \
-  --param 'filter[<=DEADLINE]=2026-03-10' \
-  --param 'select[]=ID' \
-  --param 'select[]=TITLE' \
-  --param 'select[]=DEADLINE' \
-  --param 'select[]=STATUS' \
-  --json
+python3 scripts/vibe.py tasks/search \
+  --body '{"filter":{"deadline":{"$gte":"2026-03-10","$lte":"2026-03-10"}}}' --json
 ```
 
-### Create a task
+### Create a task with priority
 
 ```bash
-python3 scripts/bitrix24_call.py tasks.task.add \
-  --param 'fields[TITLE]=Task title' \
-  --param 'fields[RESPONSIBLE_ID]=1' \
-  --param 'fields[DEADLINE]=2026-03-15' \
-  --param 'fields[PRIORITY]=2' \
-  --json
+python3 scripts/vibe.py tasks --create \
+  --body '{"title":"Urgent task","responsibleId":1,"deadline":"2026-03-15","priority":2}' \
+  --confirm-write --json
 ```
 
-### Add checklist item
+### Tasks in a project group
 
 ```bash
-python3 scripts/bitrix24_call.py task.checklistitem.add \
-  --param 'TASKID=456' \
-  --param 'FIELDS[TITLE]=Subtask text' \
-  --json
-```
-
-### Add comment
-
-```bash
-python3 scripts/bitrix24_call.py task.commentitem.add \
-  --param 'TASKID=456' \
-  --param 'FIELDS[POST_MESSAGE]=Comment text' \
-  --json
+python3 scripts/vibe.py tasks/search \
+  --body '{"filter":{"groupId":{"$eq":10}}}' --json
 ```
 
 ## Working Rules
 
-- Always use `select[]` to pick only the fields you need.
-- Use `order[DEADLINE]=asc` to sort by deadline.
-- Pagination: page size is 50, use `start=0`, `start=50`, etc.
-- Get user ID from `user.current` before filtering by `RESPONSIBLE_ID`.
+- Field names are camelCase: `responsibleId`, `createdById`, `deadline`, `groupId`.
+- Pagination: use `page` and `pageSize` query parameters.
+- Get user ID from `GET /v1/me` before filtering by `responsibleId`.
+- Use `tasks/fields` to discover available fields before writing.
 - For read-only requests, execute immediately.
+- Use `--raw` mode for time tracking endpoints.
 
 ## Good MCP Queries
 

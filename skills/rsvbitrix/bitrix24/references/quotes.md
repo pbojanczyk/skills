@@ -1,107 +1,74 @@
 # Quotes and Invoices
 
-Use this file for commercial proposals (quotes), new smart invoices, and legacy invoices.
+> **Note:** These endpoints use assumed Vibe Platform paths. Verify actual endpoints at runtime or check Vibe API documentation.
 
-Scope: `crm`
+Commercial proposals (quotes) and smart invoices. Quotes are CRM entities for sending price offers to clients.
 
-## Quotes
+## Endpoints
 
-- `crm.quote.add` — create a quote
-- `crm.quote.list` — list quotes (supports `order`, `filter`, `select`)
-- `crm.quote.get` — get a quote by ID
-- `crm.quote.update` — update a quote
-- `crm.quote.delete` — delete a quote
-- `crm.quote.fields` — field schema
-- `crm.quote.productrows.get` — get product rows of a quote
-- `crm.quote.productrows.set` — set product rows on a quote
+| Action | Command |
+|--------|---------|
+| List quotes | `vibe.py --raw GET /v1/quotes --json` |
+| Create quote | `vibe.py --raw POST /v1/quotes --body '{"title":"Quote","contactId":123,"opportunity":50000}' --confirm-write --json` |
+| Smart invoices | `vibe.py --raw GET '/v1/crm/items?entityTypeId=31' --json` |
 
-Key fields: `TITLE`, `STATUS_ID`, `OPPORTUNITY`, `CURRENCY_ID`, `COMPANY_ID`, `CONTACT_ID`, `DEAL_ID`, `ASSIGNED_BY_ID`, `BEGINDATE`, `CLOSEDATE`, `COMMENTS`, `OPENED`.
+## Key Fields (camelCase)
 
-Status values: `DRAFT`, `SENT`, `APPROVED`, `DECLINED`, etc.
+Quote fields:
 
-## Smart Invoices (New)
+- `id` — quote ID
+- `title` — quote title
+- `statusId` — status (`DRAFT`, `SENT`, `APPROVED`, `DECLINED`)
+- `opportunity` — total amount
+- `currencyId` — currency code
+- `contactId` — linked contact ID
+- `companyId` — linked company ID
+- `dealId` — linked deal ID
+- `assignedById` — responsible user ID
+- `beginDate` — start date
+- `closeDate` — close date
 
-New invoices use the universal `crm.item.*` API with `entityTypeId=31`.
+Smart invoice fields (entityTypeId=31):
 
-- `crm.item.list` with `entityTypeId=31` — list invoices
-- `crm.item.add` with `entityTypeId=31` — create invoice
-- `crm.item.update` with `entityTypeId=31` — update invoice
-- `crm.item.delete` with `entityTypeId=31` — delete invoice
-- `crm.item.fields` with `entityTypeId=31` — field schema
+- `id` — invoice ID
+- `title` — invoice title
+- `stageId` — current stage
+- `opportunity` — total amount
+- `currencyId` — currency code
+- `companyId` — linked company ID
 
-## Legacy Invoices (Deprecated)
+## Copy-Paste Examples
 
-`crm.invoice.*` methods are deprecated. Use `crm.item.*` with `entityTypeId=31` for new invoices.
+### List all quotes
 
-## Common Use Cases
+```bash
+vibe.py --raw GET /v1/quotes --json
+```
 
 ### Create a quote
 
 ```bash
-python3 scripts/bitrix24_call.py crm.quote.add \
-  --param 'fields[TITLE]=Quote for services' \
-  --param 'fields[STATUS_ID]=DRAFT' \
-  --param 'fields[CURRENCY_ID]=RUB' \
-  --param 'fields[OPPORTUNITY]=50000' \
-  --param 'fields[COMPANY_ID]=1' \
-  --param 'fields[ASSIGNED_BY_ID]=1' \
-  --json
-```
-
-### List quotes
-
-```bash
-python3 scripts/bitrix24_call.py crm.quote.list \
-  --param 'select[]=ID' \
-  --param 'select[]=TITLE' \
-  --param 'select[]=STATUS_ID' \
-  --param 'select[]=OPPORTUNITY' \
-  --param 'order[ID]=DESC' \
-  --json
-```
-
-### Get quote product rows
-
-```bash
-python3 scripts/bitrix24_call.py crm.quote.productrows.get \
-  --param 'id=42' \
-  --json
-```
-
-### Create a new smart invoice
-
-```bash
-python3 scripts/bitrix24_call.py crm.item.add \
-  --param 'entityTypeId=31' \
-  --param 'fields[title]=Invoice for order' \
-  --param 'fields[currencyId]=RUB' \
-  --param 'fields[opportunity]=15000' \
-  --param 'fields[companyId]=1' \
-  --json
+vibe.py --raw POST /v1/quotes --body '{
+  "title": "Quote for consulting services",
+  "statusId": "DRAFT",
+  "currencyId": "RUB",
+  "opportunity": 50000,
+  "companyId": 1,
+  "contactId": 123,
+  "assignedById": 5
+}' --confirm-write --json
 ```
 
 ### List smart invoices
 
 ```bash
-python3 scripts/bitrix24_call.py crm.item.list \
-  --param 'entityTypeId=31' \
-  --param 'select[]=id' \
-  --param 'select[]=title' \
-  --param 'select[]=stageId' \
-  --param 'select[]=opportunity' \
-  --json
+vibe.py --raw GET '/v1/crm/items?entityTypeId=31' --json
 ```
 
-## Working Rules
+## Common Pitfalls
 
-- `crm.quote.*` uses UPPER_CASE field names.
-- `crm.item.*` with `entityTypeId=31` uses camelCase field names.
-- For new invoices, prefer `crm.item.*` over deprecated `crm.invoice.*`.
-- Quote product rows: use `crm.quote.productrows.set` (not `crm.item.productrow.set`).
-- Invoice product rows: use `crm.item.productrow.set` with `ownerType=SI`.
-
-## Good MCP Queries
-
-- `crm quote add list fields productrows`
-- `crm item invoice entityTypeId 31`
-- `crm invoice add list`
+- Quotes and smart invoices are different entities — quotes use `/v1/quotes`, invoices use the universal `crm.item` API with `entityTypeId=31`.
+- Legacy `crm.invoice.*` methods are deprecated — always use `crm.item.*` with `entityTypeId=31` for new invoices.
+- Quote product rows may have a separate endpoint — verify at runtime.
+- Invoice product rows use the universal product row API with owner type for smart invoices.
+- Status values are strings (`DRAFT`, `SENT`, etc.) — verify available statuses at runtime.
