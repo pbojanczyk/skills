@@ -1,10 +1,12 @@
 ---
 name: ai-video-content-creator
-version: "1.0.0"
+version: 1.0.1
 displayName: "AI Video Content Creator — Plan, Script, Produce and Publish Videos with AI"
 description: >
   Plan, script, produce, and optimize video content using AI — the complete content creator workflow from idea to published video. NemoVideo handles every stage: topic research and ideation based on trending searches, script writing optimized for retention, visual production with AI-generated scenes, voiceover narration, music and sound design, subtitle generation, thumbnail creation, SEO title and description writing, and multi-platform export — replacing the 10-tool creator stack with a single AI-powered pipeline.
 metadata: {"openclaw": {"emoji": "🚀", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
+homepage: https://nemovideo.com
+repository: https://github.com/nemovideo/nemovideo_skills
 ---
 
 # AI Video Content Creator — The Complete Video Production Pipeline
