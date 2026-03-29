@@ -1,0 +1,11 @@
+{
+  "owner": "actual-software-inc",
+  "slug": "actual",
+  "displayName": "Actual AI CLI",
+  "latest": {
+    "version": "0.1.0",
+    "publishedAt": 1773179934869,
+    "commit": null
+  },
+  "history": []
+}
