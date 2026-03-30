@@ -15,6 +15,7 @@ import re
 import shutil
 
 from .auth import OAuthCallbackError, format_auth_flow_prompt, persist_token_response, wait_for_oauth_callback
+from .auth_failure_signals import AUTH_STYLE_SESSION_PHASES, looks_auth_style_failure
 from .config import ensure_directories, load_config, load_mal_secrets
 from .crunchyroll_auth import (
     CrunchyrollAuthError,
@@ -539,6 +540,30 @@ def _emit_service_status_summary(payload: dict[str, object]) -> None:
             budget_provider = task_payload.get("budget_provider") if isinstance(task_payload.get("budget_provider"), str) else None
             if budget_provider is not None:
                 print(f"task_{task_name}_budget_provider={budget_provider}")
+            budget_scope = task_payload.get("budget_scope") if isinstance(task_payload.get("budget_scope"), str) else None
+            if budget_scope is not None:
+                print(f"task_{task_name}_budget_scope={budget_scope}")
+            projected_request_source = task_payload.get("projected_request_source") if isinstance(task_payload.get("projected_request_source"), str) else None
+            if projected_request_source is not None:
+                print(f"task_{task_name}_projected_request_source={projected_request_source}")
+            projected_request_count = task_payload.get("projected_request_count") if isinstance(task_payload.get("projected_request_count"), int) else None
+            if projected_request_count is not None:
+                print(f"task_{task_name}_projected_request_count={projected_request_count}")
+            projected_request_total = task_payload.get("projected_request_total") if isinstance(task_payload.get("projected_request_total"), int) else None
+            if projected_request_total is not None:
+                print(f"task_{task_name}_projected_request_total={projected_request_total}")
+            projected_ratio = task_payload.get("projected_ratio") if isinstance(task_payload.get("projected_ratio"), (int, float)) else None
+            if projected_ratio is not None:
+                print(f"task_{task_name}_projected_ratio={projected_ratio}")
+            last_request_delta = task_payload.get("last_request_delta") if isinstance(task_payload.get("last_request_delta"), int) else None
+            if last_request_delta is not None:
+                print(f"task_{task_name}_last_request_delta={last_request_delta}")
+            last_fetch_mode = task_payload.get("last_fetch_mode") if isinstance(task_payload.get("last_fetch_mode"), str) else None
+            if last_fetch_mode is not None:
+                print(f"task_{task_name}_last_fetch_mode={last_fetch_mode}")
+            last_full_refresh_reason = task_payload.get("last_full_refresh_reason") if isinstance(task_payload.get("last_full_refresh_reason"), str) else None
+            if last_full_refresh_reason is not None:
+                print(f"task_{task_name}_last_full_refresh_reason={last_full_refresh_reason}")
             next_due_at = task_payload.get("next_due_at") if isinstance(task_payload.get("next_due_at"), str) else None
             if next_due_at is not None:
                 print(f"task_{task_name}_next_due_at={next_due_at}")
@@ -569,6 +594,12 @@ def _emit_service_status_summary(payload: dict[str, object]) -> None:
             failure_backoff_reason = task_payload.get("failure_backoff_reason") if isinstance(task_payload.get("failure_backoff_reason"), str) else None
             if failure_backoff_reason is not None:
                 print(f"task_{task_name}_failure_backoff_reason={failure_backoff_reason}")
+            failure_backoff_class = task_payload.get("failure_backoff_class") if isinstance(task_payload.get("failure_backoff_class"), str) else None
+            if failure_backoff_class is not None:
+                print(f"task_{task_name}_failure_backoff_class={failure_backoff_class}")
+            failure_backoff_floor_seconds = task_payload.get("failure_backoff_floor_seconds") if isinstance(task_payload.get("failure_backoff_floor_seconds"), int) else None
+            if failure_backoff_floor_seconds is not None:
+                print(f"task_{task_name}_failure_backoff_floor_seconds={failure_backoff_floor_seconds}")
             failure_backoff_consecutive_failures = task_payload.get("failure_backoff_consecutive_failures") if isinstance(task_payload.get("failure_backoff_consecutive_failures"), int) else None
             if failure_backoff_consecutive_failures is not None:
                 print(f"task_{task_name}_failure_backoff_consecutive_failures={failure_backoff_consecutive_failures}")
@@ -849,6 +880,92 @@ def _build_automation_installation_status(project_root: Path) -> dict[str, objec
 
 
 
+def _load_service_state_for_health(config: AppConfig) -> dict[str, object] | None:
+    if not config.service_state_path.exists():
+        return None
+    try:
+        payload = json.loads(config.service_state_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(payload, dict):
+        return None
+    return payload
+
+
+def _load_json_dict(path: Path) -> dict[str, object] | None:
+    if not path.exists():
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return payload if isinstance(payload, dict) else None
+
+
+def _provider_auth_session_residue(config: AppConfig, provider: str) -> dict[str, object] | None:
+    if provider == "crunchyroll":
+        session_path = resolve_crunchyroll_state_paths(config).session_state_path
+        phase_key = "crunchyroll_phase"
+    elif provider == "hidive":
+        session_path = resolve_hidive_state_paths(config).session_state_path
+        phase_key = "hidive_phase"
+    else:
+        return None
+    payload = _load_json_dict(session_path)
+    if not isinstance(payload, dict):
+        return None
+    phase = payload.get(phase_key)
+    last_error = payload.get("last_error")
+    residue: dict[str, object] = {}
+    if isinstance(phase, str) and phase in AUTH_STYLE_SESSION_PHASES:
+        residue["session_phase"] = phase
+    if isinstance(last_error, str) and last_error.strip():
+        residue["session_last_error"] = last_error.strip()
+    return residue or None
+
+
+def _provider_service_auth_failure(
+    service_state: dict[str, object] | None,
+    *,
+    provider: str,
+    config: AppConfig,
+    min_consecutive_failures: int = 2,
+) -> dict[str, object] | None:
+    if not isinstance(service_state, dict):
+        return None
+    tasks = service_state.get("tasks")
+    if not isinstance(tasks, dict):
+        return None
+    task_state = tasks.get(f"sync_fetch_{provider}")
+    if not isinstance(task_state, dict):
+        return None
+    reason = task_state.get("failure_backoff_reason") or task_state.get("last_error")
+    if not isinstance(reason, str) or not reason.strip():
+        return None
+    consecutive_failures = task_state.get("failure_backoff_consecutive_failures", 0)
+    if not isinstance(consecutive_failures, (int, float)) or int(consecutive_failures) < min_consecutive_failures:
+        return None
+    session_residue = _provider_auth_session_residue(config, provider)
+    if not looks_auth_style_failure(reason, session_residue=session_residue):
+        return None
+    payload: dict[str, object] = {
+        "provider": provider,
+        "reason": reason.strip(),
+        "consecutive_failures": int(consecutive_failures),
+    }
+    if isinstance(task_state.get("failure_backoff_until"), str):
+        payload["failure_backoff_until"] = task_state["failure_backoff_until"]
+    if isinstance(task_state.get("failure_backoff_remaining_seconds"), (int, float)):
+        payload["failure_backoff_remaining_seconds"] = int(task_state["failure_backoff_remaining_seconds"])
+    if isinstance(task_state.get("failure_backoff_class"), str):
+        payload["failure_backoff_class"] = task_state["failure_backoff_class"]
+    if isinstance(task_state.get("failure_backoff_floor_seconds"), (int, float)):
+        payload["failure_backoff_floor_seconds"] = int(task_state["failure_backoff_floor_seconds"])
+    if isinstance(session_residue, dict):
+        payload.update(session_residue)
+    return payload
+
+
 def _build_health_maintenance_commands(
     *,
     crunchyroll_credentials_present: bool,
@@ -870,6 +987,7 @@ def _build_health_maintenance_commands(
     automation_installation: dict[str, object] | None = None,
     review_queue_refresh_command_args: list[str] | None = None,
     review_queue_refresh_worklist_command_args: list[str] | None = None,
+    provider_auth_failures: dict[str, dict[str, object]] | None = None,
 ) -> list[dict[str, object]]:
     commands: list[dict[str, object]] = []
     seen_commands: set[str] = set()
@@ -923,6 +1041,38 @@ def _build_health_maintenance_commands(
             automation_safe=False,
             requires_auth_interaction=True,
         )
+
+    if isinstance(provider_auth_failures, dict):
+        crunchyroll_failure = provider_auth_failures.get("crunchyroll")
+        if crunchyroll_credentials_present and isinstance(crunchyroll_failure, dict):
+            detail = (
+                "Re-bootstrap Crunchyroll auth state after repeated auth-style unattended fetch failures"
+            )
+            reason = crunchyroll_failure.get("reason")
+            if isinstance(reason, str) and reason:
+                detail += f": {reason}"
+            add_command(
+                "rebootstrap_crunchyroll_auth_after_failures",
+                detail,
+                ["crunchyroll-auth-login"],
+                automation_safe=False,
+                requires_auth_interaction=False,
+            )
+        hidive_failure = provider_auth_failures.get("hidive")
+        if hidive_credentials_present and isinstance(hidive_failure, dict):
+            detail = (
+                "Re-bootstrap HIDIVE auth state after repeated auth-style unattended fetch failures"
+            )
+            reason = hidive_failure.get("reason")
+            if isinstance(reason, str) and reason:
+                detail += f": {reason}"
+            add_command(
+                "rebootstrap_hidive_auth_after_failures",
+                detail,
+                ["provider-auth-login", "--provider", "hidive"],
+                automation_safe=False,
+                requires_auth_interaction=False,
+            )
 
     snapshot_needs_refresh = not isinstance(latest_completed_sync_run, dict)
     if latest_completed_age_seconds is not None and latest_completed_age_seconds > stale_hours * 3600:
@@ -1226,6 +1376,12 @@ def _cmd_health_check(
         snapshot.get("mappings") if isinstance(snapshot.get("mappings"), dict) else None,
     )
     automation_installation = _build_automation_installation_status(config.project_root)
+    service_state = _load_service_state_for_health(config)
+    provider_auth_failures = {
+        provider: payload
+        for provider in ("crunchyroll", "hidive")
+        if (payload := _provider_service_auth_failure(service_state, provider=provider, config=config)) is not None
+    }
 
     warnings: list[dict[str, object]] = []
 
@@ -1301,6 +1457,13 @@ def _cmd_health_check(
                 "fields": partial_sync_coverage.get("fields"),
             }
         )
+    for provider, failure in provider_auth_failures.items():
+        warning = {
+            "code": f"{provider}_auth_failures_repeated",
+            "detail": f"Repeated unattended {provider} fetch failures look auth-related and likely need auth re-bootstrap",
+            **failure,
+        }
+        warnings.append(warning)
     coverage_ratio = mapping_coverage.get("approved_coverage_ratio") if isinstance(mapping_coverage, dict) else None
     unmapped_series_count = mapping_coverage.get("unmapped_series_count") if isinstance(mapping_coverage, dict) else None
     if (
@@ -1455,6 +1618,7 @@ def _cmd_health_check(
         automation_installation=automation_installation,
         review_queue_refresh_command_args=review_queue_refresh_command_args,
         review_queue_refresh_worklist_command_args=review_queue_refresh_worklist_command_args,
+        provider_auth_failures=provider_auth_failures,
     )
 
     payload = {

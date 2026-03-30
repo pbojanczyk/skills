@@ -32,13 +32,75 @@ DEFAULT_MAL_REFRESH_TOKEN_FILE = "mal_refresh_token.txt"
 DEFAULT_DB_FILE = "mal_updater.sqlite3"
 DEFAULT_RUNTIME_DIR_NAME = ".MAL-Updater"
 DEFAULT_SERVICE_SYNC_EVERY_SECONDS = 6 * 60 * 60
+DEFAULT_SERVICE_FULL_REFRESH_EVERY_SECONDS = 24 * 60 * 60
 DEFAULT_SERVICE_HEALTH_EVERY_SECONDS = 12 * 60 * 60
 DEFAULT_SERVICE_MAL_REFRESH_EVERY_SECONDS = 6 * 60 * 60
 DEFAULT_SERVICE_LOOP_SLEEP_SECONDS = 30
 DEFAULT_SERVICE_CRUNCHYROLL_HOURLY_LIMIT = 180
+DEFAULT_SERVICE_SOURCE_PROVIDER_HOURLY_LIMIT = DEFAULT_SERVICE_CRUNCHYROLL_HOURLY_LIMIT
 DEFAULT_SERVICE_MAL_HOURLY_LIMIT = 120
+DEFAULT_SERVICE_SOURCE_PROVIDER_WARN_BACKOFF_FLOOR_SECONDS = 0
+DEFAULT_SERVICE_SOURCE_PROVIDER_CRITICAL_BACKOFF_FLOOR_SECONDS = 0
+DEFAULT_SERVICE_SOURCE_PROVIDER_AUTH_FAILURE_BACKOFF_FLOOR_SECONDS = 0
 DEFAULT_SERVICE_WARN_RATIO = 0.8
 DEFAULT_SERVICE_CRITICAL_RATIO = 0.95
+DEFAULT_SERVICE_PROJECTED_REQUEST_HISTORY_WINDOW = 5
+MAX_SERVICE_PROJECTED_REQUEST_HISTORY_WINDOW = 20
+DEFAULT_SERVICE_PROVIDER_HOURLY_LIMITS = {
+    "hidive": 72,
+}
+DEFAULT_SERVICE_TASK_HOURLY_LIMITS = {
+    "sync_apply": 48,
+}
+DEFAULT_SERVICE_TASK_PROJECTED_REQUEST_COUNTS = {
+    "mal_refresh": 1,
+    "sync_apply": 8,
+}
+DEFAULT_SERVICE_TASK_PROJECTED_REQUEST_COUNTS_BY_MODE = {
+    "sync_fetch_crunchyroll": {
+        "incremental": 4,
+        "full_refresh": 55,
+    },
+    "sync_fetch_hidive": {
+        "incremental": 4,
+        "full_refresh": 71,
+    },
+}
+DEFAULT_SERVICE_PROVIDER_PROJECTED_REQUEST_HISTORY_WINDOWS = {
+    "crunchyroll": 7,
+    "hidive": 9,
+}
+DEFAULT_SERVICE_TASK_PROJECTED_REQUEST_HISTORY_WINDOWS = {
+    "mal_refresh": 3,
+    "sync_apply": 3,
+}
+DEFAULT_SERVICE_TASK_PROJECTED_REQUEST_PERCENTILES = {
+    "sync_apply": 0.9,
+}
+DEFAULT_SERVICE_PROVIDER_PROJECTED_REQUEST_PERCENTILES = {
+    "crunchyroll": 0.9,
+}
+DEFAULT_SERVICE_PROVIDER_WARN_BACKOFF_FLOORS = {
+    "crunchyroll": 900,
+    "hidive": 300,
+}
+DEFAULT_SERVICE_TASK_WARN_BACKOFF_FLOORS = {
+    "sync_apply": 900,
+}
+DEFAULT_SERVICE_PROVIDER_CRITICAL_BACKOFF_FLOORS = {
+    "crunchyroll": 1800,
+    "hidive": 1200,
+}
+DEFAULT_SERVICE_TASK_CRITICAL_BACKOFF_FLOORS = {
+    "sync_apply": 1800,
+}
+DEFAULT_SERVICE_PROVIDER_AUTH_FAILURE_BACKOFF_FLOORS = {
+    "crunchyroll": 7200,
+    "hidive": 3600,
+}
+DEFAULT_SERVICE_TASK_AUTH_FAILURE_BACKOFF_FLOORS = {
+    "sync_apply": 2400,
+}
 WORKSPACE_MARKER_FILES = ("AGENTS.md", "SOUL.md", "USER.md")
 
 
@@ -68,30 +130,125 @@ class CrunchyrollSettings:
 @dataclass(slots=True)
 class ServiceSettings:
     sync_every_seconds: int = DEFAULT_SERVICE_SYNC_EVERY_SECONDS
+    full_refresh_every_seconds: int = DEFAULT_SERVICE_FULL_REFRESH_EVERY_SECONDS
     health_every_seconds: int = DEFAULT_SERVICE_HEALTH_EVERY_SECONDS
     mal_refresh_every_seconds: int = DEFAULT_SERVICE_MAL_REFRESH_EVERY_SECONDS
     loop_sleep_seconds: int = DEFAULT_SERVICE_LOOP_SLEEP_SECONDS
     crunchyroll_hourly_limit: int = DEFAULT_SERVICE_CRUNCHYROLL_HOURLY_LIMIT
+    source_provider_hourly_limit: int = DEFAULT_SERVICE_SOURCE_PROVIDER_HOURLY_LIMIT
     mal_hourly_limit: int = DEFAULT_SERVICE_MAL_HOURLY_LIMIT
-    provider_hourly_limits: dict[str, int] = field(default_factory=dict)
-    provider_warn_backoff_floor_seconds: dict[str, int] = field(default_factory=dict)
-    provider_critical_backoff_floor_seconds: dict[str, int] = field(default_factory=dict)
+    provider_hourly_limits: dict[str, int] = field(default_factory=lambda: dict(DEFAULT_SERVICE_PROVIDER_HOURLY_LIMITS))
+    task_hourly_limits: dict[str, int] = field(default_factory=lambda: dict(DEFAULT_SERVICE_TASK_HOURLY_LIMITS))
+    task_projected_request_counts: dict[str, int] = field(default_factory=lambda: dict(DEFAULT_SERVICE_TASK_PROJECTED_REQUEST_COUNTS))
+    task_projected_request_counts_by_mode: dict[str, dict[str, int]] = field(
+        default_factory=lambda: {task_name: dict(mode_map) for task_name, mode_map in DEFAULT_SERVICE_TASK_PROJECTED_REQUEST_COUNTS_BY_MODE.items()}
+    )
+    provider_projected_request_history_windows: dict[str, int] = field(default_factory=lambda: dict(DEFAULT_SERVICE_PROVIDER_PROJECTED_REQUEST_HISTORY_WINDOWS))
+    task_projected_request_history_windows: dict[str, int] = field(default_factory=lambda: dict(DEFAULT_SERVICE_TASK_PROJECTED_REQUEST_HISTORY_WINDOWS))
+    provider_projected_request_percentiles: dict[str, float] = field(default_factory=lambda: dict(DEFAULT_SERVICE_PROVIDER_PROJECTED_REQUEST_PERCENTILES))
+    task_projected_request_percentiles: dict[str, float] = field(default_factory=lambda: dict(DEFAULT_SERVICE_TASK_PROJECTED_REQUEST_PERCENTILES))
+    source_provider_warn_backoff_floor_seconds: int = DEFAULT_SERVICE_SOURCE_PROVIDER_WARN_BACKOFF_FLOOR_SECONDS
+    source_provider_critical_backoff_floor_seconds: int = DEFAULT_SERVICE_SOURCE_PROVIDER_CRITICAL_BACKOFF_FLOOR_SECONDS
+    provider_warn_backoff_floor_seconds: dict[str, int] = field(default_factory=lambda: dict(DEFAULT_SERVICE_PROVIDER_WARN_BACKOFF_FLOORS))
+    provider_critical_backoff_floor_seconds: dict[str, int] = field(default_factory=lambda: dict(DEFAULT_SERVICE_PROVIDER_CRITICAL_BACKOFF_FLOORS))
+    task_warn_backoff_floor_seconds: dict[str, int] = field(default_factory=lambda: dict(DEFAULT_SERVICE_TASK_WARN_BACKOFF_FLOORS))
+    task_critical_backoff_floor_seconds: dict[str, int] = field(default_factory=lambda: dict(DEFAULT_SERVICE_TASK_CRITICAL_BACKOFF_FLOORS))
+    source_provider_auth_failure_backoff_floor_seconds: int = DEFAULT_SERVICE_SOURCE_PROVIDER_AUTH_FAILURE_BACKOFF_FLOOR_SECONDS
+    provider_auth_failure_backoff_floor_seconds: dict[str, int] = field(default_factory=lambda: dict(DEFAULT_SERVICE_PROVIDER_AUTH_FAILURE_BACKOFF_FLOORS))
+    task_auth_failure_backoff_floor_seconds: dict[str, int] = field(default_factory=lambda: dict(DEFAULT_SERVICE_TASK_AUTH_FAILURE_BACKOFF_FLOORS))
     warn_ratio: float = DEFAULT_SERVICE_WARN_RATIO
     critical_ratio: float = DEFAULT_SERVICE_CRITICAL_RATIO
 
-    def hourly_limit_for(self, provider: str) -> int:
+    def budget_scope_for(self, provider: str | None, *, task_name: str | None = None) -> str:
+        if task_name and (
+            task_name in self.task_hourly_limits
+            or task_name in self.task_warn_backoff_floor_seconds
+            or task_name in self.task_critical_backoff_floor_seconds
+            or task_name in self.task_auth_failure_backoff_floor_seconds
+        ):
+            return "task"
+        if provider:
+            return "provider"
+        return "none"
+
+    def projected_request_count_for(self, task_name: str, *, fetch_mode: str | None = None) -> tuple[int | None, str | None]:
+        if fetch_mode:
+            mode_map = self.task_projected_request_counts_by_mode.get(task_name)
+            if isinstance(mode_map, dict):
+                value = mode_map.get(fetch_mode)
+                if isinstance(value, int):
+                    return max(0, int(value)), f"configured_{fetch_mode}"
+        value = self.task_projected_request_counts.get(task_name)
+        if isinstance(value, int):
+            return max(0, int(value)), "configured"
+        return None, None
+
+    def projected_request_history_window_for(self, task_name: str | None = None, *, provider: str | None = None) -> int:
+        if task_name:
+            value = self.task_projected_request_history_windows.get(task_name)
+            if isinstance(value, int):
+                return max(1, min(MAX_SERVICE_PROJECTED_REQUEST_HISTORY_WINDOW, int(value)))
+        if provider:
+            value = self.provider_projected_request_history_windows.get(provider)
+            if isinstance(value, int):
+                return max(1, min(MAX_SERVICE_PROJECTED_REQUEST_HISTORY_WINDOW, int(value)))
+        return DEFAULT_SERVICE_PROJECTED_REQUEST_HISTORY_WINDOW
+
+    def projected_request_percentile_for(self, task_name: str | None = None, *, provider: str | None = None) -> float | None:
+        if task_name:
+            value = self.task_projected_request_percentiles.get(task_name)
+            if isinstance(value, (int, float)):
+                normalized = float(value)
+                if 0.0 < normalized <= 1.0:
+                    return normalized
+        if provider:
+            value = self.provider_projected_request_percentiles.get(provider)
+            if isinstance(value, (int, float)):
+                normalized = float(value)
+                if 0.0 < normalized <= 1.0:
+                    return normalized
+        return None
+
+    def hourly_limit_for(self, provider: str, *, task_name: str | None = None) -> int:
+        if task_name:
+            value = self.task_hourly_limits.get(task_name)
+            if isinstance(value, int):
+                return max(0, int(value))
         if provider == "mal":
             return self.mal_hourly_limit
-        if provider == "crunchyroll":
-            return self.crunchyroll_hourly_limit
         value = self.provider_hourly_limits.get(provider)
-        return int(value) if isinstance(value, int) else self.crunchyroll_hourly_limit
+        if isinstance(value, int):
+            return max(0, int(value))
+        if provider == "crunchyroll":
+            return max(0, int(self.crunchyroll_hourly_limit))
+        return max(0, int(self.source_provider_hourly_limit))
 
-    def backoff_floor_seconds_for(self, provider: str, *, level: str) -> int:
+    def backoff_floor_seconds_for(self, provider: str, *, level: str, task_name: str | None = None) -> int:
+        if task_name:
+            task_floors = self.task_warn_backoff_floor_seconds if level == "warn" else self.task_critical_backoff_floor_seconds
+            task_value = task_floors.get(task_name)
+            if isinstance(task_value, int):
+                return max(0, int(task_value))
         floors = self.provider_warn_backoff_floor_seconds if level == "warn" else self.provider_critical_backoff_floor_seconds
         value = floors.get(provider)
         if isinstance(value, int):
             return max(0, int(value))
+        if provider != "mal":
+            if level == "warn":
+                return max(0, int(self.source_provider_warn_backoff_floor_seconds))
+            return max(0, int(self.source_provider_critical_backoff_floor_seconds))
+        return 0
+
+    def auth_failure_backoff_floor_seconds_for(self, provider: str, *, task_name: str | None = None) -> int:
+        if task_name:
+            value = self.task_auth_failure_backoff_floor_seconds.get(task_name)
+            if isinstance(value, int):
+                return max(0, int(value))
+        value = self.provider_auth_failure_backoff_floor_seconds.get(provider)
+        if isinstance(value, int):
+            return max(0, int(value))
+        if provider != "mal":
+            return max(0, int(self.source_provider_auth_failure_backoff_floor_seconds))
         return 0
 
 
@@ -187,6 +344,19 @@ def _get_nested_table(data: dict[str, Any], parent: str, child: str) -> dict[str
         return nested_child
     fallback = data.get(f"{parent}.{child}")
     return fallback if isinstance(fallback, dict) else {}
+
+
+def _get_dotted_nested_tables(data: dict[str, Any], *parts: str) -> dict[str, dict[str, Any]]:
+    prefix = ".".join(parts) + "."
+    tables: dict[str, dict[str, Any]] = {}
+    for key, value in data.items():
+        if not isinstance(key, str) or not key.startswith(prefix) or not isinstance(value, dict):
+            continue
+        suffix = key[len(prefix):]
+        if not suffix:
+            continue
+        tables[suffix] = dict(value)
+    return tables
 
 
 def _get_str(data: dict[str, Any], key: str, default: str) -> str:
@@ -311,8 +481,19 @@ def load_config(project_root: Path | None = None) -> AppConfig:
     crunchyroll_section = _get_table(settings, "crunchyroll")
     service_section = _get_table(settings, "service")
     service_provider_limits_section = _get_nested_table(settings, "service", "provider_hourly_limits")
+    service_task_limits_section = _get_nested_table(settings, "service", "task_hourly_limits")
+    service_task_projected_request_counts_section = _get_nested_table(settings, "service", "task_projected_request_counts")
+    service_task_projected_request_counts_by_mode_section = _get_dotted_nested_tables(settings, "service", "task_projected_request_counts_by_mode")
+    service_provider_projected_request_history_windows_section = _get_nested_table(settings, "service", "provider_projected_request_history_windows")
+    service_task_projected_request_history_windows_section = _get_nested_table(settings, "service", "task_projected_request_history_windows")
+    service_provider_projected_request_percentiles_section = _get_nested_table(settings, "service", "provider_projected_request_percentiles")
+    service_task_projected_request_percentiles_section = _get_nested_table(settings, "service", "task_projected_request_percentiles")
     service_warn_backoff_floors_section = _get_nested_table(settings, "service", "provider_warn_backoff_floor_seconds")
     service_critical_backoff_floors_section = _get_nested_table(settings, "service", "provider_critical_backoff_floor_seconds")
+    service_task_warn_backoff_floors_section = _get_nested_table(settings, "service", "task_warn_backoff_floor_seconds")
+    service_task_critical_backoff_floors_section = _get_nested_table(settings, "service", "task_critical_backoff_floor_seconds")
+    service_auth_failure_backoff_floors_section = _get_nested_table(settings, "service", "provider_auth_failure_backoff_floor_seconds")
+    service_task_auth_failure_backoff_floors_section = _get_nested_table(settings, "service", "task_auth_failure_backoff_floor_seconds")
     secret_files_section = _get_table(settings, "secret_files")
     settings_dir = settings_path.parent
 
@@ -422,25 +603,163 @@ def load_config(project_root: Path | None = None) -> AppConfig:
         ),
         service=ServiceSettings(
             sync_every_seconds=int(os.getenv("MAL_UPDATER_SERVICE_SYNC_EVERY_SECONDS", _get_int(service_section, "sync_every_seconds", DEFAULT_SERVICE_SYNC_EVERY_SECONDS))),
+            full_refresh_every_seconds=int(os.getenv("MAL_UPDATER_SERVICE_FULL_REFRESH_EVERY_SECONDS", _get_int(service_section, "full_refresh_every_seconds", DEFAULT_SERVICE_FULL_REFRESH_EVERY_SECONDS))),
             health_every_seconds=int(os.getenv("MAL_UPDATER_SERVICE_HEALTH_EVERY_SECONDS", _get_int(service_section, "health_every_seconds", DEFAULT_SERVICE_HEALTH_EVERY_SECONDS))),
             mal_refresh_every_seconds=int(os.getenv("MAL_UPDATER_SERVICE_MAL_REFRESH_EVERY_SECONDS", _get_int(service_section, "mal_refresh_every_seconds", DEFAULT_SERVICE_MAL_REFRESH_EVERY_SECONDS))),
             loop_sleep_seconds=int(os.getenv("MAL_UPDATER_SERVICE_LOOP_SLEEP_SECONDS", _get_int(service_section, "loop_sleep_seconds", DEFAULT_SERVICE_LOOP_SLEEP_SECONDS))),
             crunchyroll_hourly_limit=int(os.getenv("MAL_UPDATER_SERVICE_CRUNCHYROLL_HOURLY_LIMIT", _get_int(service_section, "crunchyroll_hourly_limit", DEFAULT_SERVICE_CRUNCHYROLL_HOURLY_LIMIT))),
+            source_provider_hourly_limit=int(
+                os.getenv(
+                    "MAL_UPDATER_SERVICE_SOURCE_PROVIDER_HOURLY_LIMIT",
+                    _get_int(service_section, "source_provider_hourly_limit", DEFAULT_SERVICE_SOURCE_PROVIDER_HOURLY_LIMIT),
+                )
+            ),
             mal_hourly_limit=int(os.getenv("MAL_UPDATER_SERVICE_MAL_HOURLY_LIMIT", _get_int(service_section, "mal_hourly_limit", DEFAULT_SERVICE_MAL_HOURLY_LIMIT))),
             provider_hourly_limits={
-                str(key): int(value)
-                for key, value in service_provider_limits_section.items()
-                if isinstance(key, str) and isinstance(value, (int, float))
+                **DEFAULT_SERVICE_PROVIDER_HOURLY_LIMITS,
+                **{
+                    str(key): int(value)
+                    for key, value in service_provider_limits_section.items()
+                    if isinstance(key, str) and isinstance(value, (int, float))
+                },
             },
+            task_hourly_limits={
+                **DEFAULT_SERVICE_TASK_HOURLY_LIMITS,
+                **{
+                    str(key): int(value)
+                    for key, value in service_task_limits_section.items()
+                    if isinstance(key, str) and isinstance(value, (int, float))
+                },
+            },
+            task_projected_request_counts={
+                **DEFAULT_SERVICE_TASK_PROJECTED_REQUEST_COUNTS,
+                **{
+                    str(key): int(value)
+                    for key, value in service_task_projected_request_counts_section.items()
+                    if isinstance(key, str) and isinstance(value, (int, float))
+                },
+            },
+            task_projected_request_counts_by_mode={
+                **{task_name: dict(mode_map) for task_name, mode_map in DEFAULT_SERVICE_TASK_PROJECTED_REQUEST_COUNTS_BY_MODE.items()},
+                **{
+                    str(task_name): {
+                        str(mode): int(value)
+                        for mode, value in mode_map.items()
+                        if isinstance(mode, str) and isinstance(value, (int, float))
+                    }
+                    for task_name, mode_map in service_task_projected_request_counts_by_mode_section.items()
+                    if isinstance(task_name, str) and isinstance(mode_map, dict)
+                },
+            },
+            provider_projected_request_history_windows={
+                **DEFAULT_SERVICE_PROVIDER_PROJECTED_REQUEST_HISTORY_WINDOWS,
+                **{
+                    str(key): max(1, min(MAX_SERVICE_PROJECTED_REQUEST_HISTORY_WINDOW, int(value)))
+                    for key, value in service_provider_projected_request_history_windows_section.items()
+                    if isinstance(key, str) and isinstance(value, (int, float))
+                },
+            },
+            task_projected_request_history_windows={
+                **DEFAULT_SERVICE_TASK_PROJECTED_REQUEST_HISTORY_WINDOWS,
+                **{
+                    str(key): max(1, min(MAX_SERVICE_PROJECTED_REQUEST_HISTORY_WINDOW, int(value)))
+                    for key, value in service_task_projected_request_history_windows_section.items()
+                    if isinstance(key, str) and isinstance(value, (int, float))
+                },
+            },
+            provider_projected_request_percentiles={
+                **DEFAULT_SERVICE_PROVIDER_PROJECTED_REQUEST_PERCENTILES,
+                **{
+                    str(key): float(value)
+                    for key, value in service_provider_projected_request_percentiles_section.items()
+                    if isinstance(key, str) and isinstance(value, (int, float)) and 0.0 < float(value) <= 1.0
+                },
+            },
+            task_projected_request_percentiles={
+                **DEFAULT_SERVICE_TASK_PROJECTED_REQUEST_PERCENTILES,
+                **{
+                    str(key): float(value)
+                    for key, value in service_task_projected_request_percentiles_section.items()
+                    if isinstance(key, str) and isinstance(value, (int, float)) and 0.0 < float(value) <= 1.0
+                },
+            },
+            source_provider_warn_backoff_floor_seconds=int(
+                os.getenv(
+                    "MAL_UPDATER_SERVICE_SOURCE_PROVIDER_WARN_BACKOFF_FLOOR_SECONDS",
+                    _get_int(
+                        service_section,
+                        "source_provider_warn_backoff_floor_seconds",
+                        DEFAULT_SERVICE_SOURCE_PROVIDER_WARN_BACKOFF_FLOOR_SECONDS,
+                    ),
+                )
+            ),
+            source_provider_critical_backoff_floor_seconds=int(
+                os.getenv(
+                    "MAL_UPDATER_SERVICE_SOURCE_PROVIDER_CRITICAL_BACKOFF_FLOOR_SECONDS",
+                    _get_int(
+                        service_section,
+                        "source_provider_critical_backoff_floor_seconds",
+                        DEFAULT_SERVICE_SOURCE_PROVIDER_CRITICAL_BACKOFF_FLOOR_SECONDS,
+                    ),
+                )
+            ),
             provider_warn_backoff_floor_seconds={
-                str(key): int(value)
-                for key, value in service_warn_backoff_floors_section.items()
-                if isinstance(key, str) and isinstance(value, (int, float))
+                **DEFAULT_SERVICE_PROVIDER_WARN_BACKOFF_FLOORS,
+                **{
+                    str(key): int(value)
+                    for key, value in service_warn_backoff_floors_section.items()
+                    if isinstance(key, str) and isinstance(value, (int, float))
+                },
             },
             provider_critical_backoff_floor_seconds={
-                str(key): int(value)
-                for key, value in service_critical_backoff_floors_section.items()
-                if isinstance(key, str) and isinstance(value, (int, float))
+                **DEFAULT_SERVICE_PROVIDER_CRITICAL_BACKOFF_FLOORS,
+                **{
+                    str(key): int(value)
+                    for key, value in service_critical_backoff_floors_section.items()
+                    if isinstance(key, str) and isinstance(value, (int, float))
+                },
+            },
+            task_warn_backoff_floor_seconds={
+                **DEFAULT_SERVICE_TASK_WARN_BACKOFF_FLOORS,
+                **{
+                    str(key): int(value)
+                    for key, value in service_task_warn_backoff_floors_section.items()
+                    if isinstance(key, str) and isinstance(value, (int, float))
+                },
+            },
+            task_critical_backoff_floor_seconds={
+                **DEFAULT_SERVICE_TASK_CRITICAL_BACKOFF_FLOORS,
+                **{
+                    str(key): int(value)
+                    for key, value in service_task_critical_backoff_floors_section.items()
+                    if isinstance(key, str) and isinstance(value, (int, float))
+                },
+            },
+            source_provider_auth_failure_backoff_floor_seconds=int(
+                os.getenv(
+                    "MAL_UPDATER_SERVICE_SOURCE_PROVIDER_AUTH_FAILURE_BACKOFF_FLOOR_SECONDS",
+                    _get_int(
+                        service_section,
+                        "source_provider_auth_failure_backoff_floor_seconds",
+                        DEFAULT_SERVICE_SOURCE_PROVIDER_AUTH_FAILURE_BACKOFF_FLOOR_SECONDS,
+                    ),
+                )
+            ),
+            provider_auth_failure_backoff_floor_seconds={
+                **DEFAULT_SERVICE_PROVIDER_AUTH_FAILURE_BACKOFF_FLOORS,
+                **{
+                    str(key): int(value)
+                    for key, value in service_auth_failure_backoff_floors_section.items()
+                    if isinstance(key, str) and isinstance(value, (int, float))
+                },
+            },
+            task_auth_failure_backoff_floor_seconds={
+                **DEFAULT_SERVICE_TASK_AUTH_FAILURE_BACKOFF_FLOORS,
+                **{
+                    str(key): int(value)
+                    for key, value in service_task_auth_failure_backoff_floors_section.items()
+                    if isinstance(key, str) and isinstance(value, (int, float))
+                },
             },
             warn_ratio=float(os.getenv("MAL_UPDATER_SERVICE_WARN_RATIO", _get_float(service_section, "warn_ratio", DEFAULT_SERVICE_WARN_RATIO))),
             critical_ratio=float(os.getenv("MAL_UPDATER_SERVICE_CRITICAL_RATIO", _get_float(service_section, "critical_ratio", DEFAULT_SERVICE_CRITICAL_RATIO))),

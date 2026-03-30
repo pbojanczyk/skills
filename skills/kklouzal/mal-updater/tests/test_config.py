@@ -27,6 +27,29 @@ class ConfigLoadingTests(unittest.TestCase):
             self.assertEqual(config.mal.bind_host, "0.0.0.0")
             self.assertEqual(config.mal.redirect_uri, "http://127.0.0.1:8765/callback")
             self.assertEqual(secrets.client_id_path, (root / ".MAL-Updater" / "secrets" / "mal_client_id.txt").resolve())
+            self.assertEqual(72, config.service.provider_hourly_limits["hidive"])
+            self.assertEqual(48, config.service.task_hourly_limits["sync_apply"])
+            self.assertEqual(1, config.service.task_projected_request_counts["mal_refresh"])
+            self.assertEqual(8, config.service.task_projected_request_counts["sync_apply"])
+            self.assertEqual(4, config.service.task_projected_request_counts_by_mode["sync_fetch_crunchyroll"]["incremental"])
+            self.assertEqual(55, config.service.task_projected_request_counts_by_mode["sync_fetch_crunchyroll"]["full_refresh"])
+            self.assertEqual(4, config.service.task_projected_request_counts_by_mode["sync_fetch_hidive"]["incremental"])
+            self.assertEqual(71, config.service.task_projected_request_counts_by_mode["sync_fetch_hidive"]["full_refresh"])
+            self.assertEqual(7, config.service.projected_request_history_window_for("unknown_task", provider="crunchyroll"))
+            self.assertEqual(9, config.service.projected_request_history_window_for("unknown_task", provider="hidive"))
+            self.assertEqual(3, config.service.projected_request_history_window_for("mal_refresh"))
+            self.assertEqual(3, config.service.projected_request_history_window_for("sync_apply"))
+            self.assertEqual(0.9, config.service.task_projected_request_percentiles["sync_apply"])
+            self.assertEqual(0.9, config.service.projected_request_percentile_for("sync_apply"))
+            self.assertEqual(0.9, config.service.projected_request_percentile_for("unknown_task", provider="crunchyroll"))
+            self.assertIsNone(config.service.projected_request_percentile_for("unknown_task", provider="hidive"))
+            self.assertEqual(900, config.service.backoff_floor_seconds_for("crunchyroll", level="warn"))
+            self.assertEqual(900, config.service.backoff_floor_seconds_for("mal", level="warn", task_name="sync_apply"))
+            self.assertEqual(1200, config.service.backoff_floor_seconds_for("hidive", level="critical"))
+            self.assertEqual(1800, config.service.backoff_floor_seconds_for("mal", level="critical", task_name="sync_apply"))
+            self.assertEqual(7200, config.service.auth_failure_backoff_floor_seconds_for("crunchyroll"))
+            self.assertEqual(2400, config.service.auth_failure_backoff_floor_seconds_for("mal", task_name="sync_apply"))
+            self.assertEqual("task", config.service.budget_scope_for("mal", task_name="sync_apply"))
 
     def test_settings_file_overrides_paths_and_secret_files(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -81,8 +104,43 @@ class ConfigLoadingTests(unittest.TestCase):
             (root / ".MAL-Updater" / "config" / "settings.toml").write_text(
                 textwrap.dedent(
                     """
+                    [service]
+                    source_provider_hourly_limit = 90
+                    source_provider_warn_backoff_floor_seconds = 180
+                    source_provider_critical_backoff_floor_seconds = 600
+                    source_provider_auth_failure_backoff_floor_seconds = 2400
+
                     [service.provider_hourly_limits]
                     hidive = 72
+
+                    [service.task_hourly_limits]
+                    sync_apply = 24
+
+                    [service.task_projected_request_counts]
+                    mal_refresh = 2
+                    sync_apply = 8
+                    sync_fetch_hidive = 14
+
+                    [service.task_projected_request_counts_by_mode.sync_fetch_hidive]
+                    full_refresh = 60
+                    incremental = 5
+
+                    [service.provider_projected_request_history_windows]
+                    crunchyroll = 7
+                    hidive = 11
+
+                    [service.task_projected_request_history_windows]
+                    mal_refresh = 4
+                    sync_apply = 3
+                    sync_fetch_hidive = 9
+
+                    [service.provider_projected_request_percentiles]
+                    crunchyroll = 0.85
+                    hidive = 0.95
+
+                    [service.task_projected_request_percentiles]
+                    sync_apply = 0.75
+                    sync_fetch_hidive = 0.9
 
                     [service.provider_warn_backoff_floor_seconds]
                     crunchyroll = 900
@@ -91,6 +149,18 @@ class ConfigLoadingTests(unittest.TestCase):
                     [service.provider_critical_backoff_floor_seconds]
                     crunchyroll = 1800
                     hidive = 1200
+
+                    [service.task_warn_backoff_floor_seconds]
+                    sync_apply = 450
+
+                    [service.task_critical_backoff_floor_seconds]
+                    sync_apply = 1500
+
+                    [service.provider_auth_failure_backoff_floor_seconds]
+                    hidive = 3600
+
+                    [service.task_auth_failure_backoff_floor_seconds]
+                    sync_apply = 2400
                     """
                 ).strip()
                 + "\n",
@@ -99,11 +169,52 @@ class ConfigLoadingTests(unittest.TestCase):
 
             config = load_config(root)
 
+            self.assertEqual(90, config.service.source_provider_hourly_limit)
+            self.assertEqual(180, config.service.source_provider_warn_backoff_floor_seconds)
+            self.assertEqual(600, config.service.source_provider_critical_backoff_floor_seconds)
+            self.assertEqual(2400, config.service.source_provider_auth_failure_backoff_floor_seconds)
             self.assertEqual(72, config.service.provider_hourly_limits["hidive"])
+            self.assertEqual(24, config.service.task_hourly_limits["sync_apply"])
+            self.assertEqual(2, config.service.task_projected_request_counts["mal_refresh"])
+            self.assertEqual(8, config.service.task_projected_request_counts["sync_apply"])
+            self.assertEqual(14, config.service.task_projected_request_counts["sync_fetch_hidive"])
+            self.assertEqual(60, config.service.task_projected_request_counts_by_mode["sync_fetch_hidive"]["full_refresh"])
+            self.assertEqual(5, config.service.task_projected_request_counts_by_mode["sync_fetch_hidive"]["incremental"])
+            self.assertEqual(7, config.service.provider_projected_request_history_windows["crunchyroll"])
+            self.assertEqual(11, config.service.provider_projected_request_history_windows["hidive"])
+            self.assertEqual(4, config.service.task_projected_request_history_windows["mal_refresh"])
+            self.assertEqual(3, config.service.task_projected_request_history_windows["sync_apply"])
+            self.assertEqual(9, config.service.task_projected_request_history_windows["sync_fetch_hidive"])
+            self.assertEqual(0.85, config.service.provider_projected_request_percentiles["crunchyroll"])
+            self.assertEqual(0.95, config.service.provider_projected_request_percentiles["hidive"])
+            self.assertEqual(0.75, config.service.task_projected_request_percentiles["sync_apply"])
+            self.assertEqual(0.9, config.service.task_projected_request_percentiles["sync_fetch_hidive"])
             self.assertEqual(900, config.service.provider_warn_backoff_floor_seconds["crunchyroll"])
             self.assertEqual(300, config.service.provider_warn_backoff_floor_seconds["hidive"])
+            self.assertEqual(450, config.service.task_warn_backoff_floor_seconds["sync_apply"])
             self.assertEqual(1800, config.service.provider_critical_backoff_floor_seconds["crunchyroll"])
             self.assertEqual(1200, config.service.provider_critical_backoff_floor_seconds["hidive"])
+            self.assertEqual(1500, config.service.task_critical_backoff_floor_seconds["sync_apply"])
+            self.assertEqual(3600, config.service.provider_auth_failure_backoff_floor_seconds["hidive"])
+            self.assertEqual(2400, config.service.task_auth_failure_backoff_floor_seconds["sync_apply"])
+            self.assertEqual(90, config.service.hourly_limit_for("new-provider"))
+            self.assertEqual(72, config.service.hourly_limit_for("hidive"))
+            self.assertEqual(24, config.service.hourly_limit_for("mal", task_name="sync_apply"))
+            self.assertEqual(4, config.service.projected_request_history_window_for("mal_refresh"))
+            self.assertEqual(3, config.service.projected_request_history_window_for("sync_apply"))
+            self.assertEqual(0.75, config.service.projected_request_percentile_for("sync_apply"))
+            self.assertEqual(11, config.service.projected_request_history_window_for("unknown_task", provider="hidive"))
+            self.assertEqual(0.95, config.service.projected_request_percentile_for("unknown_task", provider="hidive"))
+            self.assertEqual(5, config.service.projected_request_history_window_for("unknown_task"))
+            self.assertIsNone(config.service.projected_request_percentile_for("unknown_task"))
+            self.assertEqual(180, config.service.backoff_floor_seconds_for("new-provider", level="warn"))
+            self.assertEqual(600, config.service.backoff_floor_seconds_for("new-provider", level="critical"))
+            self.assertEqual(450, config.service.backoff_floor_seconds_for("mal", level="warn", task_name="sync_apply"))
+            self.assertEqual(1500, config.service.backoff_floor_seconds_for("mal", level="critical", task_name="sync_apply"))
+            self.assertEqual(2400, config.service.auth_failure_backoff_floor_seconds_for("new-provider"))
+            self.assertEqual(2400, config.service.auth_failure_backoff_floor_seconds_for("mal", task_name="sync_apply"))
+            self.assertEqual("task", config.service.budget_scope_for("mal", task_name="sync_apply"))
+            self.assertEqual("provider", config.service.budget_scope_for("hidive", task_name="sync_fetch_hidive"))
 
 
 if __name__ == "__main__":
