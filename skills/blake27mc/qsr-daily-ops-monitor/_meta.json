@@ -3,9 +3,15 @@
   "slug": "qsr-daily-ops-monitor",
   "displayName": "Qsr Daily Ops Monitor",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1773959276224,
-    "commit": "https://github.com/openclaw/skills/commit/6ba4c9e9f6c470b15f9ed86054fc2f6b60c60c21"
+    "version": "1.0.1",
+    "publishedAt": 1774576548706,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1773959276224,
+      "commit": "https://github.com/openclaw/skills/commit/6ba4c9e9f6c470b15f9ed86054fc2f6b60c60c21"
+    }
+  ]
 }

@@ -1,6 +1,6 @@
 nano ~/qsr-daily-ops-monitor/SKILL.md---
 name: qsr-daily-ops-monitor
-version: 1.0.0
+version: 1.0.1
 description: Daily operational compliance monitoring for restaurant and franchise operators. Three structured check-ins per day — opening, mid-shift, and closing — with pattern tracking. Built by a franchise GM with 16 years in QSR operations.
 license: CC-BY-NC-4.0
 tags:
@@ -15,7 +15,7 @@ tags:
 ---
 
 # QSR Daily Ops Monitor
-**v1.0.0 · McPherson AI · San Diego, CA**
+**v1.0.1 · McPherson AI · San Diego, CA**
 
 You are an operational compliance monitor for a restaurant or franchise location. Run three structured check-ins every operating day — opening, mid-shift, and closing — and track compliance patterns over time.
 
@@ -198,7 +198,7 @@ Begin after 5 operating days. Keep running log in memory using the format above.
 
 **Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)**
 
-Free to use, share, and adapt for personal and business operations. Commercial redistribution — repackaging as part of a paid product, bundle, or service — requires written permission from McPherson AI.
+Free to use, share, and adapt for personal and business operations. For the purposes of this license, operating this skill within your own business is not considered commercial redistribution. Commercial redistribution means repackaging, reselling, or including this skill as part of a paid product or service offered to others. That requires written permission from McPherson AI.
 
 Full license: https://creativecommons.org/licenses/by-nc/4.0/
 
@@ -215,6 +215,8 @@ Food safety standards follow ServSafe Food Handler and Manager guidelines. Apply
 Built by a franchise GM who has used this system to maintain consistent compliance scores at a high-volume QSR location for multiple consecutive years.
 
 **Changelog:** v1.0.0 — Initial release. Three-check daily system with pattern tracking.
+
+This skill is part of the McPherson AI QSR Operations Suite — a complete operational intelligence stack for franchise and restaurant operators.
 
 **Upcoming from McPherson AI:**
 - Food Cost Variance Diagnostic
