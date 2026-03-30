@@ -25,15 +25,21 @@ tags:
 - **Keywords:** 
 
 ## One-paragraph summary
-A compact statement of the problem, the central move, the main result, and why the paper matters.
+A compact statement of the problem, the central move, the main result, the main evidence backbone, and why the paper matters.
 
 ## Paper map
 - **Research question:** 
 - **Problem setting / regime:** 
-- **Paper type:** theory / method / empirical / systems / survey / mixed
+- **Primary adapter:** 
+- **Secondary adapter:** 
+- **Evidence packs:** 
+- **Domain overlay:** 
+- **Main move:** 
 - **Main contribution(s):** 
 - **Key technical objects:** 
+- **Evidence backbone:** 
 - **Where the intellectual load sits:** 
+- **Primary failure risk:** 
 
 ## Why this paper matters
 Explain the gap it addresses, why nearby approaches were insufficient, and what changed here.
@@ -69,7 +75,7 @@ $$
 Explain each term, the role it plays, and what would break if it were changed or removed.
 
 ### Step-by-step mechanism
-Reconstruct the method, derivation, argument, or workflow in order.
+Reconstruct the method, derivation, argument, workflow, benchmark construction, dataset pipeline, or system design in order.
 
 1. 
 2. 
@@ -79,7 +85,7 @@ Reconstruct the method, derivation, argument, or workflow in order.
 Record theorem statements, assumptions, proof strategy, convergence logic, identification logic, or limiting argument when relevant.
 
 ### Complexity / efficiency / scaling / identification
-Note computational complexity, sample complexity, scalability, resource tradeoffs, or identification requirements.
+Note computational complexity, sample complexity, scalability, resource tradeoffs, workload assumptions, or identification requirements.
 
 ## Evidence
 
@@ -88,8 +94,8 @@ Note computational complexity, sample complexity, scalability, resource tradeoff
 |---|---|---|---|---|
 |  |  |  |  |  |
 
-### Experimental / empirical / observational design
-Describe datasets, benchmarks, samples, regimes, environments, hardware, or institutional setting.
+### Experimental / empirical / observational / construction design
+Describe datasets, benchmarks, samples, regimes, environments, hardware, institutional setting, sampling pipeline, or labeling workflow.
 
 ### Main results
 Summarize the most important figures, tables, empirical estimates, or quantitative outcomes.
@@ -97,14 +103,22 @@ Summarize the most important figures, tables, empirical estimates, or quantitati
 ### Ablations / robustness / stress tests
 Explain what these checks actually show and what they fail to show.
 
-### Baselines and fairness
-Were the comparisons strong and fair? Were there hidden compute, data, or tuning advantages?
+### Baselines, fairness, and evidence risks
+Were the comparisons strong and fair? Were there hidden compute, data, tuning, contamination, leakage, or evaluator risks?
+
+### Evidence audit notes
+Record the most important evidence risks that materially affect your confidence in the paper.
 
 ## Limitations and failure modes
-Be specific. Include hidden assumptions, weak evidence, narrow regime validity, approximation error, instability, or external-validity concerns.
+
+### Author-acknowledged limitations
+- 
+
+### Reader-inferred limitations
+- 
 
 ## Relationship to other work
-Name the closest families of work and explain the connection: extends, relaxes, contradicts, simplifies, or reinterprets.
+Name the closest families of work and explain the connection: extends, relaxes, contradicts, simplifies, reinterprets, audits, or reorganizes.
 
 ## Open questions
 What should be tested, generalized, relaxed, formalized, or implemented next?
@@ -114,11 +128,12 @@ Use this section when reproduction details matter.
 
 ```python
 # pseudocode, training loop sketch, estimator outline,
-# simulation procedure, replication steps, or caveats
+# simulation procedure, replication steps, benchmark protocol,
+# data construction pipeline, or implementation caveats
 ```
 
 ## What I learned from this paper
-List the most reusable ideas, distinctions, proof tricks, design patterns, or empirical lessons.
+List the most reusable ideas, distinctions, proof tricks, design patterns, evaluation lessons, or empirical lessons.
 
 ## Verdict
-A concise evaluation of what is genuinely strong, what is weak, and whether this paper should influence future work.
+A concise evaluation of what is genuinely strong, what is weak, what evidence risks remain, and whether this paper should influence future work.

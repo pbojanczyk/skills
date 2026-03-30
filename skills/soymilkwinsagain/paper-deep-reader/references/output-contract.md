@@ -1,6 +1,6 @@
 # Output Contract
 
-This file defines what the final reading note must contain, how it should be structured, and how the agent should adapt it across domains.
+This file defines what the final reading note must contain, how it should be structured, and how the agent should adapt it under the new routing model.
 
 The goal is not to force every note into the same rigid shape. The goal is to ensure that every saved note is:
 
@@ -8,6 +8,7 @@ The goal is not to force every note into the same rigid shape. The goal is to en
 - evidence-based
 - durable enough to reuse later
 - compatible with Obsidian-style markdown workflows
+- explicitly routed by contribution type and evidence risk
 
 ## 1. Default output format
 
@@ -90,10 +91,11 @@ The note must state:
 - in what setting or regime
 - why the question matters
 - what the main contribution actually is
+- what kind of contribution it is
 
 ### B. Technical spine
 
-The note must preserve the core formal structure whenever the paper depends on it.
+The note must preserve the core formal or operational structure whenever the paper depends on it.
 
 This may include:
 
@@ -105,10 +107,13 @@ This may include:
 - proof ideas
 - identification logic
 - algorithms
+- benchmark construction
+- dataset construction and labeling logic
 - state dynamics
 - complexity statements
+- workload or deployment tradeoffs
 
-Do not replace this spine with pure prose when the formal structure matters.
+Do not replace this spine with pure prose when the formal or operational structure matters.
 
 ### C. Evidence traceability
 
@@ -118,6 +123,7 @@ The note must make clear:
 - what supports each important claim
 - how strong the support is
 - what caveats remain
+- what evidence risks are most relevant for this paper
 
 ### D. Judgment
 
@@ -137,11 +143,23 @@ At minimum:
 
 - research question
 - setting
-- paper type
-- domain emphasis
 - main move
 - major claims
+- key technical objects
+- evidence backbone
 - where the paper's real load sits
+- primary failure risk
+
+### Route record
+
+At minimum:
+
+- primary adapter
+- secondary adapter if any
+- one to three evidence packs
+- domain overlay if any
+- route confidence
+- why this route
 
 ### Notation table
 
@@ -170,35 +188,77 @@ Separate:
 
 ## 6. Routing contract
 
-The base template is universal, but the note must adapt to the paper's routed type and domain.
+The base template is universal, but the note must adapt to the paper's routed contribution type and evidence profile.
+
+### General routing rule
+
+- Choose exactly one **primary adapter**.
+- Add a **secondary adapter** only when a second contribution is independently central.
+- Choose **one to three evidence packs** that match the main claim risks.
+- Use a **domain overlay** only when it materially improves faithfulness.
+- Expand or tighten sections of the base template; do not replace the common structure.
 
 ### Theory / mathematics / statistics
 
-The final note should emphasize:
+When routed to `theory-math-stats`, the final note should emphasize:
 
 - definitions and setup
 - theorem statements
-- assumptions
+- assumptions and which ones do real work
 - proof strategy
 - rates, guarantees, or consistency claims
 - relation to nearby theory
 
 The note should not waste space on experimental sections if the paper has little or none.
 
-### Methods / ML / applied statistics
+When `proof-rigor.md` is one of the evidence packs, the note should be especially disciplined about separating exact formal claims from practical interpretations.
 
-The final note should emphasize:
+### Method / algorithm
+
+When routed to `method-algorithm`, the final note should emphasize:
 
 - model or estimator definition
 - objective and update rule
+- architecture or operator choices that materially matter
 - optimization or training details
-- ablations
-- baseline strength and fairness
+- the component claimed to drive the gain
 - reproducibility-sensitive implementation details
+
+When relevant, the note should also reflect the chosen evidence packs, such as:
+
+- `experimental-eval.md` for experiment quality and baseline strength
+- `ablation-and-mechanism-isolation.md` for whether the claimed mechanism is really isolated
+- `robustness-and-ood.md` for generalization limits
+- `benchmark-fairness-and-contamination.md` for evaluation integrity
+- `reproducibility-and-compute.md` for hidden compute or engineering asymmetries
+
+### Benchmark / evaluation
+
+When routed to `benchmark-evaluation`, the final note should emphasize:
+
+- what capability or property is being measured
+- why earlier evaluation was inadequate
+- benchmark construction and scope
+- metric validity
+- fairness of the compared systems
+- contamination, leakage, or evaluator bias risk
+- slice-wise failures and failure cases
+
+### Dataset / resource
+
+When routed to `dataset-resource`, the final note should emphasize:
+
+- data collection pipeline
+- sampling frame
+- annotation protocol
+- quality control
+- split logic
+- artifact risk
+- licensing, governance, privacy, and intended use
 
 ### Empirical / economics / social science
 
-The final note should emphasize:
+When routed to `empirical-econ`, the final note should emphasize:
 
 - estimand
 - identification strategy
@@ -208,9 +268,29 @@ The final note should emphasize:
 - threats to validity
 - correlation versus causality
 
+### Survey / synthesis
+
+When routed to `survey-synthesis`, the final note should emphasize:
+
+- scope and selection logic
+- organizing axis or taxonomy
+- what distinctions are genuinely illuminating
+- coverage gaps or bias
+- what the synthesis changes in the reader's understanding of the area
+
+### Replication / negative result
+
+When routed to `replication-negative-result`, the final note should emphasize:
+
+- target claim being tested
+- fidelity of the reproduction or stress test
+- mismatch between original and reproduction settings
+- what fails and where
+- what uncertainty remains after the negative or null result
+
 ### Physics
 
-The final note should emphasize:
+When routed to `physics`, the final note should emphasize:
 
 - physical question
 - regime of validity
@@ -221,7 +301,7 @@ The final note should emphasize:
 
 ### Quantitative finance
 
-The final note should emphasize:
+When routed to `quant-finance`, the final note should emphasize:
 
 - objective: pricing, forecasting, hedging, execution, or allocation
 - stochastic setup and state variables
@@ -233,18 +313,18 @@ The final note should emphasize:
 
 ### Systems
 
-The final note should emphasize:
+When routed to `systems`, the final note should emphasize:
 
 - bottleneck
 - design tradeoff
 - workload and environment
-- hardware / software assumptions
+- hardware or software assumptions
 - benchmarking fairness
 - latency, throughput, memory, reliability, or cost metrics
 
 ## 7. Section insertion rules
 
-Use the base template by default. Insert or expand domain-specific material only where it helps the note become more faithful.
+Use the base template by default. Insert or expand routed material only where it helps the note become more faithful.
 
 ### Insert a dedicated notation table when:
 
@@ -264,13 +344,16 @@ Use the base template by default. Insert or expand domain-specific material only
 - the paper's algorithm is easier to reconstruct procedurally
 - the paper omits operational detail that must be inferred carefully
 
-### Insert additional domain blocks when needed, such as:
+### Insert additional routed sub-blocks when needed, such as:
 
 - `### Assumptions and approximations`
 - `### Identification logic`
-- `### Limiting cases`
-- `### Backtest protocol`
-- `### Benchmark fairness`
+- `### Task definition and metric validity`
+- `### Benchmark fairness and contamination risk`
+- `### Data collection pipeline`
+- `### Labeling protocol and quality control`
+- `### Failure cases and slice behavior`
+- `### Evidence risks / audit notes`
 - `### Physical interpretation`
 
 ## 8. Length and depth rules
@@ -283,6 +366,7 @@ A good note should be:
 - much more structured than the paper
 - explicit about the paper's real mechanism
 - selective rather than exhaustive
+- clear about which evidence risks were checked
 
 Do not pad the note. Do not compress away the crucial logic.
 
@@ -321,6 +405,8 @@ You must consult appendix or supplement sections when they contain:
 - proof ideas needed for interpretation
 - robustness checks central to the empirical claim
 - ablations central to the method claim
+- benchmark design or contamination checks central to the evaluation claim
+- dataset construction details central to the resource claim
 - missing implementation details needed for reproduction
 - caveats or failure cases omitted from the main text
 
@@ -338,7 +424,8 @@ When saving is requested:
 Do not finalize the note until all of the following are true.
 
 - A careful reader could recover the main problem and main move from the note alone.
-- The note preserves the real technical spine of the paper.
+- The note preserves the real technical or operational spine of the paper.
 - Authors' claims, evidence, and your judgment are clearly separated.
+- The route record would still make sense to a careful reader after the note is written.
 - At least one meaningful limitation, caveat, or missing check is stated.
 - The note would still be useful as a research reference later.

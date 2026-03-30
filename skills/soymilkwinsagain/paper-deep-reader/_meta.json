@@ -3,11 +3,16 @@
   "slug": "paper-deep-reader",
   "displayName": "Paper Deep Reader",
   "latest": {
-    "version": "2.0.0",
-    "publishedAt": 1774415102802,
-    "commit": "https://github.com/openclaw/skills/commit/489a560b5753b9a4b8bcc8e38c31bd1b68783019"
+    "version": "2.1.0",
+    "publishedAt": 1774514990481,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.0.0",
+      "publishedAt": 1774415102802,
+      "commit": "https://github.com/openclaw/skills/commit/489a560b5753b9a4b8bcc8e38c31bd1b68783019"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773992721021,
