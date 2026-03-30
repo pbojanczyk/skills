@@ -21,7 +21,9 @@ import argparse
 import json
 import socket
 import struct
+import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -114,8 +116,70 @@ def save_device_config(devices: dict) -> None:
         json.dump(devices, f, indent=2)
 
 
-def wake_device_by_name(device_name: str) -> bool:
-    """Wake a device by its configured name."""
+def ping_host(ip: str, timeout: float = 2.0) -> bool:
+    """Ping a host to check if it's online.
+    
+    Args:
+        ip: IP address to ping
+        timeout: Ping timeout in seconds
+        
+    Returns:
+        True if host responds, False otherwise
+    """
+    try:
+        # Use ping command with 1 count and timeout
+        result = subprocess.run(
+            ["ping", "-c", "1", "-W", str(int(timeout)), ip],
+            capture_output=True,
+            timeout=timeout + 1,
+        )
+        return result.returncode == 0
+    except subprocess.TimeoutExpired:
+        return False
+    except Exception:
+        return False
+
+
+def wait_for_device(ip: str, timeout: float = 60.0, interval: float = 2.0) -> bool:
+    """Wait for a device to come online by pinging it.
+    
+    Args:
+        ip: IP address to check
+        timeout: Maximum time to wait in seconds (default: 60s, recommended 30-120s)
+        interval: Time between ping attempts in seconds
+        
+    Returns:
+        True if device comes online within timeout, False otherwise
+    """
+    print(f"等待设备 {ip} 开机 (超时: {timeout}秒)...")
+    start_time = time.time()
+    attempt = 0
+    
+    while time.time() - start_time < timeout:
+        attempt += 1
+        elapsed = int(time.time() - start_time)
+        
+        if ping_host(ip):
+            print(f"✓ 设备已上线! (耗时 {elapsed} 秒)")
+            return True
+        
+        print(f"  尝试 {attempt}... ({elapsed}s/{int(timeout)}s)")
+        time.sleep(interval)
+    
+    return False
+
+
+def wake_device_by_name(device_name: str, wait: bool = False, timeout: float = 60.0) -> bool:
+    """Wake a device by its configured name.
+    
+    Args:
+        device_name: Name of the device to wake
+        wait: If True, wait for device to come online
+        timeout: Maximum time to wait for device (default: 60s)
+        
+    Returns:
+        True if device was woken successfully (and came online if wait=True)
+    """
     devices = load_device_config()
     
     # Case-insensitive lookup
@@ -125,8 +189,19 @@ def wake_device_by_name(device_name: str) -> bool:
             mac = config.get("mac")
             broadcast = config.get("broadcast", "255.255.255.255")
             port = config.get("port", 9)
+            ip = config.get("ip")  # Optional IP for ping check
             print(f"Waking device '{name}'...")
-            return send_wol_packet(mac, broadcast, port)
+            success = send_wol_packet(mac, broadcast, port)
+            
+            if success and wait and ip:
+                if wait_for_device(ip, timeout):
+                    print("✓ 开机成功")
+                    return True
+                else:
+                    print("✗ 开机失败，请稍后再试或者检查网络设置是否正常")
+                    return False
+            
+            return success
     
     print(f"Error: Device '{device_name}' not found in configuration")
     print(f"Known devices: {', '.join(devices.keys()) if devices else 'none'}")
@@ -194,6 +269,11 @@ Examples:
                         help="Override broadcast IP for --add")
     parser.add_argument("--port-override", type=int, metavar="PORT",
                         help="Override port for --add")
+    parser.add_argument("--wait", "-w", action="store_true",
+                        help="Wait for device to come online after sending WOL")
+    parser.add_argument("--timeout", "-t", type=float, default=60.0,
+                        metavar="SECONDS",
+                        help="Timeout for waiting device to come online (default: 60s)")
     
     args = parser.parse_args()
     
@@ -212,12 +292,15 @@ Examples:
     
     # Wake by device name
     if args.device:
-        success = wake_device_by_name(args.device)
+        success = wake_device_by_name(args.device, wait=args.wait, timeout=args.timeout)
         return 0 if success else 1
     
     # Wake by MAC address
     if args.mac:
         success = send_wol_packet(args.mac, args.broadcast, args.port)
+        if success and args.wait:
+            print("Error: --wait requires device name (--device) with configured IP")
+            return 1
         return 0 if success else 1
     
     # No arguments provided
