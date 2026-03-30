@@ -1,0 +1,221 @@
+{
+  "cliEntrypoint": "./cli.mjs",
+  "tools": [
+    {
+      "name": "mofang_test_connection",
+      "description": "测试魔方网表连接和配置是否正确。验证 BASE_URL、USERNAME、PASSWORD 配置，尝试获取 Token 并访问空间列表。安装后首先调用此命令确认连接正常。",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "mofang_list_spaces",
+      "description": "列出当前用户可访问的所有空间，返回空间名称和ID。用于探索环境或用户不确定空间名称时。",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "mofang_list_forms",
+      "description": "列出指定空间下的所有表单。传入空间名称（中文），工具内部自动解析。不传 spaceHint 则使用最近操作的空间。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "spaceHint": {
+            "type": "string",
+            "description": "空间名称（中文），如「AI演示空间」「网表业务」。支持精确和模糊匹配。不传则使用最近操作的空间"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "mofang_get_field_definitions",
+      "description": "获取指定表单的字段结构定义。返回每个字段的中文名称(label)、英文标识(name)、类型、是否可编辑、值格式说明，以及下拉列表/复选框的选项映射。传入表单名称（中文），工具内部自动解析空间和表单。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "formHint": {
+            "type": "string",
+            "description": "表单名称（中文），如「采购申请」「客户信息」"
+          },
+          "spaceHint": {
+            "type": "string",
+            "description": "空间名称（中文），可选。不传时自动从缓存或多空间搜索"
+          }
+        },
+        "required": ["formHint"]
+      }
+    },
+    {
+      "name": "mofang_query_records",
+      "description": "查询指定表单中的记录列表，支持条件过滤、分页和排序。传入表单名称（中文），工具内部自动解析空间和表单，并自动获取字段定义用于映射。过滤条件中的字段名可使用中文名称(label)或英文标识(name)，工具自动转换。返回结果包含 fieldLabels 映射。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "formHint": {
+            "type": "string",
+            "description": "表单名称（中文），如「采购申请」「客户信息」"
+          },
+          "spaceHint": {
+            "type": "string",
+            "description": "空间名称（中文），可选"
+          },
+          "page": {
+            "type": "integer",
+            "description": "页码，从1开始，默认为1",
+            "default": 1,
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "每页数量，默认为10",
+            "default": 10,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "all": {
+            "type": "boolean",
+            "description": "是否返回所有记录（忽略分页），默认为false",
+            "default": false
+          },
+          "filters": {
+            "type": "array",
+            "description": "过滤条件数组。fieldName 可以用中文名称或英文标识，工具自动转换。",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fieldName": {
+                  "type": "string",
+                  "description": "字段名（中文label或英文name均可），如「客户名称」或 kehumingcheng"
+                },
+                "operator": {
+                  "type": "string",
+                  "description": "操作符",
+                  "enum": [
+                    "eq", "noteq", "like", "like_and", "like_or",
+                    "or_like_and", "fulltext",
+                    "lt", "gt", "lte", "gte", "between",
+                    "isnull", "isnotnull",
+                    "in", "notin",
+                    "checkbox_in", "checkbox_eq",
+                    "tree", "rddl"
+                  ]
+                },
+                "value": {
+                  "type": "string",
+                  "description": "过滤值。文本传原始文本（自动Base64编码）；数字填数字；日期填YYYY-MM-DD；between用逗号分隔如'100,1000'；isnull/isnotnull填'-1'"
+                },
+                "not": {
+                  "type": "boolean",
+                  "description": "是否取反，默认false",
+                  "default": false
+                },
+                "concat": {
+                  "type": "string",
+                  "description": "与前一个条件的连接方式，默认 &&(AND)",
+                  "enum": ["&&", "||"],
+                  "default": "&&"
+                }
+              },
+              "required": ["fieldName", "operator", "value"]
+            }
+          },
+          "orderBy": {
+            "type": "object",
+            "description": "排序规则",
+            "properties": {
+              "fieldName": {
+                "type": "string",
+                "description": "排序字段名（中文label或英文name均可）"
+              },
+              "direction": {
+                "type": "string",
+                "description": "排序方向",
+                "enum": ["asc", "desc"]
+              }
+            },
+            "required": ["fieldName", "direction"]
+          }
+        },
+        "required": ["formHint"]
+      }
+    },
+    {
+      "name": "mofang_create_record",
+      "description": "在指定表单中创建一条新记录。传入表单名称（中文），工具内部自动解析空间/表单并自动映射字段。data 的 key 可以使用中文字段名称(label)或英文标识(name)，工具自动识别转换。下拉列表填选项ID而非文本。执行前请向用户确认。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "formHint": {
+            "type": "string",
+            "description": "表单名称（中文），如「采购申请」"
+          },
+          "spaceHint": {
+            "type": "string",
+            "description": "空间名称（中文），可选"
+          },
+          "data": {
+            "type": "object",
+            "description": "记录数据。key 可以是中文字段名(label)或英文标识(name)，工具自动映射。例如 {\"客户名称\": \"北京公司\", \"合同金额\": 50000} 或 {\"kehumingcheng\": \"北京公司\"}。下拉列表填选项ID如'1'；日期填'YYYY-MM-DD'；主引用填'{\"id\":\"记录id\"}'",
+            "additionalProperties": true
+          }
+        },
+        "required": ["formHint", "data"]
+      }
+    },
+    {
+      "name": "mofang_update_record",
+      "description": "修改指定记录的字段值。传入表单名称（中文），工具内部自动解析。data 的 key 可以使用中文或英文字段名。仅需提交要修改的字段。执行前请先查询到目标记录，向用户确认修改内容。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "formHint": {
+            "type": "string",
+            "description": "表单名称（中文），如「采购申请」"
+          },
+          "spaceHint": {
+            "type": "string",
+            "description": "空间名称（中文），可选"
+          },
+          "recordId": {
+            "type": "string",
+            "description": "记录ID（序号值），通过查询记录获得"
+          },
+          "data": {
+            "type": "object",
+            "description": "要修改的字段数据，仅包含需要修改的字段。key 可以是中文或英文字段名。",
+            "additionalProperties": true
+          }
+        },
+        "required": ["formHint", "recordId", "data"]
+      }
+    },
+    {
+      "name": "mofang_delete_record",
+      "description": "删除指定的记录。此操作不可逆。执行前请先查询到目标记录并向用户展示，等待确认后再执行。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "formHint": {
+            "type": "string",
+            "description": "表单名称（中文），如「采购申请」"
+          },
+          "spaceHint": {
+            "type": "string",
+            "description": "空间名称（中文），可选"
+          },
+          "recordId": {
+            "type": "string",
+            "description": "要删除的记录ID（序号值）"
+          }
+        },
+        "required": ["formHint", "recordId"]
+      }
+    }
+  ]
+}
