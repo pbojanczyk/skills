@@ -1,5 +1,5 @@
 /**
- * @file Skill安全检查脚本，提供slug查询、URL扫描、批量查询等功能
+ * @file Skill安全检查脚本，提供slug查询、目录查询、批量查询等功能
  */
 'use strict';
 
@@ -46,6 +46,14 @@ const REQUEST_TIMEOUT = 10000; // 10s
  */
 const CONCURRENT_LIMIT = 5;
 
+/**
+ * 渠道标识，由打包脚本注入（如 'openclaw-skill'）；null 表示无渠道（通用包）
+ *
+ * @const
+ * @type {string|null}
+ */
+const _CHANNEL_ID = 'openclaw-skill';
+
 // ============================================================
 // Utilities
 // ============================================================
@@ -69,15 +77,18 @@ function buildRequestOptions(slug, version) {
 
     const url = new URL(`${API_PATH}?${queryString}`, API_BASE_URL);
 
+    const headers = {'Host': url.host};
+    if (_CHANNEL_ID) {
+        headers['X-Caller'] = _CHANNEL_ID;
+    }
+
     return {
         protocol: url.protocol,
         hostname: url.hostname,
         port: url.port || (url.protocol === 'https:' ? 443 : 80),
         path: `${url.pathname}?${queryString}`,
         method: 'GET',
-        headers: {
-            'Host': url.host
-        }
+        headers
     };
 }
 
@@ -94,16 +105,6 @@ function safeJsonParse(text) {
     catch (e) {
         throw new Error(`响应解析失败（非JSON格式）: ${text.substring(0, 200)}`);
     }
-}
-
-/**
- * 延迟指定毫秒数
- *
- * @param {number} ms 延迟毫秒数
- * @return {Promise} 延迟Promise
- */
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**
@@ -189,13 +190,14 @@ const CONFIDENCE_DEFAULT = {
  */
 function formatTimestamp(ms) {
     if (!ms) {
-        return '未知';
+        ms = Date.now();
     }
-    const d = new Date(ms);
+    // Force UTC+8
+    const d = new Date(ms + 8 * 60 * 60 * 1000);
     const pad = (n) => String(n).padStart(2, '0');
-    return d.getFullYear() + '-' + pad(d.getMonth() + 1)
-        + '-' + pad(d.getDate()) + ' ' + pad(d.getHours())
-        + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    return '[UTC+8 ' + d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1)
+        + '-' + pad(d.getUTCDate()) + ' ' + pad(d.getUTCHours())
+        + ':' + pad(d.getUTCMinutes()) + ':' + pad(d.getUTCSeconds()) + ']';
 }
 
 /**
@@ -221,7 +223,7 @@ function buildOverview(confidence, findingsCount, virusCount) {
         }
     }
     else if (confidence === 'caution') {
-        text = '⚠️ Skill存在信誉风险';
+        text = '⚠️ Skill存在潜在风险';
         if (findingsCount > 0) {
             text += `，发现${findingsCount}项可疑行为`;
         }
@@ -236,9 +238,10 @@ function buildOverview(confidence, findingsCount, virusCount) {
  * 根据安全检查数据构建报告对象
  *
  * @param {Array} data 安全检查结果数据数组
+ * @param {number=} ts API响应外层ts毫秒时间戳
  * @return {?Object} 报告对象，无数据时返回null
  */
-function buildReport(data) {
+function buildReport(data, ts) {
     if (!Array.isArray(data) || data.length === 0) {
         return null;
     }
@@ -284,7 +287,7 @@ function buildReport(data) {
         version: item.version || null,
         source: SOURCE_MAP[item.source] || '其他',
         author: github.name || null,
-        scanned_at: formatTimestamp(item.scanned_at),
+        scanned_at: formatTimestamp(ts),
         bd_confidence: confidence || null,
         verdict: mapped.verdict,
         final_verdict: mapped.final_verdict,
@@ -296,6 +299,305 @@ function buildReport(data) {
         findings,
         antivirus: {virus_count: virusCount, virus_list: virusList}
     };
+}
+
+// ============================================================
+// Report Text Formatter
+// ============================================================
+
+/**
+ * 将单个Skill的report对象渲染为纯文本报告
+ *
+ * @param {Object} report buildReport()返回的报告对象
+ * @return {string} 格式化后的报告纯文本
+ */
+function formatSingleReportText(report) {
+    const lines = [];
+    lines.push('🛡️ Skill安全守卫报告');
+    lines.push('═══════════════════════════════════════');
+    lines.push('📊 守卫摘要');
+    lines.push('评估时间：' + (report.scanned_at || '未知'));
+    lines.push('Skill名称：' + (report.name || '未知'));
+    lines.push('来    源：' + (report.source || '未知'));
+    lines.push('作    者：' + (report.author || '未知'));
+    lines.push('版    本：' + (report.version || '未知'));
+    lines.push('评估结果：' + (report.verdict || '未知'));
+
+    if (report.overview) {
+        lines.push('');
+        lines.push('───────────────────────────────────────');
+        lines.push('📕 评估结果概述');
+        lines.push(report.overview);
+
+        lines.push('');
+        lines.push('───────────────────────────────────────');
+        lines.push('🗒 安全评估详情');
+        lines.push(report.bd_describe || 'N/A');
+
+        lines.push('');
+        lines.push('评估过程');
+
+        // VirusTotal
+        let vtLine = '- VirusTotal：' + (report.virustotal && report.virustotal.status
+            ? report.virustotal.status : 'N/A');
+        if (report.virustotal && report.virustotal.describe) {
+            vtLine += '，' + report.virustotal.describe;
+        }
+        lines.push(vtLine);
+
+        // OpenClaw
+        let ocLine = '- OpenClaw：' + (report.openclaw && report.openclaw.status
+            ? report.openclaw.status : 'N/A');
+        if (report.openclaw && report.openclaw.describe) {
+            ocLine += '，' + report.openclaw.describe;
+        }
+        lines.push(ocLine);
+
+        // Findings
+        if (Array.isArray(report.findings)) {
+            for (const f of report.findings) {
+                lines.push('- 发现' + (f.severity || '未知')
+                    + '行为，' + (f.title || ''));
+                if (f.description) {
+                    lines.push('   - ' + f.description);
+                }
+            }
+        }
+
+        // Antivirus
+        if (report.antivirus && report.antivirus.virus_count > 0
+            && Array.isArray(report.antivirus.virus_list)) {
+            for (const v of report.antivirus.virus_list) {
+                lines.push('- 病毒扫描：发现'
+                    + (v.virus_name || '未知病毒') + '，'
+                    + (v.file || '未知文件'));
+            }
+        }
+        else {
+            lines.push('- 病毒扫描：未检测到病毒');
+        }
+    }
+
+    lines.push('');
+    lines.push('───────────────────────────────────────');
+    lines.push('🏁 最终裁决：');
+    lines.push(report.final_verdict || '未知');
+
+    if (report.overview) {
+        lines.push('');
+        lines.push('💡 建议：' + (report.suggestion || ''));
+    }
+    lines.push('═══════════════════════════════════════');
+
+    return lines.join('\n');
+}
+
+/**
+ * 为未收录场景生成报告文本
+ *
+ * @param {string} slug skill标识
+ * @return {string} 未收录报告纯文本
+ */
+function formatNotIndexedReportText(slug) {
+    const now = formatTimestamp(Date.now());
+    const lines = [];
+    lines.push('🛡️ Skill安全守卫报告');
+    lines.push('═══════════════════════════════════════');
+    lines.push('📊 守卫摘要');
+    lines.push('评估时间：' + now);
+    lines.push('Skill名称：' + (slug || '未知'));
+    lines.push('来    源：未知');
+    lines.push('作    者：未知');
+    lines.push('版    本：未知');
+    lines.push('评估结果：❓ 未收录，不建议安装');
+    lines.push('');
+    lines.push('───────────────────────────────────────');
+    lines.push('🏁 最终裁决：');
+    lines.push('❌ 不建议安装(需人工确认)');
+    lines.push('');
+    lines.push('💡 建议：尚未被安全系统收录，建议人工审查后再安装');
+    lines.push('═══════════════════════════════════════');
+    return lines.join('\n');
+}
+
+/**
+ * 为错误场景生成报告文本
+ *
+ * @param {string} msg 错误消息
+ * @return {string} 错误报告纯文本
+ */
+function formatErrorReportText(msg) {
+    const now = formatTimestamp(Date.now());
+    const lines = [];
+    lines.push('🛡️ Skill安全守卫报告');
+    lines.push('═══════════════════════════════════════');
+    lines.push('📊 守卫摘要');
+    lines.push('评估时间：' + now);
+    lines.push('评估结果：❌ 安全检查失败');
+    if (msg) {
+        lines.push('');
+        lines.push('错误信息：' + msg);
+    }
+    lines.push('');
+    lines.push('───────────────────────────────────────');
+    lines.push('🏁 最终裁决：');
+    lines.push('❌ 暂缓安装(安全检查未完成)');
+    lines.push('');
+    lines.push('💡 建议：安全检查服务调用失败，建议稍后重试，请勿跳过安全检查直接安装');
+    lines.push('═══════════════════════════════════════');
+    return lines.join('\n');
+}
+
+/**
+ * 渲染批量查询结果的单个Skill详情段落
+ *
+ * @param {Object} report 单个Skill的report对象
+ * @return {string} 单个Skill详情段落文本
+ */
+function formatBatchItemText(report) {
+    const lines = [];
+    lines.push('───────────────────────────────────────');
+    lines.push('📌 ' + (report.name || '未知') + ' v'
+        + (report.version || '未知'));
+    lines.push('来源：' + (report.source || '未知')
+        + ' | 作者：' + (report.author || '未知'));
+    lines.push('评估结果：' + (report.verdict || '未知'));
+
+    if (report.overview) {
+        lines.push('');
+        lines.push('📕 ' + report.overview);
+
+        lines.push('');
+        lines.push('🗒 ' + (report.bd_describe || 'N/A'));
+
+        lines.push('');
+        lines.push('评估过程');
+
+        let vtLine = '- VirusTotal：' + (report.virustotal && report.virustotal.status
+            ? report.virustotal.status : 'N/A');
+        if (report.virustotal && report.virustotal.describe) {
+            vtLine += '，' + report.virustotal.describe;
+        }
+        lines.push(vtLine);
+
+        let ocLine = '- OpenClaw：' + (report.openclaw && report.openclaw.status
+            ? report.openclaw.status : 'N/A');
+        if (report.openclaw && report.openclaw.describe) {
+            ocLine += '，' + report.openclaw.describe;
+        }
+        lines.push(ocLine);
+
+        if (Array.isArray(report.findings)) {
+            for (const f of report.findings) {
+                lines.push('- 发现' + (f.severity || '未知')
+                    + '行为，' + (f.title || ''));
+                if (f.description) {
+                    lines.push('   - ' + f.description);
+                }
+            }
+        }
+
+        if (report.antivirus && report.antivirus.virus_count > 0
+            && Array.isArray(report.antivirus.virus_list)) {
+            for (const v of report.antivirus.virus_list) {
+                lines.push('- 病毒扫描：发现'
+                    + (v.virus_name || '未知病毒') + '，'
+                    + (v.file || '未知文件'));
+            }
+        }
+        else {
+            lines.push('- 病毒扫描：未检测到病毒');
+        }
+    }
+
+    lines.push('');
+    lines.push('🏁 最终裁决：' + (report.final_verdict || '未知'));
+    lines.push('💡 建议：' + (report.suggestion || ''));
+    return lines.join('\n');
+}
+
+/**
+ * 将批量查询结果渲染为纯文本报告
+ *
+ * @param {Object} batchResult queryFullDirectory()返回的完整结果
+ * @return {string} 批量报告纯文本
+ */
+function formatBatchReportText(batchResult) {
+    const now = formatTimestamp(Date.now());
+    const dangerAndError = (batchResult.danger_count || 0)
+        + (batchResult.error_count || 0);
+    const lines = [];
+
+    lines.push('🛡️ Skill安全守卫报告');
+    lines.push('═══════════════════════════════════════');
+    lines.push('');
+    lines.push('📊守卫摘要');
+    lines.push('评估时间：' + now);
+    lines.push('评估Skills总量：' + (batchResult.total || 0) + '个');
+    lines.push(' ✅通过：' + (batchResult.safe_count || 0) + '个');
+    lines.push(' 🚫不通过：' + dangerAndError + '个');
+    lines.push(' ⚠️需关注：' + (batchResult.caution_count || 0) + '个');
+    lines.push('═══════════════════════════════════════');
+
+    // 不通过 Skills
+    lines.push('🚫不通过Skills（不建议安装，需人工确认）：');
+    lines.push('');
+
+    const results = batchResult.results || [];
+    const dangerItems = results.filter(r => {
+        if (!r.report) {
+            return r.code === 'error'
+                || (r.code === 'success'
+                    && (!Array.isArray(r.data) || r.data.length === 0));
+        }
+        const c = (r.report.bd_confidence || '').toLowerCase();
+        return c === 'dangerous' || c === '' || c === 'error';
+    });
+
+    if (dangerItems.length === 0) {
+        lines.push('无');
+    }
+    else {
+        for (const item of dangerItems) {
+            if (item.report) {
+                lines.push(formatBatchItemText(item.report));
+            }
+            else {
+                lines.push('───────────────────────────────────────');
+                lines.push('📌 ' + (item.slug || '未知'));
+                lines.push('评估结果：❌ '
+                    + (item.msg || '安全检查失败'));
+                lines.push('');
+                lines.push('🏁 最终裁决：❌ 不建议安装(需人工确认)');
+                lines.push('💡 建议：安全检查未通过，建议人工审查');
+            }
+        }
+    }
+
+    lines.push('');
+    lines.push('═══════════════════════════════════════');
+
+    // 需关注 Skills
+    lines.push('⚠️需关注Skills（需谨慎安装）：');
+    lines.push('');
+
+    const cautionItems = results.filter(r => {
+        return r.report
+            && (r.report.bd_confidence || '').toLowerCase() === 'caution';
+    });
+
+    if (cautionItems.length === 0) {
+        lines.push('无');
+    }
+    else {
+        for (const item of cautionItems) {
+            lines.push(formatBatchItemText(item.report));
+        }
+    }
+
+    lines.push('');
+    lines.push('═══════════════════════════════════════');
+    return lines.join('\n');
 }
 
 // ============================================================
@@ -345,51 +647,6 @@ function makeRequest(options, timeout) {
     });
 }
 
-/**
- * 发送带请求体的HTTP请求
- *
- * @param {Object} options HTTP请求选项
- * @param {string} body 请求体内容
- * @param {number} timeout 超时时间（毫秒）
- * @return {Promise.<string>} 响应文本
- */
-function makeRequestWithBody(options, body, timeout) {
-    return new Promise((resolve, reject) => {
-        const protocol = options.protocol === 'https:' ? https : http;
-
-        const req = protocol.request(options, (res) => {
-            let data = '';
-
-            res.on('data', (chunk) => {
-                data += chunk;
-            });
-
-            res.on('end', () => {
-                if (res.statusCode >= 200 && res.statusCode < 300) {
-                    resolve(data);
-                }
-                else {
-                    reject(new Error(
-                        `HTTP ${res.statusCode}: ${data.substring(0, 200)}`
-                    ));
-                }
-            });
-        });
-
-        req.on('error', (error) => {
-            reject(new Error(`请求失败: ${error.message}`));
-        });
-
-        req.setTimeout(timeout, () => {
-            req.destroy();
-            reject(new Error('请求超时'));
-        });
-
-        req.write(body);
-        req.end();
-    });
-}
-
 // ============================================================
 // API: checkSkillSecurityFullResponse
 // ============================================================
@@ -405,169 +662,6 @@ async function checkSkillSecurityFullResponse(slug, version) {
     const requestOptions = buildRequestOptions(slug, version);
     const responseText = await makeRequest(requestOptions, REQUEST_TIMEOUT);
     return safeJsonParse(responseText);
-}
-
-// ============================================================
-// API: URL Scan (submit + poll)
-// ============================================================
-
-/**
- * 扫描API路径
- *
- * @const
- * @type {string}
- */
-const SCAN_API_PATH = '/v1/skill/security/scan';
-
-/**
- * 轮询超时时间（毫秒）
- *
- * @const
- * @type {number}
- */
-const POLL_TIMEOUT = 10 * 60 * 1000; // 10 minutes
-
-/**
- * 首次轮询间隔（毫秒）
- *
- * @const
- * @type {number}
- */
-const FIRST_POLL_INTERVAL = 1000; // 1s
-
-/**
- * 常规轮询间隔（毫秒）
- *
- * @const
- * @type {number}
- */
-const NORMAL_POLL_INTERVAL = 5000; // 5s
-
-/**
- * 上传扫描API路径
- *
- * @const
- * @type {string}
- */
-const UPLOAD_API_PATH = '/v1/skill/security/upload';
-
-/**
- * 上传请求超时时间（毫秒）
- *
- * @const
- * @type {number}
- */
-const UPLOAD_TIMEOUT = 60000; // 60s
-
-/**
- * 提交URL扫描任务
- *
- * @param {string} sourceUrl 待扫描的URL地址
- * @return {Promise.<Object>} 提交结果响应对象
- */
-async function submitScanTask(sourceUrl) {
-    const url = new URL(SCAN_API_PATH, API_BASE_URL);
-    const postData = JSON.stringify({source_url: sourceUrl});
-
-    const options = {
-        protocol: url.protocol,
-        hostname: url.hostname,
-        port: url.port || (url.protocol === 'https:' ? 443 : 80),
-        path: url.pathname,
-        method: 'POST',
-        headers: {
-            'Host': url.host,
-            'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(postData)
-        }
-    };
-
-    const responseText = await makeRequestWithBody(
-        options, postData, REQUEST_TIMEOUT
-    );
-    return safeJsonParse(responseText);
-}
-
-/**
- * 轮询扫描任务状态直到完成或失败
- *
- * @param {string} taskId 扫描任务ID
- * @return {Promise.<Object>} 扫描完成后的响应对象
- */
-async function pollScanTaskStatus(taskId) {
-    const startTime = Date.now();
-    let pollCount = 0;
-    let lastStatus = 'pending';
-
-    while (true) {
-        const waitTime = pollCount === 0
-            ? FIRST_POLL_INTERVAL
-            : pollCount === 1 ? 3000 : NORMAL_POLL_INTERVAL;
-
-        await sleep(waitTime);
-
-        if (Date.now() - startTime > POLL_TIMEOUT) {
-            throw new Error('扫描任务超时（超过10分钟未完成）');
-        }
-
-        pollCount++;
-        const elapsed = Math.round((Date.now() - startTime) / 1000);
-        process.stderr.write(
-            '[polling] 第' + pollCount + '次轮询，已等待'
-                + elapsed + 's，当前状态: ' + lastStatus + '\n'
-        );
-
-        const url = new URL(
-            `${SCAN_API_PATH}/${encodeURIComponent(taskId)}`,
-            API_BASE_URL
-        );
-        const options = {
-            protocol: url.protocol,
-            hostname: url.hostname,
-            port: url.port || (url.protocol === 'https:' ? 443 : 80),
-            path: url.pathname,
-            method: 'GET',
-            headers: {'Host': url.host}
-        };
-
-        const responseText = await makeRequest(options, REQUEST_TIMEOUT);
-        const response = safeJsonParse(responseText);
-
-        if (response.data && response.data.status === 'done') {
-            return response;
-        }
-        if (response.data && response.data.status === 'failed') {
-            throw new Error(
-                response.data.error_message || '扫描任务失败'
-            );
-        }
-        if (response.data && response.data.status) {
-            lastStatus = response.data.status;
-        }
-        // pending / processing -> continue polling
-    }
-}
-
-/**
- * 将扫描结果转换为slug查询格式
- *
- * @param {Object} pollResponse 轮询响应对象
- * @return {Object} 转换后的slug格式结果
- */
-function convertScanResultToSlugFormat(pollResponse) {
-    if (pollResponse.data
-        && pollResponse.data.results
-        && pollResponse.data.results.length > 0) {
-        return {
-            code: 'success',
-            data: pollResponse.data.results
-        };
-    }
-    return {
-        code: 'error',
-        msg: '扫描完成但无结果数据',
-        data: []
-    };
 }
 
 // ============================================================
@@ -710,15 +804,24 @@ function computeContentSha256(dirPath) {
  * @return {Object} HTTP请求选项对象
  */
 function buildSha256RequestOptions(sha256) {
-    const queryString = `sha256=${encodeURIComponent(sha256)}`;
+    const queryParams = {sha256};
+    const queryString = Object.entries(queryParams)
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join('&');
     const url = new URL(`${API_PATH}?${queryString}`, API_BASE_URL);
+
+    const headers = {'Host': url.host};
+    if (_CHANNEL_ID) {
+        headers['X-Caller'] = _CHANNEL_ID;
+    }
+
     return {
         protocol: url.protocol,
         hostname: url.hostname,
         port: url.port || (url.protocol === 'https:' ? 443 : 80),
         path: `${url.pathname}?${queryString}`,
         method: 'GET',
-        headers: {'Host': url.host}
+        headers
     };
 }
 
@@ -731,119 +834,6 @@ function buildSha256RequestOptions(sha256) {
 async function checkSkillSecurityBySha256(sha256) {
     const requestOptions = buildSha256RequestOptions(sha256);
     const responseText = await makeRequest(requestOptions, REQUEST_TIMEOUT);
-    return safeJsonParse(responseText);
-}
-
-// ============================================================
-// Upload ZIP fallback (create zip + multipart upload)
-// ============================================================
-
-/**
- * 将skill目录打包为ZIP Buffer
- * 使用系统zip命令创建临时文件，读取后清理
- *
- * @param {string} dirPath skill目录路径
- * @param {string} slug skill标识（用于临时文件命名）
- * @return {Buffer} ZIP文件Buffer
- */
-function createZipBuffer(dirPath, slug) {
-    const os = require('os');
-    const {execSync} = require('child_process');
-
-    const tmpZip = path.join(
-        os.tmpdir(),
-        (slug || 'skill') + '_' + Date.now() + '.zip'
-    );
-
-    try {
-        try {
-            execSync('zip --version', {stdio: 'pipe'});
-        }
-        catch (_) {
-            throw new Error(
-                'zip 命令未找到，上传扫描需要系统安装 zip。\n'
-                + '请先安装：apt-get install zip  或  yum install zip'
-            );
-        }
-        const parentDir = path.dirname(dirPath);
-        const dirName = path.basename(dirPath);
-        execSync(
-            `zip -r "${tmpZip}" "${dirName}" --exclude "*/__MACOSX/*"`,
-            {cwd: parentDir, stdio: 'pipe'}
-        );
-        const buf = fs.readFileSync(tmpZip);
-        return buf;
-    }
-    finally {
-        try {
-            if (fs.existsSync(tmpZip)) {
-                fs.unlinkSync(tmpZip);
-            }
-        }
-        catch (e) {
-            // ignore cleanup errors
-        }
-    }
-}
-
-/**
- * 通过multipart/form-data上传ZIP文件到扫描API
- *
- * @param {Buffer} zipBuffer ZIP文件内容
- * @param {string} slug skill标识
- * @param {string=} version skill版本号
- * @return {Promise.<Object>} 上传响应对象
- */
-async function uploadSkillZip(zipBuffer, slug, version) {
-    const boundary = '----SkillGuard'
-        + crypto.randomBytes(16).toString('hex');
-
-    let body = '';
-
-    // slug field
-    if (slug) {
-        body += '--' + boundary + '\r\n';
-        body += 'Content-Disposition: form-data; name="slug"\r\n\r\n';
-        body += slug + '\r\n';
-    }
-
-    // version field
-    if (version) {
-        body += '--' + boundary + '\r\n';
-        body += 'Content-Disposition: form-data; name="version"\r\n\r\n';
-        body += version + '\r\n';
-    }
-
-    // file field header
-    const fileName = (slug || 'skill') + '.zip';
-    body += '--' + boundary + '\r\n';
-    body += 'Content-Disposition: form-data; name="file";'
-        + ' filename="' + fileName + '"\r\n';
-    body += 'Content-Type: application/zip\r\n\r\n';
-
-    const ending = '\r\n--' + boundary + '--\r\n';
-
-    const bodyStart = Buffer.from(body, 'utf8');
-    const bodyEnd = Buffer.from(ending, 'utf8');
-    const fullBody = Buffer.concat([bodyStart, zipBuffer, bodyEnd]);
-
-    const url = new URL(UPLOAD_API_PATH, API_BASE_URL);
-    const options = {
-        protocol: url.protocol,
-        hostname: url.hostname,
-        port: url.port || (url.protocol === 'https:' ? 443 : 80),
-        path: url.pathname,
-        method: 'POST',
-        headers: {
-            'Host': url.host,
-            'Content-Type': 'multipart/form-data; boundary=' + boundary,
-            'Content-Length': fullBody.length
-        }
-    };
-
-    const responseText = await makeRequestWithBody(
-        options, fullBody, UPLOAD_TIMEOUT
-    );
     return safeJsonParse(responseText);
 }
 
@@ -976,7 +966,7 @@ async function queryFullDirectory(dirPath) {
                         const sha256Log = '[sha256-fallback] slug='
                             + slug + ', contentSha256='
                             + (contentSha256 || '(empty)') + '\n';
-                        process.stderr.write(sha256Log);
+                        _debugMode && process.stderr.write(sha256Log);
                         if (contentSha256) {
                             const sha256Response
                                 = await checkSkillSecurityBySha256(
@@ -986,7 +976,7 @@ async function queryFullDirectory(dirPath) {
                                 = Array.isArray(sha256Response.data)
                                     ? sha256Response.data.length
                                     : 'N/A';
-                            process.stderr.write(
+                            _debugMode && process.stderr.write(
                                 '[sha256-fallback] slug=' + slug
                                     + ', sha256 query result: code='
                                     + sha256Response.code
@@ -1004,7 +994,7 @@ async function queryFullDirectory(dirPath) {
                         const errMsg = fallbackErr instanceof Error
                             ? fallbackErr.message
                             : fallbackErr;
-                        process.stderr.write(
+                        _debugMode && process.stderr.write(
                             '[sha256-fallback] slug=' + slug
                                 + ', fallback error: ' + errMsg
                                 + '\n'
@@ -1012,55 +1002,7 @@ async function queryFullDirectory(dirPath) {
                     }
                 }
 
-                // Upload ZIP fallback: when SHA256 also returns empty
-                if (result.code === 'success'
-                    && Array.isArray(result.data)
-                    && result.data.length === 0) {
-                    try {
-                        process.stderr.write(
-                            '[upload-fallback] slug=' + slug
-                                + ', uploading zip...\n'
-                        );
-                        const zipBuffer = createZipBuffer(
-                            skillDir, slug
-                        );
-                        const uploadResp = await uploadSkillZip(
-                            zipBuffer, slug, version
-                        );
-                        if (uploadResp.code === 'success'
-                            && uploadResp.data
-                            && uploadResp.data.task_id) {
-                            const taskId = uploadResp.data.task_id;
-                            process.stderr.write(
-                                '[upload-fallback] slug=' + slug
-                                    + ', task_id=' + taskId
-                                    + ', polling...\n'
-                            );
-                            const pollResp
-                                = await pollScanTaskStatus(taskId);
-                            const converted
-                                = convertScanResultToSlugFormat(
-                                    pollResp
-                                );
-                            if (converted.code === 'success'
-                                && Array.isArray(converted.data)
-                                && converted.data.length > 0) {
-                                result = {slug, ...converted};
-                            }
-                        }
-                    }
-                    catch (uploadErr) {
-                        const errMsg = uploadErr instanceof Error
-                            ? uploadErr.message
-                            : uploadErr;
-                        process.stderr.write(
-                            '[upload-fallback] slug=' + slug
-                                + ', error: ' + errMsg + '\n'
-                        );
-                    }
-                }
-
-                const report = buildReport(result.data);
+                const report = buildReport(result.data, result.ts);
                 if (report) {
                     result.report = report;
                 }
@@ -1156,7 +1098,7 @@ async function querySingleDirectory(dirPath) {
             && response.data.length === 0) {
             try {
                 const contentSha256 = computeContentSha256(dirPath);
-                process.stderr.write(
+                _debugMode && process.stderr.write(
                     '[sha256-fallback] slug=' + slug
                         + ', contentSha256='
                         + (contentSha256 || '(empty)') + '\n'
@@ -1170,7 +1112,7 @@ async function querySingleDirectory(dirPath) {
                         = Array.isArray(sha256Response.data)
                             ? sha256Response.data.length
                             : 'N/A';
-                    process.stderr.write(
+                    _debugMode && process.stderr.write(
                         '[sha256-fallback] slug=' + slug
                             + ', sha256 query result: code='
                             + sha256Response.code
@@ -1188,7 +1130,7 @@ async function querySingleDirectory(dirPath) {
                 const errMsg = fallbackErr instanceof Error
                     ? fallbackErr.message
                     : fallbackErr;
-                process.stderr.write(
+                _debugMode && process.stderr.write(
                     '[sha256-fallback] slug=' + slug
                         + ', fallback error: ' + errMsg
                         + '\n'
@@ -1196,51 +1138,7 @@ async function querySingleDirectory(dirPath) {
             }
         }
 
-        // Upload ZIP fallback: when SHA256 fallback also returns empty
-        if (result.code === 'success'
-            && Array.isArray(result.data)
-            && result.data.length === 0) {
-            try {
-                process.stderr.write(
-                    '[upload-fallback] slug=' + slug
-                        + ', uploading zip...\n'
-                );
-                const zipBuffer = createZipBuffer(dirPath, slug);
-                const uploadResp = await uploadSkillZip(
-                    zipBuffer, slug, version
-                );
-                if (uploadResp.code === 'success'
-                    && uploadResp.data
-                    && uploadResp.data.task_id) {
-                    const taskId = uploadResp.data.task_id;
-                    process.stderr.write(
-                        '[upload-fallback] slug=' + slug
-                            + ', task_id=' + taskId
-                            + ', polling...\n'
-                    );
-                    const pollResp
-                        = await pollScanTaskStatus(taskId);
-                    const converted
-                        = convertScanResultToSlugFormat(pollResp);
-                    if (converted.code === 'success'
-                        && Array.isArray(converted.data)
-                        && converted.data.length > 0) {
-                        result = {...converted};
-                    }
-                }
-            }
-            catch (uploadErr) {
-                const errMsg = uploadErr instanceof Error
-                    ? uploadErr.message
-                    : uploadErr;
-                process.stderr.write(
-                    '[upload-fallback] slug=' + slug
-                        + ', error: ' + errMsg + '\n'
-                );
-            }
-        }
-
-        const report = buildReport(result.data);
+        const report = buildReport(result.data, result.ts);
         if (report) {
             result.report = report;
         }
@@ -1261,6 +1159,8 @@ async function querySingleDirectory(dirPath) {
 // ============================================================
 // CLI Entry Point
 // ============================================================
+
+let _debugMode = false;
 
 /**
  * 解析命令行参数
@@ -1283,8 +1183,8 @@ function parseArgs(argv) {
         else if (argv[i] === '--file' && i + 1 < argv.length) {
             args.file = argv[++i];
         }
-        else if (argv[i] === '--url' && i + 1 < argv.length) {
-            args.url = argv[++i];
+        else if (argv[i] === '--debug') {
+            args.debug = true;
         }
     }
     return args;
@@ -1297,66 +1197,46 @@ function parseArgs(argv) {
  */
 async function main() {
     const args = parseArgs(process.argv);
+    _debugMode = !!args.debug;
 
-    if (args.url) {
-        // URL scan flow: submit + poll
-        try {
-            const submitResponse = await submitScanTask(args.url);
-            if (submitResponse.code !== 'success'
-                || !submitResponse.data
-                || !submitResponse.data.task_id) {
-                const output = {
-                    code: 'error',
-                    msg: '扫描任务提交失败: '
-                        + (submitResponse.message
-                            || submitResponse.msg
-                            || '未知错误'),
-                    ts: Date.now(),
-                    data: []
-                };
-                console.log(JSON.stringify(output, null, 2));
-                process.exit(1);
-            }
-
-            const taskId = submitResponse.data.task_id;
-            const pollResponse = await pollScanTaskStatus(taskId);
-            const response = convertScanResultToSlugFormat(
-                pollResponse
-            );
-            const report = buildReport(response.data);
-            if (report) {
-                response.report = report;
-            }
+    const outputResult = (response) => {
+        if (args.debug) {
             console.log(JSON.stringify(response, null, 2));
-
-            if (response.code === 'success'
-                && response.data
-                && response.data.length > 0) {
-                const bdConfidence
-                    = (response.data[0].bd_confidence || '')
-                        .toLowerCase();
-                const safe = bdConfidence === 'safe'
-                    || bdConfidence === 'trusted';
-                process.exit(safe ? 0 : 1);
+        } else {
+            let compact;
+            if (response.results !== undefined) {
+                // Scenario D (queryfull): batch summary
+                compact = {
+                    code: response.code,
+                    msg: response.msg,
+                    ts: response.ts,
+                    total: response.total,
+                    safe_count: response.safe_count,
+                    danger_count: response.danger_count,
+                    caution_count: response.caution_count,
+                    error_count: response.error_count,
+                    report_text: response.report_text
+                };
+            } else {
+                // Scenario A/C: single query
+                const first = Array.isArray(response.data)
+                    && response.data.length > 0
+                    ? response.data[0] : null;
+                compact = {
+                    code: response.code,
+                    message: response.message,
+                    ts: response.ts,
+                    bd_confidence: first
+                        ? first.bd_confidence : null,
+                    final_verdict: response.report
+                        ? response.report.final_verdict : null,
+                    report_text: response.report_text
+                };
             }
-            else {
-                process.exit(1);
-            }
+            console.log(JSON.stringify(compact, null, 2));
         }
-        catch (error) {
-            const output = {
-                code: 'error',
-                msg: '🚫 安全检查服务调用失败：'
-                    + (error.message || '未知错误'),
-                ts: Date.now(),
-                data: []
-            };
-            console.log(JSON.stringify(output, null, 2));
-            process.exit(1);
-        }
-
-    }
-    else if (args.action === 'queryfull') {
+    };
+    if (args.action === 'queryfull') {
         // Batch query all subdirectories by slug
         if (!args.file) {
             const output = makeQueryFullResult(
@@ -1366,12 +1246,14 @@ async function main() {
                     + '用法：node check.js --action queryfull'
                     + ' --file "/path/to/skills"'
             );
-            console.log(JSON.stringify(output, null, 2));
-            process.exit(1);
+            output.report_text = formatErrorReportText(output.msg);
+            outputResult(output);
+            process.exit(2);
         }
 
         const response = await queryFullDirectory(args.file);
-        console.log(JSON.stringify(response, null, 2));
+        response.report_text = formatBatchReportText(response);
+        outputResult(response);
 
         // Exit code: 0 if all safe and total > 0, 1 otherwise
         const allSafe = response.code === 'success'
@@ -1383,21 +1265,38 @@ async function main() {
     else if (args.action === 'query') {
         // Single directory query
         if (!args.file) {
+            const errMsg = '❌ 错误：--action query 需要提供'
+                + ' --file 参数（skill 目录路径）\n'
+                + '用法：node check.js --action query'
+                + ' --file "/path/to/skill-dir"';
             const output = {
                 code: 'error',
-                msg: '❌ 错误：--action query 需要提供'
-                    + ' --file 参数（skill 目录路径）\n'
-                    + '用法：node check.js --action query'
-                    + ' --file "/path/to/skill-dir"',
+                msg: errMsg,
                 ts: Date.now(),
-                data: []
+                data: [],
+                report_text: formatErrorReportText(errMsg)
             };
-            console.log(JSON.stringify(output, null, 2));
-            process.exit(1);
+            outputResult(output);
+            process.exit(2);
         }
 
         const response = await querySingleDirectory(args.file);
-        console.log(JSON.stringify(response, null, 2));
+        if (response.report) {
+            response.report_text = formatSingleReportText(
+                response.report
+            );
+        }
+        else if (response.code === 'error') {
+            response.report_text = formatErrorReportText(
+                response.msg
+            );
+        }
+        else {
+            response.report_text = formatNotIndexedReportText(
+                args.file
+            );
+        }
+        outputResult(response);
 
         if (response.code === 'success'
             && response.data
@@ -1416,29 +1315,35 @@ async function main() {
     else {
         // Slug query flow
         if (!args.slug) {
+            const errMsg = '❌ 错误：缺少必填参数 --slug\n'
+                + '用法：node check.js --slug'
+                + ' \'skill-slug\' [--version \'1.0.0\']';
             const output = {
                 code: 'error',
-                msg: '❌ 错误：缺少必填参数 --slug 或 --url\n'
-                    + '用法：node check.js --slug'
-                    + ' \'skill-slug\' [--version \'1.0.0\']\n'
-                    + '      node check.js --url'
-                    + ' \'https://example.com/skill\'',
+                msg: errMsg,
                 ts: Date.now(),
-                data: []
+                data: [],
+                report_text: formatErrorReportText(errMsg)
             };
-            console.log(JSON.stringify(output, null, 2));
-            process.exit(1);
+            outputResult(output);
+            process.exit(2);
         }
 
         try {
             const response = await checkSkillSecurityFullResponse(
                 args.slug, args.version
             );
-            const report = buildReport(response.data);
+            const report = buildReport(response.data, response.ts);
             if (report) {
                 response.report = report;
+                response.report_text = formatSingleReportText(report);
             }
-            console.log(JSON.stringify(response, null, 2));
+            else {
+                response.report_text = formatNotIndexedReportText(
+                    args.slug
+                );
+            }
+            outputResult(response);
 
             // Determine exit code based on bd_confidence
             if (response.code === 'success'
@@ -1456,26 +1361,44 @@ async function main() {
             }
         }
         catch (error) {
+            const errMsg = '🚫 安全检查服务调用失败：'
+                + (error.message || '未知错误');
             const output = {
                 code: 'error',
-                msg: '🚫 安全检查服务调用失败：'
-                    + (error.message || '未知错误'),
+                msg: errMsg,
                 ts: Date.now(),
-                data: []
+                data: [],
+                report_text: formatErrorReportText(errMsg)
             };
-            console.log(JSON.stringify(output, null, 2));
-            process.exit(1);
+            outputResult(output);
+            process.exit(2);
         }
     }
 }
 
 main().catch((err) => {
+    const errMsg = '❌ 脚本执行异常：' + (err.message || '未知错误');
     const output = {
         code: 'error',
-        msg: '❌ 脚本执行异常：' + (err.message || '未知错误'),
+        msg: errMsg,
         ts: Date.now(),
-        data: []
+        data: [],
+        report_text: formatErrorReportText(errMsg)
     };
-    console.log(JSON.stringify(output, null, 2));
-    process.exit(1);
+    // No access to outputResult here; debug flag must be re-parsed
+    const debugMode = process.argv.includes('--debug');
+    if (debugMode) {
+        console.log(JSON.stringify(output, null, 2));
+    } else {
+        const compact = {
+            code: output.code,
+            message: output.msg,
+            ts: output.ts,
+            bd_confidence: null,
+            final_verdict: null,
+            report_text: output.report_text
+        };
+        console.log(JSON.stringify(compact, null, 2));
+    }
+    process.exit(2);
 });

@@ -23,13 +23,8 @@ API_PATH = '/v1/skill/security/results'
 REQUEST_TIMEOUT = 10  # 10s
 CONCURRENT_LIMIT = 5
 
-SCAN_API_PATH = '/v1/skill/security/scan'
-POLL_TIMEOUT = 10 * 60  # 10 minutes
-FIRST_POLL_INTERVAL = 1  # 1s
-NORMAL_POLL_INTERVAL = 5  # 5s
-
-UPLOAD_API_PATH = '/v1/skill/security/upload'
-UPLOAD_TIMEOUT = 60  # 60s
+# 渠道标识，由打包脚本注入（如 'openclaw-skill'）；None 表示无渠道（通用包）
+_CHANNEL_ID = 'openclaw-skill'
 
 # ============================================================
 # Utilities
@@ -63,9 +58,58 @@ def make_query_full_result(code, msg, **overrides):
     return result
 
 
+def _build_compact(obj):
+    """Build a compact JSON-serializable dict for normal (non-debug) output."""
+    if 'results' in obj:
+        # Scenario D (queryfull): batch summary
+        return {
+            'code': obj.get('code'),
+            'msg': obj.get('msg'),
+            'ts': obj.get('ts'),
+            'total': obj.get('total'),
+            'safe_count': obj.get('safe_count'),
+            'danger_count': obj.get('danger_count'),
+            'caution_count': obj.get('caution_count'),
+            'error_count': obj.get('error_count'),
+            'report_text': obj.get('report_text'),
+        }
+    # Scenario A/C: single query
+    data = obj.get('data')
+    first = data[0] if isinstance(data, list) and data else None
+    report = obj.get('report')
+    return {
+        'code': obj.get('code'),
+        'message': obj.get('message'),
+        'ts': obj.get('ts'),
+        'bd_confidence': first.get('bd_confidence') if first else None,
+        'final_verdict': report.get('final_verdict') if report else None,
+        'report_text': obj.get('report_text'),
+    }
+
+
+def output_result(obj):
+    """Print result to stdout based on debug mode."""
+    if _DEBUG:
+        print(json.dumps(obj, indent=2, ensure_ascii=False))
+    else:
+        print(json.dumps(_build_compact(obj), indent=2, ensure_ascii=False))
+
+
+_DEBUG = False
+
+
+def _debug_log(msg):
+    """Print debug message to stderr only when debug mode is enabled."""
+    if _DEBUG:
+        print(msg, file=sys.stderr)
+
+
 def output_and_exit(obj, exit_code):
-    """Print JSON object to stdout and exit with the given code."""
-    print(json.dumps(obj, indent=2, ensure_ascii=False))
+    """Print result to stdout and exit with the given code."""
+    if _DEBUG:
+        print(json.dumps(obj, indent=2, ensure_ascii=False))
+    else:
+        print(json.dumps(_build_compact(obj), indent=2, ensure_ascii=False))
     sys.exit(exit_code)
 
 
@@ -105,12 +149,12 @@ _CONFIDENCE_DEFAULT = {
 
 
 def _format_timestamp(ms):
-    """Convert millisecond timestamp to formatted string."""
-    if not ms:
-        return '未知'
+    """Convert millisecond timestamp to UTC+8 formatted string."""
     import datetime
-    dt = datetime.datetime.fromtimestamp(ms / 1000)
-    return dt.strftime('%Y-%m-%d %H:%M:%S')
+    if not ms:
+        ms = int(time.time() * 1000)
+    dt = datetime.datetime.utcfromtimestamp(ms / 1000) + datetime.timedelta(hours=8)
+    return '[UTC+8 ' + dt.strftime('%Y-%m-%d %H:%M:%S') + ']'
 
 
 def _build_overview(confidence, findings_count, virus_count):
@@ -124,7 +168,7 @@ def _build_overview(confidence, findings_count, virus_count):
         if virus_count > 0:
             text += f'，发现{virus_count}项病毒风险'
     elif confidence == 'caution':
-        text = '⚠️ Skill存在信誉风险'
+        text = '⚠️ Skill存在潜在风险'
         if findings_count > 0:
             text += f'，发现{findings_count}项可疑行为'
     else:
@@ -132,7 +176,7 @@ def _build_overview(confidence, findings_count, virus_count):
     return text
 
 
-def build_report(data):
+def build_report(data, ts=None):
     """Build a pre-processed report object from data[0] for the LLM template."""
     if not isinstance(data, list) or len(data) == 0:
         return None
@@ -176,7 +220,7 @@ def build_report(data):
         'version': item.get('version'),
         'source': _SOURCE_MAP.get(item.get('source'), '其他'),
         'author': github.get('name'),
-        'scanned_at': _format_timestamp(item.get('scanned_at')),
+        'scanned_at': _format_timestamp(ts),
         'bd_confidence': confidence or None,
         'verdict': mapped['verdict'],
         'final_verdict': mapped['final_verdict'],
@@ -188,6 +232,256 @@ def build_report(data):
         'findings': findings,
         'antivirus': {'virus_count': virus_count, 'virus_list': virus_list},
     }
+
+
+# ============================================================
+# Report Text Formatter
+# ============================================================
+
+def format_single_report_text(report):
+    """Render a single-skill report object into plain-text report string."""
+    lines = []
+    lines.append('🛡️ Skill安全守卫报告')
+    lines.append('═══════════════════════════════════════')
+    lines.append('📊 守卫摘要')
+    lines.append('评估时间：' + (report.get('scanned_at') or '未知'))
+    lines.append('Skill名称：' + (report.get('name') or '未知'))
+    lines.append('来    源：' + (report.get('source') or '未知'))
+    lines.append('作    者：' + (report.get('author') or '未知'))
+    lines.append('版    本：' + (report.get('version') or '未知'))
+    lines.append('评估结果：' + (report.get('verdict') or '未知'))
+
+    overview = report.get('overview')
+    if overview:
+        lines.append('')
+        lines.append('───────────────────────────────────────')
+        lines.append('📕 评估结果概述')
+        lines.append(overview)
+
+        lines.append('')
+        lines.append('───────────────────────────────────────')
+        lines.append('🗒 安全评估详情')
+        lines.append(report.get('bd_describe') or 'N/A')
+
+        lines.append('')
+        lines.append('评估过程')
+
+        # VirusTotal
+        vt = report.get('virustotal') or {}
+        vt_line = '- VirusTotal：' + (vt.get('status') or 'N/A')
+        if vt.get('describe'):
+            vt_line += '，' + vt['describe']
+        lines.append(vt_line)
+
+        # OpenClaw
+        oc = report.get('openclaw') or {}
+        oc_line = '- OpenClaw：' + (oc.get('status') or 'N/A')
+        if oc.get('describe'):
+            oc_line += '，' + oc['describe']
+        lines.append(oc_line)
+
+        # Findings
+        for f in (report.get('findings') or []):
+            lines.append('- 发现' + (f.get('severity') or '未知')
+                         + '行为，' + (f.get('title') or ''))
+            if f.get('description'):
+                lines.append('   - ' + f['description'])
+
+        # Antivirus
+        av = report.get('antivirus') or {}
+        if av.get('virus_count', 0) > 0 and isinstance(av.get('virus_list'), list):
+            for v in av['virus_list']:
+                lines.append('- 病毒扫描：发现'
+                             + (v.get('virus_name') or '未知病毒') + '，'
+                             + (v.get('file') or '未知文件'))
+        else:
+            lines.append('- 病毒扫描：未检测到病毒')
+
+    lines.append('')
+    lines.append('───────────────────────────────────────')
+    lines.append('🏁 最终裁决：')
+    lines.append(report.get('final_verdict') or '未知')
+
+    if overview:
+        lines.append('')
+        lines.append('💡 建议：' + (report.get('suggestion') or ''))
+    lines.append('═══════════════════════════════════════')
+
+    return '\n'.join(lines)
+
+
+def format_not_indexed_report_text(slug):
+    """Generate report text for skills not indexed in the security system."""
+    now = _format_timestamp(int(time.time() * 1000))
+    lines = []
+    lines.append('🛡️ Skill安全守卫报告')
+    lines.append('═══════════════════════════════════════')
+    lines.append('📊 守卫摘要')
+    lines.append('评估时间：' + now)
+    lines.append('Skill名称：' + (slug or '未知'))
+    lines.append('来    源：未知')
+    lines.append('作    者：未知')
+    lines.append('版    本：未知')
+    lines.append('评估结果：❓ 未收录，不建议安装')
+    lines.append('')
+    lines.append('───────────────────────────────────────')
+    lines.append('🏁 最终裁决：')
+    lines.append('❌ 不建议安装(需人工确认)')
+    lines.append('')
+    lines.append('💡 建议：尚未被安全系统收录，建议人工审查后再安装')
+    lines.append('═══════════════════════════════════════')
+    return '\n'.join(lines)
+
+
+def format_error_report_text(msg):
+    """Generate report text for error scenarios."""
+    now = _format_timestamp(int(time.time() * 1000))
+    lines = []
+    lines.append('🛡️ Skill安全守卫报告')
+    lines.append('═══════════════════════════════════════')
+    lines.append('📊 守卫摘要')
+    lines.append('评估时间：' + now)
+    lines.append('评估结果：❌ 安全检查失败')
+    if msg:
+        lines.append('')
+        lines.append('错误信息：' + str(msg))
+    lines.append('')
+    lines.append('───────────────────────────────────────')
+    lines.append('🏁 最终裁决：')
+    lines.append('❌ 暂缓安装(安全检查未完成)')
+    lines.append('')
+    lines.append('💡 建议：安全检查服务调用失败，建议稍后重试，请勿跳过安全检查直接安装')
+    lines.append('═══════════════════════════════════════')
+    return '\n'.join(lines)
+
+
+def _format_batch_item_text(report):
+    """Render a single skill detail section within a batch report."""
+    lines = []
+    lines.append('───────────────────────────────────────')
+    lines.append('📌 ' + (report.get('name') or '未知') + ' v'
+                 + (report.get('version') or '未知'))
+    lines.append('来源：' + (report.get('source') or '未知')
+                 + ' | 作者：' + (report.get('author') or '未知'))
+    lines.append('评估结果：' + (report.get('verdict') or '未知'))
+
+    overview = report.get('overview')
+    if overview:
+        lines.append('')
+        lines.append('📕 ' + overview)
+
+        lines.append('')
+        lines.append('🗒 ' + (report.get('bd_describe') or 'N/A'))
+
+        lines.append('')
+        lines.append('评估过程')
+
+        vt = report.get('virustotal') or {}
+        vt_line = '- VirusTotal：' + (vt.get('status') or 'N/A')
+        if vt.get('describe'):
+            vt_line += '，' + vt['describe']
+        lines.append(vt_line)
+
+        oc = report.get('openclaw') or {}
+        oc_line = '- OpenClaw：' + (oc.get('status') or 'N/A')
+        if oc.get('describe'):
+            oc_line += '，' + oc['describe']
+        lines.append(oc_line)
+
+        for f in (report.get('findings') or []):
+            lines.append('- 发现' + (f.get('severity') or '未知')
+                         + '行为，' + (f.get('title') or ''))
+            if f.get('description'):
+                lines.append('   - ' + f['description'])
+
+        av = report.get('antivirus') or {}
+        if av.get('virus_count', 0) > 0 and isinstance(av.get('virus_list'), list):
+            for v in av['virus_list']:
+                lines.append('- 病毒扫描：发现'
+                             + (v.get('virus_name') or '未知病毒') + '，'
+                             + (v.get('file') or '未知文件'))
+        else:
+            lines.append('- 病毒扫描：未检测到病毒')
+
+    lines.append('')
+    lines.append('🏁 最终裁决：' + (report.get('final_verdict') or '未知'))
+    lines.append('💡 建议：' + (report.get('suggestion') or ''))
+    return '\n'.join(lines)
+
+
+def format_batch_report_text(batch_result):
+    """Render a batch query result into plain-text batch report string."""
+    now = _format_timestamp(int(time.time() * 1000))
+    danger_and_error = (batch_result.get('danger_count') or 0) \
+        + (batch_result.get('error_count') or 0)
+    lines = []
+
+    lines.append('🛡️ Skill安全守卫报告')
+    lines.append('═══════════════════════════════════════')
+    lines.append('')
+    lines.append('📊守卫摘要')
+    lines.append('评估时间：' + now)
+    lines.append('评估Skills总量：' + str(batch_result.get('total') or 0) + '个')
+    lines.append(' ✅通过：' + str(batch_result.get('safe_count') or 0) + '个')
+    lines.append(' 🚫不通过：' + str(danger_and_error) + '个')
+    lines.append(' ⚠️需关注：' + str(batch_result.get('caution_count') or 0) + '个')
+    lines.append('═══════════════════════════════════════')
+
+    # 不通过 Skills
+    lines.append('🚫不通过Skills（不建议安装，需人工确认）：')
+    lines.append('')
+
+    results = batch_result.get('results') or []
+    danger_items = []
+    for r in results:
+        if not r.get('report'):
+            if (r.get('code') == 'error'
+                    or (r.get('code') == 'success'
+                        and (not isinstance(r.get('data'), list)
+                             or len(r['data']) == 0))):
+                danger_items.append(r)
+            continue
+        c = (r['report'].get('bd_confidence') or '').lower()
+        if c in ('dangerous', '', 'error'):
+            danger_items.append(r)
+
+    if not danger_items:
+        lines.append('无')
+    else:
+        for item in danger_items:
+            if item.get('report'):
+                lines.append(_format_batch_item_text(item['report']))
+            else:
+                lines.append('───────────────────────────────────────')
+                lines.append('📌 ' + (item.get('slug') or '未知'))
+                lines.append('评估结果：❌ '
+                             + (item.get('msg') or '安全检查失败'))
+                lines.append('')
+                lines.append('🏁 最终裁决：❌ 不建议安装(需人工确认)')
+                lines.append('💡 建议：安全检查未通过，建议人工审查')
+
+    lines.append('')
+    lines.append('═══════════════════════════════════════')
+
+    # 需关注 Skills
+    lines.append('⚠️需关注Skills（需谨慎安装）：')
+    lines.append('')
+
+    caution_items = [
+        r for r in results
+        if r.get('report')
+        and (r['report'].get('bd_confidence') or '').lower() == 'caution'
+    ]
+
+    if not caution_items:
+        lines.append('无')
+    else:
+        for item in caution_items:
+            lines.append(_format_batch_item_text(item['report']))
+
+    lines.append('')
+    lines.append('═══════════════════════════════════════')
+    return '\n'.join(lines)
 
 
 # ============================================================
@@ -212,17 +506,15 @@ def make_request(url, timeout=REQUEST_TIMEOUT):
         raise Exception(f'请求失败: {e.reason}')
 
 
-def make_request_with_body(url, body_dict, timeout=REQUEST_TIMEOUT):
-    """Send a POST request with JSON body and return parsed JSON."""
-    data = json.dumps(body_dict).encode('utf-8')
-    req = urllib.request.Request(
-        url, data=data, method='POST',
-        headers={'Content-Type': 'application/json'},
-    )
+def _make_get_request(url, timeout=REQUEST_TIMEOUT):
+    """Send a GET request with optional X-Caller header and return parsed JSON."""
+    req = urllib.request.Request(url, method='GET')
+    if _CHANNEL_ID:
+        req.add_header('X-Caller', _CHANNEL_ID)
     try:
         with urllib.request.urlopen(req, timeout=timeout, context=_ssl_ctx) as resp:
-            resp_data = resp.read().decode('utf-8')
-            return safe_json_parse(resp_data)
+            data = resp.read().decode('utf-8')
+            return safe_json_parse(data)
     except urllib.error.HTTPError as e:
         body = ''
         try:
@@ -245,62 +537,7 @@ def check_skill_security_full_response(slug, version=None):
         params['version'] = version
     query_string = urllib.parse.urlencode(params)
     url = f'{API_BASE_URL}{API_PATH}?{query_string}'
-    return make_request(url)
-
-
-# ============================================================
-# API: URL Scan (submit + poll)
-# ============================================================
-
-def submit_scan_task(source_url):
-    """Submit a URL scan task and return the API response."""
-    url = f'{API_BASE_URL}{SCAN_API_PATH}'
-    return make_request_with_body(url, {'source_url': source_url})
-
-
-def poll_scan_task_status(task_id):
-    """Poll a scan task until it completes or times out."""
-    start_time = time.time()
-    poll_count = 0
-    last_status = 'pending'
-
-    while True:
-        if poll_count == 0:
-            wait_time = FIRST_POLL_INTERVAL
-        elif poll_count == 1:
-            wait_time = 3
-        else:
-            wait_time = NORMAL_POLL_INTERVAL
-        time.sleep(wait_time)
-
-        if time.time() - start_time > POLL_TIMEOUT:
-            raise Exception('扫描任务超时（超过10分钟未完成）')
-
-        poll_count += 1
-        elapsed = int(time.time() - start_time)
-        print(f'[polling] 第{poll_count}次轮询，已等待{elapsed}s，当前状态: {last_status}', file=sys.stderr)
-
-        encoded_id = urllib.parse.quote(task_id, safe='')
-        url = f'{API_BASE_URL}{SCAN_API_PATH}/{encoded_id}'
-        response = make_request(url)
-
-        data = response.get('data') or {}
-        if data.get('status') == 'done':
-            return response
-        if data.get('status') == 'failed':
-            raise Exception(data.get('error_message', '扫描任务失败'))
-        if data.get('status'):
-            last_status = data['status']
-        # pending / processing -> continue polling
-
-
-def convert_scan_result_to_slug_format(poll_response):
-    """Convert a poll response into the standard slug query format."""
-    data = poll_response.get('data') or {}
-    results = data.get('results') or []
-    if results:
-        return {'code': 'success', 'data': results}
-    return {'code': 'error', 'msg': '扫描完成但无结果数据', 'data': []}
+    return _make_get_request(url)
 
 
 # ============================================================
@@ -405,95 +642,10 @@ def compute_content_sha256(dir_path):
 
 def check_skill_security_by_sha256(sha256_val):
     """Query the security API for a skill by content SHA256."""
-    query_string = urllib.parse.urlencode({'sha256': sha256_val})
+    params = {'sha256': sha256_val}
+    query_string = urllib.parse.urlencode(params)
     url = f'{API_BASE_URL}{API_PATH}?{query_string}'
-    return make_request(url)
-
-
-# ============================================================
-# Upload ZIP fallback (create zip + multipart upload)
-# ============================================================
-
-def create_zip_buffer(dir_path):
-    """Create a ZIP archive of the directory in memory and return bytes."""
-    import io
-    import zipfile
-
-    buf = io.BytesIO()
-    base_name = os.path.basename(dir_path)
-    with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
-        for root, dirs, files in os.walk(dir_path):
-            dirs[:] = [d for d in dirs if d != '__MACOSX']
-            for fname in files:
-                abs_path = os.path.join(root, fname)
-                arc_name = os.path.join(
-                    base_name,
-                    os.path.relpath(abs_path, dir_path),
-                )
-                zf.write(abs_path, arc_name)
-    return buf.getvalue()
-
-
-def upload_skill_zip(zip_bytes, slug, version=None):
-    """Upload a ZIP file via multipart/form-data to the upload API."""
-    boundary = '----SkillGuard' + hashlib.sha256(
-        os.urandom(16)
-    ).hexdigest()[:32]
-
-    parts = []
-
-    # slug field
-    if slug:
-        parts.append(
-            f'--{boundary}\r\n'
-            f'Content-Disposition: form-data; name="slug"\r\n\r\n'
-            f'{slug}\r\n'
-        )
-
-    # version field
-    if version:
-        parts.append(
-            f'--{boundary}\r\n'
-            f'Content-Disposition: form-data; name="version"\r\n\r\n'
-            f'{version}\r\n'
-        )
-
-    # file field header
-    file_name = (slug or 'skill') + '.zip'
-    file_header = (
-        f'--{boundary}\r\n'
-        f'Content-Disposition: form-data; name="file";'
-        f' filename="{file_name}"\r\n'
-        f'Content-Type: application/zip\r\n\r\n'
-    )
-    ending = f'\r\n--{boundary}--\r\n'
-
-    body = b''
-    for p in parts:
-        body += p.encode('utf-8')
-    body += file_header.encode('utf-8')
-    body += zip_bytes
-    body += ending.encode('utf-8')
-
-    url = f'{API_BASE_URL}{UPLOAD_API_PATH}'
-    req = urllib.request.Request(url, data=body, method='POST')
-    req.add_header(
-        'Content-Type',
-        f'multipart/form-data; boundary={boundary}',
-    )
-    req.add_header('Content-Length', str(len(body)))
-
-    try:
-        with urllib.request.urlopen(
-            req, timeout=UPLOAD_TIMEOUT, context=_ssl_ctx
-        ) as resp:
-            resp_data = resp.read().decode('utf-8')
-            return safe_json_parse(resp_data)
-    except urllib.error.HTTPError as e:
-        body_text = e.read().decode('utf-8', errors='replace')[:200]
-        raise Exception(f'HTTP {e.code}: {body_text}')
-    except urllib.error.URLError as e:
-        raise Exception(f'请求失败: {e.reason}')
+    return _make_get_request(url)
 
 
 # ============================================================
@@ -574,42 +726,7 @@ def query_full_directory(dir_path):
                     except Exception:
                         pass  # SHA256 fallback failed, keep original empty result
 
-                # Upload ZIP fallback: when SHA256 also returns empty
-                if (result.get('code') == 'success'
-                        and isinstance(result.get('data'), list)
-                        and len(result['data']) == 0):
-                    try:
-                        print(
-                            f'[upload-fallback] slug={slug}, uploading zip...',
-                            file=sys.stderr,
-                        )
-                        zip_bytes = create_zip_buffer(skill_dir)
-                        upload_resp = upload_skill_zip(zip_bytes, slug, version)
-                        upload_data = upload_resp.get('data') or {}
-                        if (upload_resp.get('code') == 'success'
-                                and upload_data.get('task_id')):
-                            task_id = upload_data['task_id']
-                            print(
-                                f'[upload-fallback] slug={slug},'
-                                f' task_id={task_id}, polling...',
-                                file=sys.stderr,
-                            )
-                            poll_resp = poll_scan_task_status(task_id)
-                            converted = convert_scan_result_to_slug_format(
-                                poll_resp
-                            )
-                            if (converted.get('code') == 'success'
-                                    and isinstance(converted.get('data'), list)
-                                    and len(converted['data']) > 0):
-                                result = {'slug': slug, **converted}
-                    except Exception as upload_err:
-                        print(
-                            f'[upload-fallback] slug={slug},'
-                            f' error: {upload_err}',
-                            file=sys.stderr,
-                        )
-
-                report = build_report(result.get('data'))
+                report = build_report(result.get('data'), result.get('ts'))
                 if report:
                     result['report'] = report
                 return result
@@ -681,10 +798,9 @@ def query_single_directory(dir_path):
                 and len(response['data']) == 0):
             try:
                 content_sha256 = compute_content_sha256(dir_path)
-                print(
+                _debug_log(
                     f'[sha256-fallback] slug={slug}, contentSha256='
-                    f'{content_sha256 or "(empty)"}',
-                    file=sys.stderr,
+                    f'{content_sha256 or "(empty)"}'
                 )
                 if content_sha256:
                     sha256_resp = check_skill_security_by_sha256(
@@ -695,59 +811,22 @@ def query_single_directory(dir_path):
                         if isinstance(sha256_resp.get('data'), list)
                         else 'N/A'
                     )
-                    print(
+                    _debug_log(
                         f'[sha256-fallback] slug={slug},'
                         f' sha256 query result: code={sha256_resp.get("code")},'
-                        f' data.length={data_len}',
-                        file=sys.stderr,
+                        f' data.length={data_len}'
                     )
                     if (sha256_resp.get('code') == 'success'
                             and isinstance(sha256_resp.get('data'), list)
                             and len(sha256_resp['data']) > 0):
                         result = {**sha256_resp}
             except Exception as fallback_err:
-                print(
+                _debug_log(
                     f'[sha256-fallback] slug={slug},'
-                    f' fallback error: {fallback_err}',
-                    file=sys.stderr,
+                    f' fallback error: {fallback_err}'
                 )
 
-        # Upload ZIP fallback: when SHA256 fallback also returns empty
-        if (result.get('code') == 'success'
-                and isinstance(result.get('data'), list)
-                and len(result['data']) == 0):
-            try:
-                print(
-                    f'[upload-fallback] slug={slug}, uploading zip...',
-                    file=sys.stderr,
-                )
-                zip_bytes = create_zip_buffer(dir_path)
-                upload_resp = upload_skill_zip(zip_bytes, slug, version)
-                upload_data = upload_resp.get('data') or {}
-                if (upload_resp.get('code') == 'success'
-                        and upload_data.get('task_id')):
-                    task_id = upload_data['task_id']
-                    print(
-                        f'[upload-fallback] slug={slug},'
-                        f' task_id={task_id}, polling...',
-                        file=sys.stderr,
-                    )
-                    poll_resp = poll_scan_task_status(task_id)
-                    converted = convert_scan_result_to_slug_format(
-                        poll_resp
-                    )
-                    if (converted.get('code') == 'success'
-                            and isinstance(converted.get('data'), list)
-                            and len(converted['data']) > 0):
-                        result = {**converted}
-            except Exception as upload_err:
-                print(
-                    f'[upload-fallback] slug={slug},'
-                    f' error: {upload_err}',
-                    file=sys.stderr,
-                )
-
-        report = build_report(result.get('data'))
+        report = build_report(result.get('data'), result.get('ts'))
         if report:
             result['report'] = report
         return result
@@ -772,70 +851,32 @@ def parse_args():
     )
     parser.add_argument('--slug', default=None)
     parser.add_argument('--version', default=None)
-    parser.add_argument('--url', default=None)
     parser.add_argument('--action', default=None)
     parser.add_argument('--file', default=None)
+    parser.add_argument('--debug', action='store_true', default=False)
     return parser.parse_args()
 
 
 def main():
-    """CLI entry point dispatching to url-scan, queryfull, or slug-query."""
+    """CLI entry point dispatching to queryfull, query, or slug-query."""
+    global _DEBUG
     args = parse_args()
+    _DEBUG = args.debug
 
-    if args.url:
-        # URL scan flow: submit + poll
-        try:
-            submit_response = submit_scan_task(args.url)
-            submit_data = submit_response.get('data') or {}
-            if submit_response.get('code') != 'success' or not submit_data.get('task_id'):
-                output_and_exit({
-                    'code': 'error',
-                    'msg': '扫描任务提交失败: ' + (
-                        submit_response.get('message')
-                        or submit_response.get('msg')
-                        or '未知错误'
-                    ),
-                    'ts': int(time.time() * 1000),
-                    'data': [],
-                }, 1)
-
-            task_id = submit_data['task_id']
-            poll_response = poll_scan_task_status(task_id)
-            response = convert_scan_result_to_slug_format(poll_response)
-            report = build_report(response.get('data'))
-            if report:
-                response['report'] = report
-            print(json.dumps(response, indent=2, ensure_ascii=False))
-
-            if (response.get('code') == 'success'
-                    and isinstance(response.get('data'), list)
-                    and len(response['data']) > 0):
-                bd_confidence = (response['data'][0].get('bd_confidence') or '').lower()
-                safe = bd_confidence in ('safe', 'trusted')
-                sys.exit(0 if safe else 1)
-            else:
-                sys.exit(1)
-        except SystemExit:
-            raise
-        except Exception as error:
-            output_and_exit({
-                'code': 'error',
-                'msg': f'🚫 安全检查服务调用失败：{error}',
-                'ts': int(time.time() * 1000),
-                'data': [],
-            }, 1)
-
-    elif args.action == 'queryfull':
+    if args.action == 'queryfull':
         # Batch query all subdirectories by slug
         if not args.file:
-            output_and_exit(make_query_full_result(
+            qf_result = make_query_full_result(
                 'error',
                 '❌ 错误：--action queryfull 需要提供 --file 参数（skills 父目录）\n'
                 '用法：python3 check.py --action queryfull --file "/path/to/skills"',
-            ), 1)
+            )
+            qf_result['report_text'] = format_error_report_text(qf_result['msg'])
+            output_and_exit(qf_result, 2)
 
         response = query_full_directory(args.file)
-        print(json.dumps(response, indent=2, ensure_ascii=False))
+        response['report_text'] = format_batch_report_text(response)
+        output_result(response)
 
         # Exit code: 0 if all safe and total > 0, 1 otherwise
         all_safe = (
@@ -848,18 +889,32 @@ def main():
     elif args.action == 'query':
         # Single directory query
         if not args.file:
+            err_msg = (
+                '❌ 错误：--action query 需要提供 --file 参数（skill 目录路径）\n'
+                '用法：python3 check.py --action query --file "/path/to/skill-dir"'
+            )
             output_and_exit({
                 'code': 'error',
-                'msg': (
-                    '❌ 错误：--action query 需要提供 --file 参数（skill 目录路径）\n'
-                    '用法：python3 check.py --action query --file "/path/to/skill-dir"'
-                ),
+                'msg': err_msg,
                 'ts': int(time.time() * 1000),
                 'data': [],
-            }, 1)
+                'report_text': format_error_report_text(err_msg),
+            }, 2)
 
         response = query_single_directory(args.file)
-        print(json.dumps(response, indent=2, ensure_ascii=False))
+        if response.get('report'):
+            response['report_text'] = format_single_report_text(
+                response['report']
+            )
+        elif response.get('code') == 'error':
+            response['report_text'] = format_error_report_text(
+                response.get('msg')
+            )
+        else:
+            response['report_text'] = format_not_indexed_report_text(
+                args.file
+            )
+        output_result(response)
 
         if (response.get('code') == 'success'
                 and isinstance(response.get('data'), list)
@@ -873,23 +928,29 @@ def main():
     else:
         # Slug query flow
         if not args.slug:
+            err_msg = (
+                '❌ 错误：缺少必填参数 --slug\n'
+                "用法：python3 check.py --slug 'skill-slug' [--version '1.0.0']"
+            )
             output_and_exit({
                 'code': 'error',
-                'msg': (
-                    '❌ 错误：缺少必填参数 --slug 或 --url\n'
-                    "用法：python3 check.py --slug 'skill-slug' [--version '1.0.0']\n"
-                    "      python3 check.py --url 'https://example.com/skill'"
-                ),
+                'msg': err_msg,
                 'ts': int(time.time() * 1000),
                 'data': [],
-            }, 1)
+                'report_text': format_error_report_text(err_msg),
+            }, 2)
 
         try:
             response = check_skill_security_full_response(args.slug, args.version)
-            report = build_report(response.get('data'))
+            report = build_report(response.get('data'), response.get('ts'))
             if report:
                 response['report'] = report
-            print(json.dumps(response, indent=2, ensure_ascii=False))
+                response['report_text'] = format_single_report_text(report)
+            else:
+                response['report_text'] = format_not_indexed_report_text(
+                    args.slug
+                )
+            output_result(response)
 
             # Determine exit code based on bd_confidence
             if (response.get('code') == 'success'
@@ -904,12 +965,14 @@ def main():
         except SystemExit:
             raise
         except Exception as error:
+            err_msg = f'🚫 安全检查服务调用失败：{error}'
             output_and_exit({
                 'code': 'error',
-                'msg': f'🚫 安全检查服务调用失败：{error}',
+                'msg': err_msg,
                 'ts': int(time.time() * 1000),
                 'data': [],
-            }, 1)
+                'report_text': format_error_report_text(err_msg),
+            }, 2)
 
 
 if __name__ == '__main__':
@@ -918,9 +981,11 @@ if __name__ == '__main__':
     except SystemExit:
         raise
     except Exception as err:
+        err_msg = f'❌ 脚本执行异常：{err}'
         output_and_exit({
             'code': 'error',
-            'msg': f'❌ 脚本执行异常：{err}',
+            'msg': err_msg,
             'ts': int(time.time() * 1000),
             'data': [],
-        }, 1)
+            'report_text': format_error_report_text(err_msg),
+        }, 2)
