@@ -3,9 +3,15 @@
   "slug": "seerr-manager",
   "displayName": "Seerr server manager",
   "latest": {
-    "version": "v0.8.0",
-    "publishedAt": 1773687406484,
-    "commit": "https://github.com/openclaw/skills/commit/f938b823c95ed99716b83276aaab708445a9dce9"
+    "version": "v0.8.2",
+    "publishedAt": 1774785188982,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "v0.8.0",
+      "publishedAt": 1773687406484,
+      "commit": "https://github.com/openclaw/skills/commit/f938b823c95ed99716b83276aaab708445a9dce9"
+    }
+  ]
 }
