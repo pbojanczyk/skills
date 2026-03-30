@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.2.2 (2026-03-28)
+
+### Documentation
+- Declared required env vars (`TODO_DB_*`) in SKILL.md frontmatter and description
+- Added explicit warnings for `migrate --action import-delete` (destructive) and cross-agent access (no enforcement, logged only)
+
+## 1.2.1 (2026-03-27)
+
+### Security
+- Removed SysClaw reporting integration (was reading `.env` files and executing scripts outside the skill directory)
+- Added explicit `ALLOWED_COLUMNS` allowlist to `cmd_edit()` SQL construction
+
 ## 1.2.0 (2026-03-17)
 
 ### New Features
@@ -23,7 +35,6 @@
 - Fixed double-close bug in `cmd_edit` category branch
 
 ### Error Handling
-- Fixed `report_sysclaw_issue()` silently swallowing errors (now logs to stderr)
 - All `ERROR:` messages now go to `stderr` instead of `stdout`
 
 ### Documentation

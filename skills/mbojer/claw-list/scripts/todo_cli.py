@@ -68,8 +68,6 @@ def connect():
                 time.sleep(backoff)
                 backoff *= 2
             else:
-                report_sysclaw_issue("critical", "DB Connection Failed",
-                                     f"Cannot connect to PostgreSQL after {max_retries} attempts: {e}")
                 print(f"ERROR: Database connection failed after {max_retries} attempts: {e}", file=sys.stderr)
                 sys.exit(1)
 
@@ -88,36 +86,6 @@ def query_one(conn, sql, params=None):
     """Execute a query and return a single row."""
     rows = query(conn, sql, params)
     return rows[0] if rows else None
-
-
-# ---------------------------------------------------------------------------
-# SysClaw reporting
-# ---------------------------------------------------------------------------
-
-def report_sysclaw_issue(severity, title, details=""):
-    """Report an issue via SysClaw if available. Best effort — never raises."""
-    import subprocess
-    skill_dir = Path(__file__).parent.parent
-    report_script = skill_dir.parent / "sysclaw-reporting" / "report-issue.sh"
-    if not report_script.exists():
-        report_script = skill_dir.parent.parent / "skills" / "sysclaw-reporting" / "report-issue.sh"
-    if not report_script.exists():
-        return  # SysClaw not installed, nothing to do
-    try:
-        env = os.environ.copy()
-        env_file = skill_dir.parent / "sysclaw-reporting" / ".env"
-        if env_file.exists():
-            for line in env_file.read_text().splitlines():
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    k, v = line.split("=", 1)
-                    env.setdefault(k.strip(), v.strip())
-        subprocess.run(
-            ["bash", str(report_script), "todo-skill", severity, title, "database", details],
-            env=env, capture_output=True, timeout=10
-        )
-    except Exception as e:
-        print(f"WARNING: SysClaw issue report failed: {e}", file=sys.stderr)
 
 
 # ---------------------------------------------------------------------------
@@ -186,7 +154,6 @@ def cmd_setup(args):
         print("✅ Todo database tables created successfully.")
     except Exception as e:
         conn.rollback()
-        report_sysclaw_issue("warning", "Setup Failed", str(e))
         print(f"ERROR: Setup failed: {e}", file=sys.stderr)
         sys.exit(1)
     finally:
@@ -539,7 +506,8 @@ def cmd_edit(args):
             updates["category_id"] = "%s"
             params.append(cat_id)
 
-        set_clause = ", ".join(f"{k} = {v}" for k, v in updates.items())
+        ALLOWED_COLUMNS = {"title", "description", "priority", "due_date", "category_id", "updated_at"}
+        set_clause = ", ".join(f"{k} = {v}" for k, v in updates.items() if k in ALLOWED_COLUMNS)
         params.extend([args.id, args.agent])
 
         row = query_one(conn,

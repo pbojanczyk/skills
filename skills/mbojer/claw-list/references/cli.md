@@ -212,11 +212,6 @@ Job Search:
 ]
 ```
 
-## Error Reporting
-
-On DB errors, automatically reports to SysClaw (if `report-issue.sh` is available
-in the parent agent's skill directory).
-
 ## Database Schema
 
 See [schema.md](schema.md) for table definitions.

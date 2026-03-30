@@ -3,6 +3,27 @@ name: todo
 description: |
   Manage todo lists in PostgreSQL. Per-agent lists, optional categories, priorities, due dates.
   Triggers: "todo", "add task", "mark done", "what's due", "my tasks", "due soon", "overdue"
+  Required env vars: TODO_DB_HOST, TODO_DB_NAME, TODO_DB_USER, TODO_DB_PASSWORD (optional: TODO_DB_PORT, TODO_DB_SSLMODE)
+metadata:
+  env:
+    - name: TODO_DB_HOST
+      required: true
+      description: PostgreSQL host (e.g. 127.0.0.1)
+    - name: TODO_DB_PORT
+      required: false
+      description: PostgreSQL port (default: 5432)
+    - name: TODO_DB_NAME
+      required: true
+      description: PostgreSQL database name
+    - name: TODO_DB_USER
+      required: true
+      description: PostgreSQL user (use a dedicated user with minimal privileges)
+    - name: TODO_DB_PASSWORD
+      required: true
+      description: PostgreSQL password
+    - name: TODO_DB_SSLMODE
+      required: false
+      description: PostgreSQL SSL mode (e.g. require, disable)
 ---
 
 # ClawList — Todo Skill
@@ -51,7 +72,11 @@ All operations via `scripts/todo_cli.py <command> [options]`.
 
 ## Cross-Agent Access
 
-Use `--request-from <agent>` to query another agent's list. All cross-agent access is logged.
+Use `--request-from <agent>` to query another agent's list. All cross-agent access is logged to `todo_access_log`. There is no enforcement policy — any agent can read or receive transfers from any other agent's lists on the same database. If running multiple agents on a shared DB, be aware that todo content is visible across all agents.
+
+## Migrate Warning
+
+The `migrate --action import-delete` option **permanently deletes the source file** after importing. Back up any files you care about before using this option. Use `import-keep` to import without deleting.
 
 ## Detailed Reference
 
