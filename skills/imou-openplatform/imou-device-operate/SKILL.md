@@ -1,27 +1,39 @@
 ---
 name: imou-device-operate
 description: >
-  Imou/乐橙设备操控。支持云台转动（上下左右等）、设备画面抓图及下载。
-  Control account devices: PTZ movement, device snapshot capture and download.
-  Use when: 乐橙云台控制、设备抓图、下载设备图片、PTZ control、snapshot、capture image、download device picture、Imou device operate.
+  imou / Imou / 乐橙 / lechange 设备操控技能。支持 PTZ 云台控制、snapshot 抓图与下载。
+  Imou/Lechange device operation for PTZ control, snapshot capture, and image download.
+  Use when: imou ptz control, Imou device operate, lechange device operate, 乐橙 设备操控, 乐橙 云台控制, 乐橙 抓图 下载.
 metadata:
-  {
-    "openclaw":
-      {
-        "emoji": "🎮",
-        "requires": { "env": ["IMOU_APP_ID", "IMOU_APP_SECRET"], "pip": ["requests"] },
-        "primaryEnv": "IMOU_APP_ID",
-        "install":
-          [
-            { "id": "python-requests", "kind": "pip", "package": "requests", "label": "Install requests" }
-          ]
-      }
-  }
+  openclaw:
+    emoji: "🎮"
+    requires:
+      env: ["IMOU_APP_ID", "IMOU_APP_SECRET", "IMOU_BASE_URL"]
+      pip: ["requests"]
+    primaryEnv: "IMOU_APP_ID"
+    install:
+      - id: "python-requests"
+        kind: "pip"
+        package: "requests"
+        label: "Install requests"
 ---
 
-# Imou Device Operate
+# Imou Device Operate（乐橙设备操控）
 
 Control Imou cloud devices: PTZ (pan-tilt-zoom) movement, device snapshot capture, and download snapshot image by URL.
+
+## Search Aliases
+
+- imou
+- Imou
+- 乐橙
+- lechange
+- easy4ip
+- imou-device-operate
+- 乐橙设备
+- 乐橙云台
+- 乐橙抓图
+- 乐橙摄像头
 
 ## Quick Start
 
