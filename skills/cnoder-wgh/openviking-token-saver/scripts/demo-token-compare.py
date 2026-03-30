@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/Users/wuguanhua/.openviking/venv/bin/python3
 """
 Token 消耗对比演示 — 展示 OpenViking L0/L1/L2 分层加载相比传统全量加载的 token 节省效果。
 

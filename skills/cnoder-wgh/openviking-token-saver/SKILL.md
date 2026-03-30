@@ -1,6 +1,6 @@
 ---
 name: openviking-context
-description: "OpenViking context database for AI agents — layered context loading (L0/L1/L2), semantic search, file-system memory management. Use when setting up OpenViking, managing agent memory/resources, performing semantic search, browsing context filesystem, or comparing token consumption. Triggers on: 'openviking', 'context database', 'viking memory', 'layered context', 'token saving', 'L0/L1/L2', 'viking://', 'memsearch', 'memread', 'context setup'."
+description: "OpenViking context database for AI agents — layered context loading (L0/L1/L2), semantic search, file-system memory management. Use when: (1) setting up OpenViking, managing agent memory/resources; (2) performing semantic search or browsing context filesystem; (3) comparing token consumption; (4) answering questions about project code, configs, components, or any knowledge base content by searching. Triggers on: 'openviking', 'context database', 'viking memory', 'layered context', 'token saving', 'L0/L1/L2', 'viking://', 'memsearch', 'memread', 'context setup', '知识库', '搜索.*项目', '查一下', '看一下', '帮我找', '搜索.*代码', '查看.*配置', '项目.*路径', '在哪', '怎么配置', '哪个文件', '哪个组件'."
 ---
 
 # OpenViking Context Database
@@ -50,21 +50,74 @@ bash scripts/setup-config.sh
 
 > **注意**：避免使用推理模型 (kimi-k2.5, deepseek-r1)，它们的 `reasoning` 字段与 OpenViking 不兼容。
 
-## 启动服务器
+## 第一次使用完整流程
+
+首次安装时，按顺序执行以下步骤：
+
+**Step 1 — 安装依赖**
+```bash
+bash ~/.openclaw/workspace/skills/openviking-token-saver/scripts/install.sh
+```
+> 自动检测 Python >= 3.10，创建 venv，安装 openviking 包
+
+**Step 2 — 配置 API Key**
+```bash
+bash ~/.openclaw/workspace/skills/openviking-token-saver/scripts/setup-config.sh
+```
+> 交互式配置 VLM 和 Embedding 的 API Key、模型、API 地址
+
+**Step 3 — 验证安装**
+```bash
+/Users/wuguanhua/.openviking/venv/bin/python3 ~/.openclaw/workspace/skills/openviking-token-saver/scripts/viking.py info
+```
+> 确认 ov.conf 配置正确，服务可连接
+
+**Step 4 — 添加资源**
+```bash
+/Users/wuguanhua/.openviking/venv/bin/python3 ~/.openclaw/workspace/skills/openviking-token-saver/scripts/viking.py add ./你的项目文档路径/
+```
+
+**Step 5 — 开始搜索**
+```bash
+/Users/wuguanhua/.openviking/venv/bin/python3 ~/.openclaw/workspace/skills/openviking-token-saver/scripts/viking.py search "关键词"
+```
+
+> ⚠️ 所有 `viking.py` 命令都必须用 `~/.openviking/venv/bin/python3`，不能用系统 `python3`
+
+## 启动服务器（可选）
+
+`scripts/viking.py` 支持 **direct mode**（直接访问数据文件，不需要服务器）。服务器仅在使用 Web UI 时才需要。
 
 ```bash
-openviking-server
-# 或后台运行：
-nohup openviking-server > ~/.openviking/server.log 2>&1 &
+# 启动 API 服务器（后台运行）
+nohup ~/.openviking/venv/bin/openviking-server > ~/.openviking/server.log 2>&1 &
+
+# 启动 Console Web UI（后台运行）
+nohup ~/.openviking/venv/bin/python3 -m openviking.console.bootstrap \
+  --host 127.0.0.1 --port 8020 \
+  --openviking-url http://127.0.0.1:1933 \
+  > ~/.openviking/console.log 2>&1 &
+
+# API 文档地址
+open http://localhost:1933/docs
+
+# Console Web UI 地址
+open http://localhost:8020
 ```
+
+> **何时需要服务器：**
+> - 需要 Web UI 管理界面 → 必须启动 API server + Console
+> - 只需要 `scripts/viking.py` 做 search/add/read → **不需要**，direct mode 已够用
 
 ## 核心操作
 
-通过 `scripts/viking.py` 与 OpenViking 交互：
+通过 `scripts/viking.py` 与 OpenViking 交互（direct mode，不需要服务器）：
 
 ```bash
-python3 scripts/viking.py <command> [args]
+/Users/wuguanhua/.openviking/venv/bin/python3 scripts/viking.py <command> [args]
 ```
+
+> ⚠️ **重要**：必须使用 venv 中的 Python（3.11），系统 Python 3.9 不支持 openviking。
 
 | 命令 | 功能 | 示例 |
 |---|---|---|
@@ -173,7 +226,9 @@ python3 scripts/demo-token-compare.py ./your-project-docs/
 | `NoneType is not subscriptable` | 使用了推理模型 | 换用 gpt-4o 或 llama-3.3-70b |
 | `input_type required` | 使用了非对称 embedding | 换用对称模型如 nvidia/nv-embed-v1 |
 | 搜索无结果 | 语义处理未完成 | 添加资源后等待：`viking.py add --wait` |
-| 服务连接失败 | 服务器未启动 | 运行 `openviking-server` |
+| 服务连接失败 | 服务器未启动 | 运行 `nohup ~/.openviking/venv/bin/openviking-server > ~/.openviking/server.log 2>&1 &` |
+| `Embedding failed: No embedding data` | embedding API 调用失败 | 确认 ov.conf 中 key 有 embedding 权限；检查余额；确认模型名为 `embo-01` 且 provider 为 `openai` |
+| `python3: command not found` 或 `No module named openviking` | 系统 Python 版本不对 | 必须用 `~/.openviking/venv/bin/python3`，不要用系统 python3 |
 
 ## 参考
 

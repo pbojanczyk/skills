@@ -121,8 +121,11 @@ cp "$SOURCE_DIR/scripts/install.sh" "$TARGET_DIR/scripts/install.sh"
 cp "$SOURCE_DIR/scripts/setup-config.sh" "$TARGET_DIR/scripts/setup-config.sh"
 cp "$SOURCE_DIR/scripts/viking.py" "$TARGET_DIR/scripts/viking.py"
 cp "$SOURCE_DIR/scripts/demo-token-compare.py" "$TARGET_DIR/scripts/demo-token-compare.py"
+cp "$SOURCE_DIR/scripts/viking" "$TARGET_DIR/scripts/viking"
+cp "$SOURCE_DIR/_meta.json" "$TARGET_DIR/_meta.json" 2>/dev/null || true
 
-chmod +x "$TARGET_DIR/scripts/"*.sh 2>/dev/null || true
+chmod +x "$TARGET_DIR/scripts/"*.sh "$TARGET_DIR/scripts/viking" 2>/dev/null || true
+chmod +x "$TARGET_DIR/scripts/viking.py" "$TARGET_DIR/scripts/demo-token-compare.py" 2>/dev/null || true
 
 echo ""
 echo -e "${GREEN}[✓] Skill 已安装到: $TARGET_DIR${NC}"
@@ -130,10 +133,12 @@ echo ""
 echo -e "  目录结构:"
 echo -e "  $TARGET_DIR/"
 echo -e "  ├── SKILL.md"
+echo -e "  ├── _meta.json"
 echo -e "  └── scripts/"
 echo -e "      ├── install.sh"
 echo -e "      ├── setup-config.sh"
 echo -e "      ├── viking.py"
+echo -e "      ├── viking"
 echo -e "      └── demo-token-compare.py"
 echo ""
 echo -e "${BOLD}下一步：${NC}"

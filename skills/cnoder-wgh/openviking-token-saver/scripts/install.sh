@@ -32,7 +32,20 @@ fi
 log_info "Python $PY_VERSION ✓"
 
 log_step "安装 OpenViking Python 包"
-pip install openviking --upgrade --force-reinstall 2>&1 | tail -5
+VENV_PYTHON="$HOME/.openviking/venv/bin/python3"
+VENV_PIP="$HOME/.openviking/venv/bin/pip3"
+
+if [ -x "$VENV_PYTHON" ]; then
+    log_info "使用已有的 venv Python: $VENV_PYTHON"
+    $VENV_PIP install openviking --upgrade --force-reinstall 2>&1 | tail -5
+elif [ -x "$VENV_PIP" ]; then
+    log_info "使用已有的 venv pip: $VENV_PIP"
+    $VENV_PIP install openviking --upgrade --force-reinstall 2>&1 | tail -5
+else
+    log_info "未检测到 venv，创建新环境..."
+    python3 -m venv "$HOME/.openviking/venv" --system-site-packages
+    $VENV_PIP install openviking --upgrade --force-reinstall 2>&1 | tail -5
+fi
 log_info "openviking 安装完成"
 
 log_step "创建工作目录"
@@ -82,10 +95,18 @@ export OPENVIKING_CONFIG_FILE="$CONFIG_DIR/ov.conf"
 export OPENVIKING_CLI_CONFIG_FILE="$CONFIG_DIR/ovcli.conf"
 
 log_step "验证安装"
-if python3 -c "import openviking; print(f'openviking {openviking.__version__}')" 2>/dev/null; then
-    log_info "OpenViking 导入成功"
+if [ -x "$HOME/.openviking/venv/bin/python3" ]; then
+    if $HOME/.openviking/venv/bin/python3 -c "import openviking; print(f'openviking {openviking.__version__}')" 2>/dev/null; then
+        log_info "OpenViking 导入成功"
+    else
+        log_warn "无法导入 openviking，可能需要重新安装"
+    fi
 else
-    log_warn "无法导入 openviking，可能需要重新安装"
+    if python3 -c "import openviking; print(f'openviking {openviking.__version__}')" 2>/dev/null; then
+        log_info "OpenViking 导入成功"
+    else
+        log_warn "无法导入 openviking，可能需要重新安装"
+    fi
 fi
 
 echo ""
@@ -95,8 +116,16 @@ echo -e "${GREEN}═════════════════════
 echo ""
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+# Use venv python if available, otherwise fall back to system python3
+if [ -x "$HOME/.openviking/venv/bin/python3" ]; then
+    PYTHON_BIN="$HOME/.openviking/venv/bin/python3"
+    echo -e "${GREEN}检测到已安装的 venv，使用: $PYTHON_BIN${NC}"
+else
+    PYTHON_BIN="python3"
+fi
+
 echo "下一步："
 echo "  1. 运行配置脚本:  bash $SCRIPT_DIR/setup-config.sh"
-echo "  2. 启动服务器:    openviking-server"
-echo "  3. 测试连接:      python3 $SCRIPT_DIR/viking.py info"
+echo "  2. 启动服务器:    nohup $HOME/.openviking/venv/bin/openviking-server > $HOME/.openviking/server.log 2>&1 &"
+echo "  3. 测试连接:      $PYTHON_BIN $SCRIPT_DIR/viking.py info"
 echo ""

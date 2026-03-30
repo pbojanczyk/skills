@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/Users/wuguanhua/.openviking/venv/bin/python3
 """
 OpenViking CLI Wrapper — Agent 可直接调用的上下文操作工具。
 支持 add / search / ls / tree / abstract / overview / read / info / commit / stats 命令。
@@ -194,12 +194,30 @@ def cmd_search(args):
         full = _get_full_load_tokens(client, r.uri)
         total_actual += actual
         total_full += full
+        saved = full - actual
+        pct = f"{saved/full*100:.1f}%" if full > 0 else "N/A"
 
-        print(f"     [L0: {actual} tokens | 全量: {full} tokens]")
+        print(f"     [L0: {actual} tokens | 全量: {full} tokens | 本次节省: {saved} tokens ({pct})]")
         print()
 
     tracker.record("search", args.query, "L0", total_actual, total_full)
-    tracker.print_summary_line()
+
+    # 醒目 Token 对比输出
+    t = tracker.totals
+    actual_total = t["actual"]
+    full_total = t["full_load"]
+    saved_total = full_total - actual_total
+    pct_total = f"{saved_total/full_total*100:.1f}%" if full_total > 0 else "N/A"
+
+    print("╔══════════════════════════════════════════════════════════════╗")
+    print("║                    💰 Token 节省对比                         ║")
+    print("╠══════════════════════════════════════════════════════════════╣")
+    print(f"║  全量加载（传统方式）:  {full_total:>10,} tokens                     ║")
+    print(f"║  分层加载（本次）:      {actual_total:>10,} tokens                     ║")
+    print("╠══════════════════════════════════════════════════════════════╣")
+    print(f"║  节省 Token 数量:       {saved_total:>10,} tokens  ({pct_total})        ║")
+    print("╚══════════════════════════════════════════════════════════════╝")
+
     client.close()
 
 
