@@ -87,7 +87,7 @@ def generate_random_string(length=16):
 def check_ffmpeg() -> bool:
     """Check if ffmpeg is installed"""
     try:
-        subprocess.run(['ffprobe', '-version'], capture_output=True, check=True)
+        subprocess.run(['ffprobe', '-version'], capture_output=True, check=True, timeout=5)
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
@@ -95,7 +95,7 @@ def check_ffmpeg() -> bool:
 def get_video_info(video_path: str) -> dict:
     """
     Get video resolution and duration using ffprobe
-    Returns: {"width": int, "height": int, "duration": float, "fps": float}
+    Returns: {"width": int, "height": int, "duration": float}
     """
     try:
         cmd = [
@@ -106,7 +106,7 @@ def get_video_info(video_path: str) -> dict:
             '-of', 'json',
             video_path
         ]
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
         data = json.loads(result.stdout)
         
         stream = data.get('streams', [{}])[0]

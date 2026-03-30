@@ -1,12 +1,21 @@
 ---
 name: video-enhancer
-description: Use when the user wants to enhance, upscale, or convert a local video to HD using the bundled cloud workflow. Triggers on requests like 视频超清, 视频增强, 转高清, 视频变清楚, 提升视频画质, video enhance, upscale video, make video clearer, convert to HD. Best for local video files when cloud upload and delayed processing are acceptable.
+description: >
+  Cloud-based video enhancement skill that uploads a user-selected local video file to Wondershare-hosted endpoints for AI enhancement,
+  then downloads the processed result back to local storage. Use only when
+  the user explicitly agrees to third-party cloud processing for a non-sensitive video,
+  when user says "enhance video", "improve video quality", "upscale video",
+  "make video clearer", "fix blurry video", "restore old footage", "video enhancement",
+  "convert to HD", or provides a video file and requests quality improvement.
+  supports MP4/MOV.
 metadata: {"clawdbot":{"emoji":"🎞️","requires":{"bins":["ffmpeg"]},"install":[{"id":"brew","kind":"brew","formula":"ffmpeg","bins":["ffmpeg"],"label":"Install ffmpeg"}]}}
 ---
 
 # Video Enhancer
 
-Enhance a local video using the bundled Python script and Wondershare-hosted cloud processing.
+Enhance a user-selected local video using Wondershare-hosted cloud processing.
+
+This is a **cloud workflow**, not a fully local or offline enhancement pipeline.
 
 ## Use This Skill When
 
@@ -27,8 +36,9 @@ Before running:
 - Confirm the input file exists
 - Confirm the file extension is `.mp4` or `.mov`
 - Confirm `ffprobe` is available
-- Tell the user this workflow uploads the source file to a third-party cloud service
-- Use the skill only after the user accepts cloud processing
+- ⚠️ Tell the user this workflow uploads the source file to a third-party cloud service  operated by Wondershare
+- ⚠️ Use the skill only after the user accepts cloud processing
+- ⚠️ The file is not sensitive, private, or confidential
 - Enforce these limits:
   - If `max(width, height) <= 1920`, duration must be `<= 300` seconds
   - If `max(width, height) > 1920`, duration must be `<= 60` seconds
@@ -54,11 +64,17 @@ Do not use this skill for sensitive files unless the user explicitly accepts thi
 
 ## Permissions
 
-This skill needs:
-- Read access to the input video file
-- Write access to the selected output directory
-- Network access to Wondershare cloud endpoints
-- Local `ffprobe` execution for metadata inspection
+This skill requires:
+- Read access only to the user-specified input video file
+- Write access only to the selected output directory, or the input file's parent directory if no output directory is provided
+- Network access to the Wondershare-hosted endpoints listed above
+- Local execution of the fixed `ffprobe` binary for metadata inspection
+
+This skill must not:
+- Modify the original input file in place
+- Scan directories for other media files
+- Upload any file other than the user-specified input file
+- Write arbitrary files outside the chosen output location
 
 ## Preferred Execution
 
@@ -101,12 +117,13 @@ Supported input formats:
 - `.mp4`
 - `.mov`
 
-## Practical Notes
+## Security Notes
 
-- This is a cloud workflow, not an on-device enhancement pipeline
-- Processing can take several minutes depending on file size and service load
-- Large files are slower and more failure-prone
-- Preserve the original file; the script writes a new output file
+- This is a third-party cloud processing workflow
+- The bundled script invokes only the fixed `ffprobe` binary with predefined arguments for local metadata inspection
+- The workflow does not require arbitrary shell execution
+- The workflow should use only the declared Wondershare-hosted endpoints and the final HTTPS task result download URL
+- The tool should be treated as unsuitable for sensitive or confidential media
 
 ### Cloud Processing
 - Videos are uploaded to filmora cloud services for AI enhancement
@@ -140,7 +157,7 @@ Bundled script:
 
 ## Agent Guidance
 
-- Always tell the user that the file will be uploaded to a third-party cloud service before running the workflow
-- Do not add promotional links, referral tags, or unrelated product recommendations
-- Keep the response focused on the saved file path and any relevant warnings
-- For long-running tasks, provide progress updates instead of going silent
+- Always tell the user that the selected local video will be uploaded to a Wondershare-operated third-party cloud service before running the workflow
+- Require explicit user consent in the current conversation before execution
+- Refuse sensitive, private, or confidential videos
+- Keep the response focused on the saved file path, cloud-processing disclosure, and any relevant warnings

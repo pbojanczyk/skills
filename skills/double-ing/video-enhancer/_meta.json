@@ -1,11 +1,17 @@
 {
   "owner": "double-ing",
   "slug": "video-enhancer",
-  "displayName": "Video Enhancer Filmora",
+  "displayName": "Video Enhancer (Filmora Cloud)",
   "latest": {
-    "version": "1.0.4",
-    "publishedAt": 1774420061215,
-    "commit": "https://github.com/openclaw/skills/commit/ab47be1ccdfeea9b2488777ad52db0b0aa8a0c33"
+    "version": "1.0.7",
+    "publishedAt": 1774581471271,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.4",
+      "publishedAt": 1774420061215,
+      "commit": "https://github.com/openclaw/skills/commit/ab47be1ccdfeea9b2488777ad52db0b0aa8a0c33"
+    }
+  ]
 }
