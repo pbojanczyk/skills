@@ -29,21 +29,51 @@ Script: `python3 {baseDir}/scripts/geo.py`
 5. **批量搜索耗时较长** — 创建批量任务前先告知用户需要等待。
 6. **命令参数速查表** — 见 `{baseDir}/references/cli-reference.md`。
 7. **API 失败最多重试 1 次** — 如果同一个接口连续失败 2 次，立即停止重试，告知用户原因并给出替代方案。不要反复尝试。
+8. **完整展示生成结果** — `drafts generate` 或 `questions generate` 完成后，必须将脚本输出的 L1-L4 各阶段问题**逐条完整展示**给用户，不要只说"生成了 N 个问题"或只给统计摘要。用户需要看到每一条具体问题内容才能判断质量和下一步操作。搜索结果、文章内容等同理，优先展示原始内容，再做分析总结。
 
 ## Data Dependencies（核心依赖链）
 
 操作之间有严格的数据依赖，**必须按顺序执行**：
 
 ```
-products create → company save → keywords add → questions generate → articles generate
-                                                       ↑ 需要 keyword_ids     ↑ 需要 question_id
+products create → company save（完整填写） → drafts generate → articles generate
+                                                ↑ 需要 keywords 文本    ↑ 需要 question_id
 ```
 
-- `questions generate` 需要先有 `keyword_ids`（来自 `keywords add`）
-- `articles generate` 需要先有 `question_id`（来自 `questions generate`）
+- `company save` 需要一次性完整填写公司信息，信息质量直接决定后续问题生成和文章生成的效果
+- `drafts generate` 需要先填写公司信息（`company save`），传入 `--keywords` 文本即可异步生成 L1-L4 四阶段问题草稿
+- `articles generate` 需要先有 `question_id`
 - `search create` 是**独立的**，只需要 `--question` 文本和 `--brand`，不依赖上述链路
 
-**当依赖链断裂时（如 questions generate 失败）：**
+### company save 填写策略（重要）
+
+公司信息页面分为以下区块，Agent 应当一次性完整填写后调用 `company save`：
+
+**必填字段（必须准确填写）：**
+- `--product-name` — 产品名称
+- `--company-name` — 公司名称
+- `--industry` — 所属行业（从以下选项中选择：互联网/IT、教育培训、医疗健康、金融保险、房地产/建筑、制造业、零售/电商、餐饮/食品、旅游/酒店、汽车、法律服务、广告/营销、物流/运输、农业、能源/环保、其他）
+- `--business-scope` — 业务范围（`national` 或 `regional`，如果是指定城市还需配合 `--cities`）
+- `--company-description` — 企业介绍（200-500字，包含主营业务、核心优势、发展历程等）
+- `--product-description` — 产品介绍（200-500字，包含产品定位、核心功能、竞争优势等）
+- `--target-customer-type` — 客户类型（`To B` 或 `To C` 或 `To B,To C`）
+- `--customer-description` — 目标客户描述（100-200字）
+- `--competitors` — 主要竞争对手（逗号分隔，如：竞品A,竞品B,竞品C）
+- `--writing-style` — 写作风格（正式严谨型/轻松活泼型/专业技术型/营销推广型/新闻资讯型）
+
+**非必填字段（有则填，没有可跳过）：**
+- `--contact-phone` — 联系电话
+- `--website` — 公司网站
+- `--editor-name` — 编辑名称/文章作者署名
+
+**信息获取优先级：**
+1. **先从用户对话中提取** — 用户可能已经提到了公司名、产品名、行业等信息，直接使用
+2. **联网搜索补充** — 对于用户没有明确提供的必填字段，主动通过联网搜索获取准确信息。搜索关键词建议：`"公司名" 是做什么的`、`"产品名" 产品介绍`、`"公司名" 竞争对手`
+3. **与用户深度对话补充** — 联网搜索无法获取的信息（如目标客户描述、写作风格偏好），合并向用户提问，一次性收集，不要逐个字段反复追问
+
+**禁止行为：** 不要在没有事实依据的情况下编造公司信息。错误的公司信息会导致后续生成的问题和文章偏离实际，整个链路的产出质量都会受损。宁可多花时间搜索和确认，也不要凭感觉填写。
+
+**当依赖链断裂时（如 drafts generate 失败）：**
 - `articles generate` 无法执行，因为没有 question_id
 - 不要尝试绕过，不要去搜索历史里找 ID，不要反复重试
 - 直接告知用户："问题生成暂时不可用（原因：xxx），文章生成依赖问题 ID，目前无法通过系统生成"
@@ -55,8 +85,8 @@ products create → company save → keywords add → questions generate → art
 |---------|---------|
 | products create 额度不足 | **停止所有后续操作**，告知用户"产品数量已达上限"，引导前往 https://jike-geo.100.city 升级套餐。不要用其他产品 ID 替代 |
 | API 返回 500 / 服务过载 | 最多重试 1 次，失败后告知用户"服务暂时不可用，建议稍后再试" |
-| questions generate 失败 | 告知用户原因，说明文章生成暂不可用，提供手写样稿作为替代 |
-| articles generate 缺少 question_id | 引导用户先完成 keywords add → questions generate 流程 |
+| drafts generate 失败 | 告知用户原因，说明文章生成暂不可用，提供手写样稿作为替代 |
+| articles generate 缺少 question_id | 引导用户先完成 company save → drafts generate 流程 |
 | 认证失败 401 | 引导用户前往 https://jike-geo.100.city 获取 API Key |
 | 连续 2 次相同错误 | 停止重试，切换到替代方案或建议用户稍后再试 |
 
@@ -77,11 +107,16 @@ products create → company save → keywords add → questions generate → art
 | 用户意图 | 命令 | 说明 |
 |---------|------|------|
 | 产品管理 | `products list/create/get/update/delete` | 管理产品 |
-| 公司信息 | `company get/save` | 获取或保存产品的公司信息 |
+| 公司信息 | `company get/save` | 获取或保存产品的公司信息（需完整填写，见填写策略） |
+| **生成问题草稿** | `drafts generate` | 异步生成 L1-L4 问题草稿 |
+| 草稿列表 | `drafts list` | 查看问题草稿历史 |
+| 最新草稿 | `drafts latest` | 获取最新一份草稿 |
+| 草稿详情 | `drafts get` | 查看指定草稿详情 |
+| 编辑草稿 | `drafts update` | 修改草稿内容 |
+| 删除草稿 | `drafts delete` | 删除指定草稿 |
 | 关键词管理 | `keywords list/add/delete` | 管理核心关键词 |
-| 生成问题 | `questions generate` | AI 生成 L1-L4 阶段问题 |
-| 问题列表 | `questions list` | 按阶段分组查看问题 |
-| 切换问题 | `questions toggle` | 选中/取消选中问题 |
+| 图片分类管理 | `gallery categories-list/create/update/delete` | 管理素材库分类 |
+| 图片管理 | `gallery images-list/upload/delete` | 上传、查看、删除图片素材 |
 | **GEO 单次搜索** | `search create` | 创建单次搜索任务（核心功能） |
 | **GEO 批量搜索** | `search batch` | 批量搜索多个问题（核心功能） |
 | 搜索状态 | `search status` | 查询搜索任务状态和结果 |
@@ -108,9 +143,38 @@ python3 {baseDir}/scripts/geo.py check
 python3 {baseDir}/scripts/geo.py products list
 python3 {baseDir}/scripts/geo.py products create --name "我的产品" --description "产品描述"
 
-# 关键词 + 问题生成
+# 公司信息 — 一次性完整填写所有必填字段
+python3 {baseDir}/scripts/geo.py company save --product-id 1 \
+  --product-name "极义GEO" \
+  --company-name "极客增长" \
+  --industry "互联网/IT" \
+  --business-scope "national" \
+  --company-description "极客增长是一家专注于AI搜索优化的科技公司..." \
+  --product-description "极义GEO是国内首个GEO优化平台，帮助品牌提升在AI搜索引擎中的可见度..." \
+  --target-customer-type "To B" \
+  --customer-description "中小企业品牌营销负责人，关注品牌在AI搜索中的曝光和排名" \
+  --competitors "竞品A,竞品B,竞品C" \
+  --writing-style "专业技术型"
+python3 {baseDir}/scripts/geo.py company get --product-id 1
+
+# 生成问题草稿
+python3 {baseDir}/scripts/geo.py drafts generate --product-id 1 --keywords "AI搜索优化"
+python3 {baseDir}/scripts/geo.py drafts list --product-id 1
+python3 {baseDir}/scripts/geo.py drafts latest --product-id 1
+python3 {baseDir}/scripts/geo.py drafts get --product-id 1 --id 1
+python3 {baseDir}/scripts/geo.py drafts update --product-id 1 --id 1 --inquiry "新的L1问题内容"
+python3 {baseDir}/scripts/geo.py drafts delete --product-id 1 --id 1
+
+# 图片素材库
+python3 {baseDir}/scripts/geo.py gallery categories-list --product-id 1
+python3 {baseDir}/scripts/geo.py gallery categories-create --product-id 1 --name "产品图" --scope product
+python3 {baseDir}/scripts/geo.py gallery images-upload --product-id 1 --category-id 1 --file ./img1.jpg ./img2.png
+python3 {baseDir}/scripts/geo.py gallery images-list --product-id 1
+python3 {baseDir}/scripts/geo.py gallery images-delete --product-id 1 --id 1
+
+# 关键词管理
 python3 {baseDir}/scripts/geo.py keywords add --product-id 1 --word "AI搜索优化"
-python3 {baseDir}/scripts/geo.py questions generate --product-id 1 --keyword-ids 1,2,3
+python3 {baseDir}/scripts/geo.py keywords list --product-id 1
 
 # GEO 搜索（核心）
 python3 {baseDir}/scripts/geo.py search create \

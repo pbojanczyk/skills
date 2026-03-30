@@ -9,20 +9,30 @@ GEO（Generative Engine Optimization）= 生成式搜索引擎优化。
 ### 数据依赖链（重要）
 
 ```
-products create → company save → keywords add → questions generate → articles generate
-                                                      ↑ 需要 keyword_ids    ↑ 需要 question_id
+products create → company save（完整填写） → drafts generate → articles generate
+                                                ↑ 需要 keywords 文本    ↑ 需要 question_id
 ```
 
-- `questions generate` 必须先有关键词（`keywords add` 返回的 ID）
-- `articles generate` 必须先有问题（`questions generate` 返回的 ID）
+- `company save` 需要一次性完整填写公司信息，信息质量直接决定后续问题生成和文章生成的效果
+
+#### company save 填写策略
+
+公司信息必须基于事实，不能凭感觉编造。按以下优先级获取信息：
+
+1. **先从用户对话中提取** — 用户可能已经提到了公司名、产品名、行业等信息，直接使用
+2. **联网搜索补充** — 对于用户没有明确提供的必填字段，主动通过联网搜索获取准确信息
+3. **与用户深度对话补充** — 联网搜索无法获取的信息（如目标客户描述、写作风格偏好），合并向用户提问，一次性收集
+- `drafts generate` 需要先填写公司信息（`company save`），传入 `--keywords` 文本即可异步生成 L1-L4 四阶段问题草稿
+- `articles generate` 必须先有问题（`drafts generate` 返回的 ID）
 - `search create` 是**独立的**，只需要问题文本和品牌名，不依赖上述链路
 - 依赖链中任何一步失败，后续步骤都无法执行，不要尝试绕过
 
 ### 数据层级
 ```
 用户 → 产品(多个) → 公司信息(每产品一份)
-                   → 核心词(多个) → 问题(多个) → 文章(多个) → 发布记录
-                   → 图片素材库
+                   → 问题草稿(多个) → 文章(多个) → 发布记录
+                   → 核心词(多个)
+                   → 图片素材库 → 分类(多个) → 图片(多个)
 ```
 
 ### 问题阶段（L1-L4）
@@ -62,17 +72,28 @@ products create → company save → keywords add → questions generate → art
 
 ```
 1. 创建产品 → products create（如果还没有）
-2. 填写公司信息 → company save（提升文章质量）
-3. 添加核心词 → keywords add
-4. AI 生成问题 → questions generate --keyword-ids 1,2,3
-5. 查看问题 → questions list
+2. 完整填写公司信息 → company save（通过搜索和对话收集所有必填字段，一次性保存）
+3. AI 生成问题草稿 → drafts generate --keywords "AI搜索优化"
+4. 查看草稿 → drafts latest 或 drafts get --id xxx
+5. （可选）编辑草稿 → drafts update --id xxx --inquiry "修改后的问题"
 6. 生成文章 → articles generate --question-id xxx
-7. 分发到自媒体 → publish record
+7. （可选）上传配图 → gallery images-upload --category-id 1 --file ./img.jpg
+8. 分发到自媒体 → publish record
 ```
 
-**⚠️ 步骤 6 必须有步骤 4 的 question_id。如果步骤 4 失败，步骤 6 无法执行。**
+**⚠️ 步骤 2 的公司信息质量直接决定步骤 3 和步骤 6 的生成效果。必填字段务必准确完整填写。**
+**⚠️ 步骤 6 必须有 question_id。如果问题生成失败，文章生成无法执行。**
 
-### 流程三：批量监控
+### 流程三：图片素材管理
+
+```
+1. 创建分类 → gallery categories-create --name "产品图"
+2. 上传图片 → gallery images-upload --category-id 1 --file ./img1.jpg ./img2.png
+3. 查看图片 → gallery images-list
+4. 生成文章时引用图片 → articles generate --question-id xxx --image-ids 1,2,3
+```
+
+### 流程四：批量监控
 
 ```
 1. 确保已有问题（questions list 查看）
@@ -170,4 +191,4 @@ citations 是 GEO 优化的核心线索：
 | 403 权限不足 | 检查产品归属或账号状态 |
 | 500 / 服务过载 | 重试 1 次，仍失败则告知"服务暂时不可用，建议稍后再试" |
 | questions generate 失败 | 告知用户原因，说明文章生成暂不可用。可直接为用户撰写 GEO 优化文章样稿作为参考 |
-| articles generate 缺少 question_id | 引导用户先完成 keywords add → questions generate 流程，不要尝试绕过 |
+| articles generate 缺少 question_id | 引导用户先完成 company save → drafts generate 流程，不要尝试绕过 |

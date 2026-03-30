@@ -65,18 +65,25 @@ python3 geo.py company <action> [options]
 | `get` | 查看公司信息 | `--product-id` | `--json` |
 | `save` | 保存公司信息 | `--product-id` + 至少一个字段 | 见下方字段列表 |
 
-公司信息字段（save 时至少填一个）：
+公司信息字段（save 时建议一次性完整填写）：
 
-| 参数 | 说明 |
-|------|------|
-| `--product-name` | 产品名称 |
-| `--company-name` | 公司名称 |
-| `--industry` | 所属行业 |
-| `--business-scope` | 业务范围 |
-| `--cities` | 服务城市 |
-| `--contact-phone` | 联系电话 |
-| `--website` | 官网地址 |
-| `--description` | 公司描述 |
+| 参数 | 说明 | 必填 |
+|------|------|------|
+| `--product-name` | 产品名称 | ✅ |
+| `--company-name` | 公司名称 | ✅ |
+| `--industry` | 所属行业（互联网/IT、教育培训、医疗健康等） | ✅ |
+| `--business-scope` | 业务范围（`national` 或 `regional`） | ✅ |
+| `--cities` | 服务城市（business-scope 为 regional 时填写） | — |
+| `--company-description` | 企业介绍（200-500字） | ✅ |
+| `--product-description` | 产品介绍（200-500字） | ✅ |
+| `--target-customer-type` | 客户类型（`To B` / `To C` / `To B,To C`） | ✅ |
+| `--customer-description` | 目标客户描述（100-200字） | ✅ |
+| `--competitors` | 竞争对手（逗号分隔） | ✅ |
+| `--writing-style` | 写作风格（正式严谨型/轻松活泼型/专业技术型/营销推广型/新闻资讯型） | ✅ |
+| `--contact-phone` | 联系电话 | 选填 |
+| `--website` | 公司网站 | 选填 |
+| `--editor-name` | 编辑名称/文章作者署名 | 选填 |
+| `--description` | 简要描述 | 选填 |
 
 ---
 
@@ -106,11 +113,70 @@ python3 geo.py questions <action> [options]
 
 | action | 说明 | 必填参数 | 可选参数 |
 |--------|------|---------|---------|
-| `generate` | AI 生成问题 | `--product-id`, `--keyword-ids`（逗号分隔） | `--json` |
+| `generate` | AI 生成问题 | `--product-id`, `--keywords`（关键词文本，逗号分隔） | `--json` |
 | `list` | 按阶段分组列出问题 | `--product-id` | `--keyword-id`（筛选）, `--json` |
 | `toggle` | 切换问题选中状态 | `--product-id`, `--id` | — |
 
-`--keyword-ids` 示例：`--keyword-ids 1,2,3`
+`--keywords` 示例：`--keywords 代理记账,财税服务,财税数字化`
+
+---
+
+## drafts
+
+问题草稿管理。异步生成 L1-L4 四阶段问题，支持历史记录。
+
+```bash
+python3 geo.py drafts <action> [options]
+```
+
+| action | 说明 | 必填参数 | 可选参数 |
+|--------|------|---------|---------|
+| `generate` | 异步生成问题草稿 | `--product-id`, `--keywords` | `--no-wait`, `--json` |
+| `list` | 查看草稿历史 | `--product-id` | `--page`, `--page-size`, `--json` |
+| `latest` | 获取最新草稿 | `--product-id` | `--json` |
+| `get` | 查看指定草稿详情 | `--product-id`, `--id` | `--json` |
+| `update` | 修改草稿内容 | `--product-id`, `--id` + 至少一个字段 | 见下方字段列表 |
+| `delete` | 删除草稿 | `--product-id`, `--id` | — |
+
+草稿内容字段（update 时至少填一个）：
+
+| 参数 | 说明 |
+|------|------|
+| `--keywords` | 关键词 |
+| `--inquiry` | L1 认知层问题（换行分隔） |
+| `--understanding` | L2 探索层问题（换行分隔） |
+| `--consideration` | L3 评估层问题（换行分隔） |
+| `--purchase` | L4 决策层问题（换行分隔） |
+
+生成行为：`generate` 默认会轮询等待生成完成，加 `--no-wait` 立即返回草稿 ID。草稿状态：`generating`（生成中）、`completed`（已完成）、`failed`（失败）。
+
+---
+
+## gallery
+
+图片素材库管理。支持分类管理和图片上传/查看/删除。
+
+```bash
+python3 geo.py gallery <action> [options]
+```
+
+| action | 说明 | 必填参数 | 可选参数 |
+|--------|------|---------|---------|
+| `categories-list` | 查看分类列表 | `--product-id` | `--scope`, `--json` |
+| `categories-create` | 创建分类 | `--product-id`, `--name` | `--scope`（默认 product）, `--json` |
+| `categories-update` | 更新分类名称 | `--product-id`, `--id`, `--name` | `--json` |
+| `categories-delete` | 删除分类 | `--product-id`, `--id` | — |
+| `images-list` | 查看图片列表 | `--product-id` | `--scope`, `--category-id`, `--json` |
+| `images-upload` | 上传图片 | `--product-id`, `--category-id`, `--file` | `--scope`（默认 product）, `--json` |
+| `images-delete` | 删除图片 | `--product-id`, `--id` | — |
+
+参数详情：
+
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| `--scope` | 分类/图片范围 | `--scope product`（产品级）或 `--scope public`（账号级） |
+| `--category-id` | 分类 ID | `--category-id 1` |
+| `--file` | 上传文件路径，支持多个 | `--file ./img1.jpg ./img2.png` |
 
 ---
 
