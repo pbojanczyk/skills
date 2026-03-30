@@ -1,6 +1,7 @@
 ---
 name: hs-ti
-version: 2.1.1
+version: 2.1.2
+publisher: maxjia
 description: 云瞻威胁情报查询技能。查询IP地址、域名、URL、文件哈希等是否在云瞻威胁情报库中。支持中英文双语。/ Hillstone Threat Intelligence Skill. Query IP addresses, domains, URLs, and file hashes in the Hillstone threat intelligence database. Supports Chinese/English bilingual.
 metadata: {"openclaw":{"emoji":"🔍","commands":["/threat-check","/hs-ti","/threat","/hs-ti cn","/hs-ti en"],"aliases":["hs-ti","threat-intel","威胁情报","云瞻"],"title":"Hillstone Threat Intelligence"}}
 ---
