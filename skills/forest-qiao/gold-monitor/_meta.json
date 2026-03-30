@@ -1,13 +1,18 @@
 {
   "owner": "forest-qiao",
   "slug": "gold-monitor",
-  "displayName": "Gold Monitor",
+  "displayName": "Gold Monitor Skill",
   "latest": {
-    "version": "2.1.0",
-    "publishedAt": 1773978369699,
-    "commit": "https://github.com/openclaw/skills/commit/e9f446cebe420fcd16b59aa38d9216ac012a84ea"
+    "version": "2.2.0",
+    "publishedAt": 1774852390903,
+    "commit": null
   },
   "history": [
+    {
+      "version": "2.1.0",
+      "publishedAt": 1773978369699,
+      "commit": "https://github.com/openclaw/skills/commit/e9f446cebe420fcd16b59aa38d9216ac012a84ea"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1773758247380,

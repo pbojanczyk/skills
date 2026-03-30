@@ -118,11 +118,72 @@ def get_oil_price() -> dict:
         return {"symbol": "WTI", "error": str(e)}
 
 
+def get_gold_oil_ratio() -> dict:
+    """Gold/Oil ratio with investment signal and advice."""
+    gold = get_international_gold()
+    oil = get_oil_price()
+
+    if gold.get("error") or oil.get("error"):
+        return {"symbol": "GORATIO", "error": "Failed to fetch gold or oil price"}
+
+    gold_price = gold["price"]
+    oil_price = oil["price"]
+
+    if oil_price <= 0:
+        return {"symbol": "GORATIO", "error": "Oil price is zero"}
+
+    ratio = round(gold_price / oil_price, 2)
+
+    if ratio > 40:
+        level, signal = "极度偏高", "🔴 衰退/危机信号"
+        advice = (
+            "金油比处于历史极高区间（参考：2020年COVID危机峰值约70）。"
+            "建议：① 减少黄金敞口，等待回调；② 原油极度低估，可分批布局多头；③ 控制整体仓位。"
+        )
+    elif ratio > 25:
+        level, signal = "偏高", "🟠 避险情绪偏强"
+        advice = (
+            "金油比高于历史均值，反映经济下行预期。"
+            "建议：① 黄金动能强但上涨空间收窄，注意止盈；② 可轻仓关注原油多头机会。"
+        )
+    elif ratio > 15:
+        level, signal = "正常", "🟡 处于历史均值区间"
+        advice = (
+            "金油比位于长期均值区间（约15-25）。"
+            "建议：维持均衡配置，以各自基本面驱动为主进行交易。"
+        )
+    elif ratio > 10:
+        level, signal = "偏低", "🟢 经济扩张信号"
+        advice = (
+            "大宗商品需求旺盛，经济扩张。"
+            "建议：① 黄金相对便宜，可逢低增配；② 原油短期偏强但警惕回调。"
+        )
+    else:
+        level, signal = "极度偏低", "🔵 通胀/供给冲击信号"
+        advice = (
+            "原油可能严重高估或通胀失控。"
+            "建议：① 高度警惕原油回调风险；② 大幅增配黄金作为抗通胀资产。"
+        )
+
+    return {
+        "symbol": "GORATIO",
+        "name": "金油比",
+        "ratio": ratio,
+        "gold_price": gold_price,
+        "oil_price": oil_price,
+        "level": level,
+        "signal": signal,
+        "advice": advice,
+        "update_time": _now_str(),
+    }
+
+
 _FETCHERS = {
     "AU9999": get_china_gold,
     "XAUUSD": get_international_gold,
     "USIDX": get_usd_index,
     "WTI": get_oil_price,
+    "GORATIO": get_gold_oil_ratio,
 }
 
 
