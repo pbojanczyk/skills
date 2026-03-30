@@ -7,12 +7,33 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SKILL_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-# --- Resolve workspace ---
-WORKSPACE="$(cd "$SCRIPT_DIR" && while [ "$PWD" != "/" ]; do
-    [ -d skills ] && echo "$PWD" && break; cd ..; done)"
-[ -z "$WORKSPACE" ] && WORKSPACE="$HOME/clawd"
+# --- Resolve data dir/workspace robustly ---
+find_workspace_from_pwd() {
+    local d="${PWD:-$(pwd)}"
+    while [ "$d" != "/" ]; do
+        if [ -f "$d/AGENTS.md" ] || [ -f "$d/SOUL.md" ]; then
+            printf '%s
+' "$d"
+            return 0
+        fi
+        d="$(dirname "$d")"
+    done
+    return 1
+}
 
-DATA_DIR="${WORKSPACE}/tesla-fleet-api"
+if [ -n "$OPENCLAW_WORKSPACE" ]; then
+    WORKSPACE="$OPENCLAW_WORKSPACE"
+elif WORKSPACE="$(find_workspace_from_pwd)"; then
+    :
+elif [ -f "$HOME/clawd/AGENTS.md" ] || [ -f "$HOME/clawd/SOUL.md" ]; then
+    WORKSPACE="$HOME/clawd"
+else
+    DATA_DIR="$(PYTHONPATH="$SCRIPT_DIR${PYTHONPATH:+:$PYTHONPATH}" python3 -c 'from store import default_dir; print(default_dir())')"
+    WORKSPACE="$(cd "$(dirname "$DATA_DIR")" && pwd)"
+fi
+
+DATA_DIR="${DATA_DIR:-${WORKSPACE}/tesla-fleet-api}"
+
 PROXY_DIR="${DATA_DIR}/proxy"
 GO_BIN="${GOPATH:-$HOME/go}/bin"
 PROXY_BIN="${GO_BIN}/tesla-http-proxy"

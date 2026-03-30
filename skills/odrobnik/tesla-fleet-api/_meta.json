@@ -1,13 +1,18 @@
 {
   "owner": "odrobnik",
   "slug": "tesla-fleet-api",
-  "displayName": "Tesla Fleet Api",
+  "displayName": "Tesla Fleet API",
   "latest": {
-    "version": "1.5.1",
-    "publishedAt": 1772570430526,
-    "commit": "https://github.com/openclaw/skills/commit/f57eefdde4df2ff73773e2c86cb87692794ef096"
+    "version": "1.5.2",
+    "publishedAt": 1774862419060,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.5.1",
+      "publishedAt": 1772570430526,
+      "commit": "https://github.com/openclaw/skills/commit/f57eefdde4df2ff73773e2c86cb87692794ef096"
+    },
     {
       "version": "1.5.0",
       "publishedAt": 1771003588072,

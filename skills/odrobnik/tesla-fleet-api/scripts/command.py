@@ -175,6 +175,33 @@ def send_command(
     return http_json("POST", url, token, json_body=body or {}, ca_cert=ca_cert)
 
 
+def wait_for_vehicle_online(
+    base_url: str,
+    token: str,
+    vin: str,
+    ca_cert: Optional[str] = None,
+    timeout_s: int = 45,
+    interval_s: int = 3,
+) -> str:
+    """Poll vehicle state until it becomes online or timeout expires."""
+    deadline = time.time() + timeout_s
+    last_state = "unknown"
+    while time.time() < deadline:
+        try:
+            vehicles = fetch_vehicles(base_url, token, ca_cert)
+            vin_upper = vin.upper()
+            for v in vehicles:
+                if (v.get("vin") or "").upper() == vin_upper:
+                    last_state = (v.get("state") or "unknown").lower()
+                    if last_state == "online":
+                        return last_state
+                    break
+        except Exception:
+            pass
+        time.sleep(interval_s)
+    return last_state
+
+
 def format_result(result: Dict[str, Any], action: str, vehicle_name: str) -> str:
     response = result.get("response", {})
     success = response.get("result", False)
@@ -585,9 +612,11 @@ def cmd_simple(args, base_url: str, token: str, vin: str, name: str, ca_cert: Op
     if cmd == "wake":
         url = api_url(base_url, vin, "wake_up")
         result = http_json("POST", url, token, json_body={}, ca_cert=ca_cert)
-        state = result.get("response", {}).get("state", "unknown")
+        state = (result.get("response", {}).get("state") or "unknown").lower()
+        if state != "online":
+            state = wait_for_vehicle_online(base_url, token, vin, ca_cert=ca_cert)
         print(f"✅ Wake — {name} ({state})")
-        return 0
+        return 0 if state == "online" else 1
     
     if cmd in endpoints:
         endpoint, action = endpoints[cmd]
@@ -792,8 +821,11 @@ def main() -> int:
         print("No access token. Run auth.py to authenticate.", file=sys.stderr)
         return 1
 
-    # Resolve vehicle for all other commands
-    vin, name = resolve_vehicle(args.vehicle, dir_path, base_url, token, ca_cert)
+    # Resolve vehicle for all other commands.
+    # `wake` should go directly to the Fleet API (audience), not the local signing proxy.
+    resolve_base_url = audience if cmd == "wake" else base_url
+    resolve_ca_cert = None if cmd == "wake" else ca_cert
+    vin, name = resolve_vehicle(args.vehicle, dir_path, resolve_base_url, token, resolve_ca_cert)
     
     try:
         if cmd == "climate":
@@ -815,8 +847,10 @@ def main() -> int:
             return cmd_steering_heater(args, base_url, token, vin, name, ca_cert)
         elif cmd == "charge":
             return cmd_charge(args, base_url, token, vin, name, ca_cert)
-        elif cmd in ("honk", "flash", "lock", "unlock", "wake"):
+        elif cmd in ("honk", "flash", "lock", "unlock"):
             return cmd_simple(args, base_url, token, vin, name, ca_cert)
+        elif cmd == "wake":
+            return cmd_simple(args, audience, token, vin, name, None)
         else:
             print(f"Unknown command: {cmd}", file=sys.stderr)
             return 1

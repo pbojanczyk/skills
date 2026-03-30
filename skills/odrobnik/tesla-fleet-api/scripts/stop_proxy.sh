@@ -3,17 +3,34 @@ set -e
 
 # Stop tesla-http-proxy.
 
-# --- Resolve workspace ---
+# --- Resolve data dir/workspace robustly ---
+find_workspace_from_pwd() {
+    local d="${PWD:-$(pwd)}"
+    while [ "$d" != "/" ]; do
+        if [ -f "$d/AGENTS.md" ] || [ -f "$d/SOUL.md" ]; then
+            printf '%s
+' "$d"
+            return 0
+        fi
+        d="$(dirname "$d")"
+    done
+    return 1
+}
+
 if [ -n "$OPENCLAW_WORKSPACE" ]; then
     WORKSPACE="$OPENCLAW_WORKSPACE"
+elif WORKSPACE="$(find_workspace_from_pwd)"; then
+    :
+elif [ -f "$HOME/clawd/AGENTS.md" ] || [ -f "$HOME/clawd/SOUL.md" ]; then
+    WORKSPACE="$HOME/clawd"
 else
     SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-    WORKSPACE="$(cd "$SCRIPT_DIR" && while [ "$PWD" != "/" ]; do
-        [ -d skills ] && echo "$PWD" && break; cd ..; done)"
-    [ -z "$WORKSPACE" ] && WORKSPACE="$HOME/clawd"
+    DATA_DIR="$(PYTHONPATH="$SCRIPT_DIR${PYTHONPATH:+:$PYTHONPATH}" python3 -c 'from store import default_dir; print(default_dir())')"
+    WORKSPACE="$(cd "$(dirname "$DATA_DIR")" && pwd)"
 fi
 
-PID_FILE="${WORKSPACE}/tesla-fleet-api/proxy/proxy.pid"
+DATA_DIR="${DATA_DIR:-${WORKSPACE}/tesla-fleet-api}"
+PID_FILE="${DATA_DIR}/proxy/proxy.pid"
 
 if [ ! -f "${PID_FILE}" ]; then
     echo "Proxy is not running (no PID file)"

@@ -23,7 +23,7 @@ import urllib.request
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
-from store import default_dir, get_auth, get_config, get_vehicles, load_env_file, save_vehicles
+from store import default_dir, get_auth, get_config, get_vehicles, load_env_file, save_auth, save_vehicles
 
 DEFAULT_DIR = default_dir()
 VEHICLE_CACHE_MAX_AGE = 86400  # 24 hours
@@ -32,7 +32,7 @@ VEHICLE_CACHE_MAX_AGE = 86400  # 24 hours
 def fetch_vehicles(base_url: str, token: str, ca_cert: Optional[str] = None) -> List[Dict[str, Any]]:
     """Fetch vehicle list from API."""
     url = f"{base_url.rstrip('/')}/api/1/vehicles"
-    data = http_json("GET", url, token, ca_cert)
+    data = http_json_with_auto_refresh("GET", url, dir_path, token, ca_cert)
     return data.get("response", [])
 
 
@@ -61,6 +61,26 @@ def get_vehicles_cached(
     save_vehicles(dir_path, cache)
 
     return vehicles
+
+
+def get_vehicle_state_hint(
+    vin: str,
+    dir_path: str,
+    base_url: str,
+    token: str,
+    ca_cert: Optional[str] = None,
+) -> Optional[str]:
+    """Fetch current vehicle list and return the matched vehicle state when available."""
+    try:
+        vehicles = get_vehicles_cached(dir_path, base_url, token, ca_cert, force_refresh=True)
+    except Exception:
+        return None
+    vin_upper = (vin or "").upper()
+    for v in vehicles:
+        if (v.get("vin") or "").upper() == vin_upper:
+            state = v.get("state")
+            return state.lower() if isinstance(state, str) else None
+    return None
 
 
 def resolve_vehicle(
@@ -129,6 +149,62 @@ def resolve_vehicle(
             for v in vehicles:
                 print(f"  - {v.get('display_name', 'Unknown')} ({v.get('vin')})", file=sys.stderr)
         sys.exit(1)
+
+
+def _refresh_access_token(dir_path: str) -> str:
+    """Refresh OAuth access token using the stored refresh token and save it."""
+    cfg = get_config(dir_path)
+    auth = get_auth(dir_path)
+
+    client_id = cfg.get("client_id") or os.environ.get("TESLA_CLIENT_ID")
+    refresh_token = auth.get("refresh_token") or os.environ.get("TESLA_REFRESH_TOKEN")
+    if not client_id or not refresh_token:
+        raise RuntimeError("Missing client_id or refresh_token for automatic token refresh")
+
+    token_url = "https://fleet-auth.prd.vn.cloud.tesla.com/oauth2/v3/token"
+    body = urllib.parse.urlencode({
+        "grant_type": "refresh_token",
+        "client_id": client_id,
+        "refresh_token": refresh_token,
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        url=token_url,
+        method="POST",
+        data=body,
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json",
+        },
+    )
+    with urllib.request.urlopen(req, context=ssl.create_default_context()) as resp:
+        payload = json.loads(resp.read().decode("utf-8"))
+
+    new_access = payload.get("access_token")
+    if not new_access:
+        raise RuntimeError("Token refresh succeeded but no access_token was returned")
+
+    auth["access_token"] = new_access
+    if payload.get("refresh_token"):
+        auth["refresh_token"] = payload.get("refresh_token")
+    save_auth(dir_path, {k: v for k, v in auth.items() if v is not None})
+    return new_access
+
+
+def http_json_with_auto_refresh(
+    method: str,
+    url: str,
+    dir_path: str,
+    token: str,
+    ca_cert: Optional[str] = None,
+) -> Any:
+    """Run request, auto-refresh token once on 401, then retry."""
+    try:
+        return http_json(method, url, token, ca_cert)
+    except RuntimeError as e:
+        if not str(e).startswith("HTTP 401:"):
+            raise
+    refreshed = _refresh_access_token(dir_path)
+    return http_json(method, url, refreshed, ca_cert)
 
 
 def http_json(
@@ -443,9 +519,15 @@ Examples:
     auth = get_auth(dir_path)
 
     token = auth.get("access_token")
-    base_url = cfg.get("base_url") or cfg.get("audience") or "https://fleet-api.prd.eu.vn.cloud.tesla.com"
+    # Read-only vehicle data should go directly to the Fleet API, not the local signing proxy.
+    # Use the Tesla audience URL first; only fall back to base_url if audience is absent.
+    base_url = cfg.get("audience") or cfg.get("base_url") or "https://fleet-api.prd.eu.vn.cloud.tesla.com"
     ca_cert = cfg.get("ca_cert")
-    if ca_cert and not os.path.isabs(ca_cert):
+    # Only use the local CA cert when talking to the local proxy.
+    parsed = urllib.parse.urlparse(base_url)
+    if parsed.hostname not in {"localhost", "127.0.0.1"}:
+        ca_cert = None
+    elif ca_cert and not os.path.isabs(ca_cert):
         ca_cert = os.path.join(dir_path, ca_cert)
 
     if not token:
@@ -454,7 +536,13 @@ Examples:
 
     # Resolve vehicle (by VIN, name, or auto-select if single)
     vin, display_name = resolve_vehicle(args.vehicle, dir_path, base_url, token, ca_cert)
-    
+    vehicle_state_hint = get_vehicle_state_hint(vin, dir_path, base_url, token, ca_cert)
+    if vehicle_state_hint == "offline":
+        print(
+            f"Note: {display_name} is currently offline/asleep; live vehicle data may time out until it wakes.",
+            file=sys.stderr,
+        )
+
     # Build endpoints list
     selected = []
     if args.charge: selected.append("charge_state")
@@ -483,9 +571,16 @@ Examples:
     
     # Fetch data
     try:
-        data = http_json("GET", url, token, ca_cert)
+        data = http_json_with_auto_refresh("GET", url, dir_path, token, ca_cert)
     except RuntimeError as e:
-        print(f"Error: {e}", file=sys.stderr)
+        msg = str(e)
+        if msg.startswith("HTTP 408:") and vehicle_state_hint == "offline":
+            print(
+                f"Error: {display_name} is offline/asleep, so the live vehicle_data request timed out. Wake the vehicle first and retry.",
+                file=sys.stderr,
+            )
+        else:
+            print(f"Error: {e}", file=sys.stderr)
         return 1
     
     response = data.get("response", data)
