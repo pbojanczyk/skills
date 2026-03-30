@@ -1,5 +1,7 @@
 # Blog Image Generator
 
+> Powered by the **Neta AI image generation API** (`api.talesofai.com`) — the same service as [neta.art](https://www.neta.art/open/).
+
 Generate stunning **ai blog image generator** images from a text description using AI — powered by the Neta talesofai API. Get back a direct image URL instantly, ready to embed anywhere.
 
 ---
@@ -48,7 +50,7 @@ https://cdn.talesofai.cn/.../<image>.jpg
 | `--size` | `square`, `portrait`, `landscape`, `tall` | `landscape` | Output image dimensions |
 | `--style` | `anime`, `cinematic`, `realistic` | `cinematic` | Visual style (passed via prompt) |
 | `--ref` | `<picture_uuid>` | — | Reference image UUID for style/param inheritance |
-| `--token` | `<token>` | — | Neta API token (overrides env / file) |
+| `--token` | `<token>` | — | Neta API token (required) |
 
 ### Size reference
 
@@ -63,12 +65,12 @@ https://cdn.talesofai.cn/.../<image>.jpg
 
 ## Token setup
 
-Pass your Neta API token via the `--token` flag:
+This skill requires a Neta API token (free trial available at <https://www.neta.art/open/>).
+
+Pass it via the `--token` flag:
 
 ```bash
-# Recommended: use shell expansion
-export NETA_TOKEN=your_token_here
-node <script> "your prompt" --token "$NETA_TOKEN"
+node <script> "your prompt" --token YOUR_TOKEN
 ```
 
 ## Default prompt
@@ -96,3 +98,7 @@ node blogimageclaw.js "soft bokeh office background, warm natural lighting" --si
 ## Example Output
 
 ![Generated example](https://oss.talesofai.cn/picture/2c1de0c7-b4e8-4083-ba2f-62b73f893d2d.webp)
+
+---
+
+This skill requires a Neta API token (free trial available at https://www.neta.art/open/).
