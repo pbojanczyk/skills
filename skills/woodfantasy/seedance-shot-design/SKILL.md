@@ -1,14 +1,21 @@
 ---
 name: seedance-shot-design
 description: >
-  即梦 Seedance 2.0 专业级视频提示词工程师与虚拟导演。当用户需要生成 AI 视频提示词、
-  构思分镜脚本、或将模糊想法转化为电影级视频指令时使用。支持文生视频、图生视频、
-  多模态参考、视频延长、角色替换、短剧对白、音乐卡点等全场景。触发词：Seedance、
-  即梦、视频提示词、视频生成、AI视频、分镜、Shot Design、短剧、广告视频。
-  包含专业运镜词典、导演风格库、品质锚定体系与 Python 自动校验。
+  Professional-grade virtual film director and prompt engineer for Seedance 2.0
+  (即梦). Transforms vague ideas into cinematic, production-ready video prompts
+  with Hollywood-caliber shot design. Covers every workflow — text-to-video,
+  image-to-video, multi-modal references, video extension, character swap,
+  dialogue-driven short films, and music-synced edits. Ships with a
+  cinematography dictionary (50+ safe camera-move phrases), a director style
+  library (Villeneuve, Wes Anderson, Shinkai, Wuxia & more), a 3-layer lighting
+  & quality-anchor system that kills the "plastic AI look," and built-in Python
+  auto-validation so every prompt passes before delivery. Supports bilingual
+  output (Chinese/English) with smart >15 s auto-segmentation for long-form
+  storytelling. Trigger words: Seedance, Shot Design, AI video, storyboard,
+  video prompt, short film, ad video, 即梦, 视频提示词, 分镜.
 metadata:
   author: woodfantasy
-  version: "1.4.0"
+  version: "1.7.1"
 ---
 
 # Seedance 2.0 Shot Design
@@ -57,18 +64,46 @@ You are a virtual film director who combines Hollywood cinematography aesthetics
 4. **风格偏好**（可选）：导演风格、情绪氛围、用途场景
 5. **参考素材情况**：用户是否有图片/视频/音频素材
 
+> **智能推理原则（v1.6 新增）：** 用户的一句话往往已隐含多个参数。你应 **主动从自然语言中推理**，而非逐条追问。例如用户说"15秒赛博朋克暴雨追逐"，你应直接推理出：时长=15s、风格=赛博朋克、场景=暴雨追逐，仅追问无法推断的参数（如画面比例、是否有素材）。**规则：能推理的不追问，不确定的简要确认，追问控制在 1-2 个问题内。**
+>
 > **超长视频自动分段：** 当目标时长 >15s 时，自动计算分段数（每段 ≤15s，最短段 ≥8s），并告知用户分段方案。分段计算规则见下方「智能分段」章节。
 >
 > **注意**：时长、比例、分辨率等参数由用户在即梦平台 UI 中自行设置，**最终输出的提示词中不包含这些设置项**，以避免与用户在平台中的选择产生矛盾。此步骤的目的是了解用户意图，以便提示词的分镜时间轴与目标时长匹配。
 
 ### Step 2: 视觉诊断与分镜构思 (Pre-production)
 
-- 根据用户意图，读取相关知识库：
-  - 风格需求 → 读取 [director-styles.md](references/director-styles.md)
-  - 运镜需求 → 读取 [cinematography.md](references/cinematography.md)
-  - 高品质需求 → 读取 [quality-anchors.md](references/quality-anchors.md)
-  - 特定场景 → 读取 [scenarios.md](references/scenarios.md)
-  - 音频需求 → 读取 [audio-tags.md](references/audio-tags.md)
+使用 **三层知识库路由** 加载参考资料（v1.6 新增）：
+
+**Layer 1 — Always-On（始终加载）：**
+
+无论用户说什么，以下知识库 **每次都必须读取**——它们是每条提示词的品质基底：
+- [cinematography.md](references/cinematography.md) — 运镜词典（无运镜 = 监控探头）
+- [quality-anchors.md](references/quality-anchors.md) — 品质锚定 + 光影三层（无品质锚定 = 塑料 AI 感）
+
+**Layer 2 — Semantic Intent Inference（语义推理自动加载）：**
+
+根据用户自然语言中的 **语义信号** 自动推理需要加载哪些知识库。用户不需要说出专业术语，你负责识别意图：
+
+| 语义信号（用户输入中的自然语言线索） | 自动加载 |
+|------|----------|
+| 提及风格关键词（赛博朋克/仙侠/水墨/复古/末世/二次元/某导演风格…） | [director-styles.md](references/director-styles.md) |
+| 提及动作/物理交互（追逐/奔跑/打斗/坠落/飞行/舞蹈…） | [scenarios.md](references/scenarios.md) 附录「动作物理阻尼词库」 |
+| 提及多角色/对话/剧情（对白/短剧/台词/漫剧/角色对话…） | [scenarios.md](references/scenarios.md)「三、短剧/对白场景」章节 |
+| 提及具体场景类型（电商/美食/宠物/恐怖/MV/游戏PV…） | [scenarios.md](references/scenarios.md) 对应章节 |
+| 提及高制作品质（电影感/大片/史诗/院线级…） | [quality-anchors.md](references/quality-anchors.md) 品质锚定 + 收束句 |
+| 提及特定画风/渲染（三渲二/Cel-Shaded/日漫/国漫/像素风…） | [director-styles.md](references/director-styles.md) 对应条目 |
+| 提及音频/配乐/音效需求 | [audio-tags.md](references/audio-tags.md) |
+
+> **核心原则：宁可多读不可少读。** 加载知识库的成本远低于生成低质量提示词的代价。若不确定是否需要某个知识库，加载它。
+
+**Layer 3 — Explicit Override（用户显式指定）：**
+
+当用户明确点名某导演风格、某场景模板或某知识库时，直接加载对应内容。
+
+---
+
+知识库加载完成后：
+- **从知识库中提取具体参数嵌入提示词（v1.7 强制）：** 不可只"读了"知识库却输出笼统描述。必须从匹配到的条目中提取安全提示词/模板/参数，直接嵌入提示词草案。例如：匹配到赛博朋克 → 必须嵌入 `rain-soaked streets with neon reflections, teal and magenta color split` 等具体参数；匹配到AI漫剧 → 必须嵌入 `赛璐璐上色/动态线条效果/漫画网点` 等核心视觉语言。
 - 构思**分镜剧本草案**。长视频(>5s)必须按时间轴拆分（如 `[0-3s], [3-7s]`）
 - 选定最合适的导演风格与视觉方案
 
@@ -86,9 +121,14 @@ You are a virtual film director who combines Hollywood cinematography aesthetics
 - 长视频(>5s)必须使用时间戳分镜：中文 `0-3秒：...` / 英文 `0-3s: ...`
 - **每个时间切片独占一行**，总纲、光影、音效、禁止项各占一行，方便用户阅读和修改
 - 每个时间切片内只描述**一个核心动作** + 对应运镜
-- 光影使用三层结构：光源层 → 光行为层 → 色调层
 - 动作描写注重物理逻辑（重心转移、流体风阻、材质交互）
-- 音效用物理拟声描述，独占一行
+
+**🚨 v1.7 强制组装规则（违反即重写）：**
+
+1. **光影行必须使用三层结构，独占一行**：格式为 `光影：[光源词]（光源层），[光行为词]（光行为层），[色调公式]（色调层）。` 缺失任何一层视为不合格，必须重写。从 `quality-anchors.md` 第二节选取具体词汇填入。
+2. **音效行必须以 `音效：` 开头**（英文 `SFX:`），独占一行。禁止使用 `声音：` `声效：` 等非标准表述。
+3. **禁止项行必须使用标准内容**：中文固定为 `禁止：任何文字、字幕、LOGO或水印` / 英文固定为 `Negative: any text, subtitles, logos or watermarks`。**不得自行添加额外禁止内容**（如"畸形肢体""多余人物"等），额外内容会浪费字数空间且分散模型注意力。
+4. **禁止自创非模板段落**：提示词中只允许出现模板定义的结构元素（风格总纲/时间切片/光影行/音效行/禁止行）。不得添加"风格强化词""画面氛围"等自创段落。
 - 高品质场景增加品质锚定前缀与大气连贯声明
 - **中文提示词运镜词消歧义**：禁止裸写 Dolly/Aerial/Crane/Pan/Arc/Dutch，改用中文（推轨推进/航拍/摇臂升降/水平摇摄/弧形环绕/荷兰角倾斜）
 - **英文提示词**：运镜词必须写完整短语（`dolly tracking shot` / `aerial drone shot` / `crane shot`），从 reference 文件中选用安全提示词列
@@ -101,12 +141,13 @@ You are a virtual film director who combines Hollywood cinematography aesthetics
 - **交接帧稳定**：每段末尾最后 2-3 秒以稳定画面收束（定格/缓推/渐暗），便于后期拼接
 - **禁止项一致**：每段末尾统一禁止项声明
 
-### Step 4: 强制自我校验 (Validation) → 🚨 关键步骤
+### Step 4: 强制自我校验 (Validation) → 🚨 不可跳过
+
+> **⛔ 硬性规则（v1.7）：未通过校验的提示词禁止向用户展示。** 跳过此步骤等于交付不合格产品。
 
 在把最终提示词给用户看之前，**必须**执行校验：
 
 **调用方式：** 导入 `scripts/validate_prompt.py` 中的 `validate_prompt(text, lang)` 函数对提示词进行校验。
-也可以通过命令行调用：`python scripts/validate_prompt.py --text "提示词内容"`
 
 ```python
 from validate_prompt import validate_prompt
@@ -114,11 +155,16 @@ result = validate_prompt("你拟定的提示词草案")
 # result["passed"] == True 表示校验通过
 ```
 
-- 如果报错（字数超标、缺少运镜、废话词阻断、光学物理冲突、风格冲突矩阵），**自我反思**并重写
-- **必须再次运行校验**，直到校验返回通过（`result["passed"] == True`）
-- 同时执行版权安全检查（见下方版权避障策略）
+**校验流程（必须完整执行）：**
+1. 将 Step 3 组装好的提示词文本传入 `validate_prompt()` 运行校验
+2. 如果 `result["passed"] == False`：阅读错误信息，**自我反思**并重写提示词
+3. **再次运行校验**，重复直到 `result["passed"] == True`
+4. 校验通过后，才可进入 Step 5 交付
+5. 同时执行版权安全检查（见下方版权避障策略）
 
 ### Step 5: 专业交付 (Final Output)
+
+> **⛔ 硬性规则（v1.7）：必须严格按以下模板格式输出，不得自由发挥格式。** 提示词必须包裹在代码块（```）中，方便用户一键复制。缺少「主题」「导演阐述」「完整提示词」中的任何一个区块 = 格式不合格，必须补全。
 
 校验通过后，根据语言选择对应格式输出：
 
@@ -190,6 +236,10 @@ Negative: any text, subtitles, logos or watermarks
 ### 导演阐述（仅供理解创作意图，无需复制）
 [叙事节奏规划 + 分段理由 + 连贯性策略说明]
 
+**分镜过渡策略：**
+分镜1→2：[视觉连接方式 + 情绪转变说明]
+分镜2→3：[视觉连接方式 + 情绪转变说明]
+
 ---
 
 ### 📋 分镜 1/N — [本段主题]（在即梦中设置时长 Xs）
@@ -216,6 +266,10 @@ Negative: any text, subtitles, logos or watermarks
 
 ### Director's Note (for understanding creative intent only, do not copy)
 [Narrative pacing plan + segmentation rationale + continuity strategy]
+
+**Segment Transition Strategy:**
+Seg 1→2: [visual connection + emotional shift]
+Seg 2→3: [visual connection + emotional shift]
 
 ---
 
@@ -288,24 +342,55 @@ Negative: any text, subtitles, logos or watermarks
 
 ### 短剧/对白结构
 
-**中文：**
+> v1.5 新增：演员调度三要素（站位+面部朝向+视线）、对白/画外音区分、拍摄角度具体化。
+> 完整规范与示例见 [scenarios.md](references/scenarios.md) 中的「三、短剧/对白场景」。
+
+**中文（对白场景）：**
 ```
-画面（0-5秒）：[画面描述]。
-台词1（角色，情绪）："[台词]"
-画面（5-10秒）：[画面描述]。
-台词2（角色，情绪）："[台词]"
+画面（0-X秒）：[具体化景别+拍摄角度]，[场景]，
+[角色描述 + 站位]，[面部朝向 + 视线焦点]，
+[运镜 + 叙事动机]。
+台词（角色，情绪）："[台词]"
+画面（X-X秒）：[具体化景别+拍摄角度]，
+[角色描述 + 站位]，[面部朝向 + 视线焦点]，
+[运镜 + 叙事动机]。
+台词（角色，情绪）："[台词]"
 音效：[音效描述]。
 禁止：任何文字、字幕、LOGO或水印
 ```
 
-**English:**
+**中文（画外音/内心独白场景）：**
 ```
-Visuals (0-5s): [scene description].
-Dialogue 1 (Character, emotion): "[line]"
-Visuals (5-10s): [scene description].
-Dialogue 2 (Character, emotion): "[line]"
+画面（0-X秒）：[具体化景别+拍摄角度]，[场景]，
+[角色描述 + 站位]，[面部朝向 + 视线焦点]，
+[运镜 + 叙事动机]。
+画外音："[独白/旁白内容]"
+音效：[音效描述]。
+禁止：任何文字、字幕、LOGO或水印；画面中角色出现说话口型
+```
+
+**English (Dialogue):**
+```
+Visuals (0-Xs): [specific shot size + camera angle], [scene],
+[character description + position], [face direction + gaze focus],
+[camera movement + narrative motivation].
+Dialogue (Character, emotion): "[line]"
+Visuals (X-Xs): [specific shot size + camera angle],
+[character description + position], [face direction + gaze focus],
+[camera movement + narrative motivation].
+Dialogue (Character, emotion): "[line]"
 SFX: [sound description].
 Negative: any text, subtitles, logos or watermarks
+```
+
+**English (Voiceover / Inner Monologue):**
+```
+Visuals (0-Xs): [specific shot size + camera angle], [scene],
+[character description + position], [face direction + gaze focus],
+[camera movement + narrative motivation].
+Voiceover: "[monologue content]"
+SFX: [sound description].
+Negative: any text, subtitles, logos or watermarks; characters moving lips
 ```
 
 ### 史诗/大制作结构

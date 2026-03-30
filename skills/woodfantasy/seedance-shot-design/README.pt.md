@@ -2,7 +2,7 @@
 
 # 🎬 Seedance2.0 Shot Design — Designer de Linguagem Cinematográfica
 
-[![Versão](https://img.shields.io/badge/version-1.4.0-blue.svg)]()
+[![Versão](https://img.shields.io/badge/version-1.5.0-blue.svg)]()
 [![Licença](https://img.shields.io/badge/license-MIT--0-green.svg)](LICENSE)
 [![Plataforma](https://img.shields.io/badge/platform-Seedance_2.0-purple.svg)]()
 
@@ -16,6 +16,7 @@ Um Claude Skill construído sobre a especificação [Agent Skills](https://agent
 
 | Capacidade | Descrição |
 |------------|-----------|
+| 🎭 **Produção de Drama Cômico IA & Curta-metragem IA** | Suporte completo para dramas cômicos IA (漫剧) e curtas-metragens IA — diálogos / narração / bloqueio de atores / close-ups de expressões exageradas / movimentos de câmera narrativos / seletor rápido de estilo / 4 variantes de templates (CN/EN × diálogo/narração), com templates de cenários e exemplos completos |
 | 🎨 **28+ Presets de Diretores e Estilos** | Nolan / Villeneuve / Fincher / Deakins / Kurosawa / Makoto Shinkai / Wong Kar-wai / Zhang Yimou / Xianxia / Cel-Shaded CG / Anime / Xiaohongshu… |
 | 🎬 **Dicionário Profissional de Movimentos de Câmera** | Sistema de câmera em 3 níveis + 14 distâncias focais + 6 controles de foco + 7 montagens físicas, com referências bilíngues CN/EN |
 | 💡 **Estrutura de Iluminação em Três Camadas** | Fonte de Luz → Comportamento → Tom de Cor — chega de "bota uma luz aí" |
@@ -174,7 +175,7 @@ python scripts/validate_prompt.py --text "your prompt" --lang en
 python scripts/validate_prompt.py --text "seu prompt" --json
 ```
 
-**Verificações (v1.4):**
+**Verificações (v1.5):**
 - ❌ Excesso de palavras (Chinês >500 caracteres / Inglês >1000 palavras)
 - ❌ Terminologia profissional de câmera ausente
 - ❌ Bloqueio duro de enchimento (masterpiece / obra-prima / ultra-nítido → error)
@@ -220,6 +221,17 @@ python -m unittest scripts.test_validate -v
 ---
 
 ## 📋 Histórico de Versões
+
+### v1.5.0 (2026-03-27)
+- 🎭 **Sistema de Bloqueio de Atores**: Posicionamento de 3 elementos (posição + direção facial + foco do olhar) + vocabulário de modificadores emocionais
+- 🎙️ **Separação Narração/Diálogo**: Templates distintos para diálogos vs. narração/monólogo interior, com diretiva anti-lip-sync
+- 📐 **Especificidade do Ângulo de Câmera**: Mapeamento vago→específico com 5 pares comparativos
+- 🎬 **Movimento de Câmera com Motivação Narrativa**: Movimentos emparelhados com propósito narrativo
+- 🔀 **Estratégia de Transição entre Segmentos**: 6 tipos de transição para coerência multi-plano
+- 🎨 **Seletor Rápido de Estilo**: Combo de 4 dimensões (tipo visual × estilo de render × tom × gênero)
+- 📝 Templates de curta expandidos de 1 para 4 variantes (CN/EN × diálogo/narração)
+- 📝 5 exemplos completos de curta-metragem
+- ✅ 54 testes passam
 
 ### v1.4.0 (2026-03-21)
 - 🎬 **Storyboard Multi-Segmento Inteligente**: Vídeos >15s auto-divididos (cada ≤15s, mín ≥8s)

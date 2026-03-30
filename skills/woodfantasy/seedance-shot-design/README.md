@@ -2,7 +2,7 @@ English | [中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](RE
 
 # 🎬 Seedance2.0 Shot Design — Cinematic Shot Language Designer
 
-[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)]()
+[![Version](https://img.shields.io/badge/version-1.7.0-blue.svg)]()
 [![License](https://img.shields.io/badge/license-MIT--0-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Seedance_2.0-purple.svg)]()
 
@@ -16,6 +16,7 @@ A Claude Skill built on the [Agent Skills](https://agentskills.io) specification
 
 | Capability | Description |
 |------------|-------------|
+| 🎭 **AI Comic Drama & Short Drama Production** | Full-pipeline support for AI comic strips (漫剧) and AI short dramas — character dialogue / voiceover / actor blocking / exaggerated expression close-ups / narrative-motivated camera / short drama style quick-selector / 4 prompt template variants (CN/EN × dialogue/voiceover), with dedicated scenario templates and complete examples |
 | 🎨 **28+ Director & Style Presets** | Nolan / Villeneuve / Fincher / Deakins / Kurosawa / Makoto Shinkai / Wong Kar-wai / Zhang Yimou / Xianxia / Cel-Shaded CG / Anime / Xiaohongshu… |
 | 🎬 **Pro Camera Movement Dictionary** | 3-tier camera system + 14 focal lengths + 6 focus controls + 7 physical mounts, with bilingual CN/EN references |
 | 💡 **Three-Layer Lighting Structure** | Light Source → Light Behavior → Color Tone — no more vague "add a light" |
@@ -187,7 +188,7 @@ python scripts/validate_prompt.py --text "your prompt" --lang en
 python scripts/validate_prompt.py --text "your prompt" --json
 ```
 
-**Validation Checks (v1.4):**
+**Validation Checks (v1.5):**
 - ❌ Over word limit (Chinese >500 chars / English >1000 words)
 - ❌ Missing professional camera terminology
 - ❌ Filler word hard-block (masterpiece / ultra-clear, etc. → error)
@@ -217,7 +218,7 @@ python -m unittest scripts.test_validate -v
 Following Agent Skills best practices:
 
 - **SKILL.md** (~4000 tokens): Core workflow + structural templates + quality checklist
-- **references/** (loaded on demand): Only read when the user mentions style / camera / quality needs
+- **references/** (three-layer routing): Camera dictionary and quality anchors are always loaded (Always-On); other knowledge bases auto-matched via semantic inference or loaded on explicit user request
 - **scripts/** (executed on demand): Validation runs only after prompt generation
 
 ### Competitive Advantages
@@ -235,6 +236,29 @@ Following Agent Skills best practices:
 ---
 
 ## 📋 Changelog
+
+### v1.7.0 (2026-03-28)
+- 🚨 **Step 3 Mandatory Assembly Rules**: Three-layer lighting must be on its own line with all three layers complete; SFX line must start with `SFX:`; prohibition line standardized (no custom additions); freestyle non-template sections forbidden
+- ⛔ **Step 4 Validation Blocking**: Prompts failing validation are now forbidden from being shown to users; clear 5-step validation flow
+- 📋 **Step 5 Format Enforcement**: Output must follow template exactly (Theme + Director's Note + code-block-wrapped prompt); missing any section = non-compliant
+- 🎯 **Step 2 Parameter Extraction Directive**: Knowledge bases must not just be "loaded" — specific parameters must be extracted and embedded into the prompt
+
+### v1.6.0 (2026-03-28)
+- 🧠 **Smart Semantic Intent Routing**: Step 2 knowledge base loading upgraded from "explicit trigger" to three-layer routing — Always-On loads camera dictionary & quality anchors every time, Semantic Intent Inference auto-detects needed knowledge bases from user's natural language, Explicit Override preserves direct user specification
+- 🎯 **Step 1 Smart Inference Principle**: Agent proactively infers parameters (duration / style / scene) from a single user sentence, only asking about genuinely unknown info, limiting follow-up questions to 1-2
+- 📝 Design philosophy updated from "loaded on demand" to "three-layer routing" ensuring every prompt has a quality foundation
+
+### v1.5.0 (2026-03-27)
+- 🎭 **Actor Blocking System**: Three-element positioning (placement + face direction + gaze focus) with emotion modifier vocabulary for multi-character scenes
+- 🎙️ **Voiceover / Dialogue Split**: Distinct templates for on-screen dialogue vs. off-screen voiceover / inner monologue, with anti-lip-sync directive for VO scenes
+- 📐 **Camera Angle Specificity**: Vague → specific angle mapping (e.g., "close-up" → "over-shoulder medium close-up, focus on listener") with 5 comparison pairs
+- 🎬 **Narrative-Motivated Camera Movement**: Camera moves now paired with storytelling purpose (e.g., "slow push-in — revealing inner turmoil")
+- 🔀 **Segment Transition Strategy**: 6 transition types (gaze continuity / emotional escalation / contrast cut / spatial leap / temporal ellipsis / sensory bridge) for multi-shot coherence
+- 🎨 **Short Drama Style Quick-Selector**: 4-dimension combo system (visual type × render style × color tone × genre)
+- 📝 Short drama prompt templates expanded from 1 to 4 variants (CN dialogue / CN voiceover / EN dialogue / EN voiceover)
+- 📝 Multi-segment Director's Note template adds transition strategy declaration
+- 📝 5 complete short drama examples covering: plot-twist dialogue / voiceover monologue / action conflict / 2D anime / transition strategy
+- ✅ 54 tests pass
 
 ### v1.4.0 (2026-03-21)
 - 🎬 **Smart Multi-Segment Storyboard**: Videos >15s auto-split into multiple independent prompts (each ≤15s, min ≥8s)
