@@ -19,11 +19,7 @@ from datetime import datetime
 from pathlib import Path
 
 # 配置
-GLM_API_KEY = os.getenv('GLM_API_KEY')
-if not GLM_API_KEY:
-    print("❌ 錯誤：請設置 GLM_API_KEY 環境變量")
-    print("用法：export GLM_API_KEY='your-api-key'")
-    exit(1)
+GLM_API_KEY = os.getenv('GLM_API_KEY', 'sk-JSJg7OYHJZPOn87CpHq0d5VMGLkTCBdJcVxUOdUp06IpUABx')
 GLM_API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
 RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '')
@@ -639,8 +635,11 @@ def main():
 
 #廣告文案 #已完成"""
         
-        chat_id = TELEGRAM_CHAT_ID or '-5182653975'
-        send_telegram_message(chat_id, message)
+        chat_id = TELEGRAM_CHAT_ID or os.getenv('TELEGRAM_CHAT_ID', '')
+        if not chat_id:
+            print("⚠️ 警告：TELEGRAM_CHAT_ID 未設置，跳過 Telegram 通知")
+        else:
+            send_telegram_message(chat_id, message)
     
     print()
     print("🎉 所有任務完成！")

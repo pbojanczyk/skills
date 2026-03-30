@@ -91,7 +91,7 @@ POST https://api.telegram.org/bot{BOT_TOKEN}/sendMessage
 
 ```json
 {
-  "chat_id": "-5182653975",
+  "chat_id": "YOUR_TELEGRAM_CHAT_ID" // 從環境變量 TELEGRAM_CHAT_ID 獲取,
   "text": "消息內容",
   "parse_mode": "HTML"
 }
