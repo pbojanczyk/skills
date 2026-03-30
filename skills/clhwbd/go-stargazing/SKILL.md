@@ -111,19 +111,30 @@ metadata:
 - 复杂地形区域（高原 / 山区）预报不确定性更高，必要时提醒用户临近出发再复查
 
 ## 打包数据
-当前 skill 使用自带边界文件：
-- `data/china-provinces-full.geojson.gz`
-- `data/china-prefecture-level.geojson.gz`
+当前 skill 使用自带轻量边界文件（bbox 格式，替代完整 GeoJSON）：
+- `data/china-provinces-lite.json`：省级边界（1683 字节，34 个省级单元）
+- `data/china-prefectures-lite.json`：地级边界（22430 字节，455 个地级单元）
+
+说明：使用 bbox 而非完整多边形 geometry，大幅减少包体积；对区域级推荐场景足够使用。
 
 ## 主要脚本
 - `scripts/go_stargazing.py`：稳定入口
-- `scripts/dynamic_sampling_prototype.py`：运行时 wrapper
-- `scripts/dynamic_sampling_prototype_impl.py.gz`：压缩后的主实现
-- `scripts/astronomy.py`：运行时 wrapper
-- `scripts/astronomy_impl.py.gz`：压缩后的天文实现
+- `scripts/dynamic_sampling_prototype.py`：CLI 入口
+- `scripts/go_stargazing_engine/`：核心引擎包（结构化模块）
+  - `engine.py`：主流程与聚合逻辑
+  - `models.py`：数据类与常量
+  - `geo.py`：地理边界加载与点包含判断
+  - `scoring.py`：评分函数
+  - `weather.py`：天气获取与聚合
+  - `astronomy.py`：天文计算（月相、月升落、夜窗等）
+- `scripts/astronomy.py`：天文模块对外入口
 - `scripts/lunar_query.py`：月相辅助查询
 
 ## 致谢
-- 陈一菲：Skill 第一版创作者
-- 陆不喝：技术方案与专业指导
-- Fortune：发起者与持续迭代推动者
+本技能由以下伙伴共同打造：
+
+- 陈一菲：Skill 第一版创作者，为星空摄影规划奠定了核心框架
+- 陆不喝：提供技术方案与专业指导，让数据驱动的选址评分体系成为可能
+- Fortune：发起者，将摄影实践与 AI 能力深度结合，持续推动功能迭代
+
+感谢每一位愿意为星空奔赴山海的人
