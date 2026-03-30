@@ -426,3 +426,38 @@ model.transcribe("$AUDIO_FILE", language="auto")
 - ✅ 定期清理临时文件
 - ✅ 使用系统临时目录 `/tmp/`
 - ✅ 设置合理的保留策略
+
+---
+
+# ⚠️ 安全注意事项
+
+## 1. 修复脚本风险
+
+⚠️ **注意**: `fix-debug-leak.sh` 脚本会修改其他 OpenClaw 扩展的源码。
+
+- 此脚本用于修复飞书/Q4Bot 的调试信息泄露问题
+- 会修改 `/root/.openclaw/extensions/qqbot/` 等扩展
+- **建议**: 仅在确认需要时使用，并在测试环境验证
+
+## 2. 模型镜像
+
+默认使用 `https://hf-mirror.com` 镜像下载模型。
+
+- 如需使用官方镜像，在 `.env` 中设置：
+```bash
+export HF_ENDPOINT=https://huggingface.co
+```
+
+## 3. 凭证安全
+
+- 优先使用环境变量设置凭证
+- 读取 `openclaw.json` 时可能接触其他账户凭证
+- 多 Agent 模式下会自动读取对应账户配置
+
+## 4. 生产环境建议
+
+- ✅ 在测试环境先验证
+- ✅ 仔细审查所有脚本
+- ✅ 使用环境变量存储凭证
+- ✅ 定期更新依赖
+
