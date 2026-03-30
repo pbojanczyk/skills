@@ -1,7 +1,4 @@
 #!/usr/bin/env node
-import { readFileSync } from "fs";
-import { homedir } from "os";
-import { join } from "path";
 
 // --- Argument parsing ---
 const args = process.argv.slice(2);
@@ -28,26 +25,10 @@ if (!prompt) {
 }
 
 // --- Token resolution ---
-function readEnvFile(filePath) {
-  try {
-    const expanded = filePath.replace(/^~/, homedir());
-    const content = readFileSync(expanded, "utf8");
-    const match = content.match(/NETA_TOKEN=(.+)/);
-    return match ? match[1].trim() : null;
-  } catch {
-    return null;
-  }
-}
-
-const TOKEN =
-  tokenFlag ||
-  process.env.NETA_TOKEN ||
-  readEnvFile("~/.openclaw/workspace/.env") ||
-  readEnvFile("~/developer/clawhouse/.env");
+const TOKEN = tokenFlag;
 
 if (!TOKEN) {
   console.error(
-    "Error: No NETA_TOKEN found. Provide via --token, NETA_TOKEN env var, ~/.openclaw/workspace/.env, or ~/developer/clawhouse/.env"
   );
   process.exit(1);
 }
@@ -76,7 +57,7 @@ const body = {
   rawPrompt: [{ type: "freetext", value: prompt, weight: 1 }],
   width,
   height,
-  meta: { entrance: "PICTURE,CLI" },
+  meta: { entrance: "PICTURE,VERSE" },
   context_model_series: "8_image_edit",
 };
 
@@ -89,7 +70,7 @@ if (refUuid) {
 
 // --- Submit job ---
 async function main() {
-  const makeRes = await fetch(`${process.env.NETA_API_URL || 'https://api.talesofai.com'}/v3/make_image`, {
+  const makeRes = await fetch("https://api.talesofai.com/v3/make_image", {
     method: "POST",
     headers: HEADERS,
     body: JSON.stringify(body),
@@ -118,7 +99,7 @@ async function main() {
     await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
 
     const pollRes = await fetch(
-      `${process.env.NETA_API_URL || 'https://api.talesofai.com'}/v1/artifact/task/${taskUuid}`,
+      `https://api.talesofai.com/v1/artifact/task/${taskUuid}`,
       { headers: HEADERS }
     );
 
@@ -131,11 +112,9 @@ async function main() {
     const pollData = await pollRes.json();
     const status = pollData.task_status;
 
-    if (['PENDING', 'MODERATION'].includes(status)) { continue; }
-  if (['FAILURE', 'TIMEOUT', 'DELETED', 'ILLEGAL_IMAGE'].includes(status)) {
-    console.error('Error: generation failed with status ' + status + (pollData.err_msg ? ' — ' + pollData.err_msg : ''));
-    process.exit(1);
-  }
+    if (status === "PENDING" || status === "MODERATION") {
+      continue;
+    }
 
     // Done — extract image URL
     const url =
