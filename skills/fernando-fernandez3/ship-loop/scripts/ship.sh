@@ -39,6 +39,7 @@ BUILTIN_BLOCKED=(
     '*.sqlite'
     '*.sqlite3'
     '.DS_Store'
+    'learnings.yml'
 )
 
 # Read additional blocked patterns from SHIPLOOP.yml
