@@ -368,9 +368,9 @@ User ──► Telegram/Web
             ▼
      OpenClaw Gateway
             │
-            ├──► chainwatch intercept (:9999) ──► pastewatch proxy (:9998) ──► Anthropic API
-            │         │                                  │
-            │         └─ Tool call policy                └─ Secret redaction
+            ├──► chainwatch intercept (:9999) ──► contextspectre proxy (:9997) ──► pastewatch proxy (:9998) ──► Anthropic API
+            │         │                                  │                                  │
+            │         └─ Tool call policy                └─ Noise stripping                 └─ Secret redaction
             │
             ├──► Agent shell ──► chainwatch exec (denylist)
             │
@@ -388,6 +388,7 @@ User ──► Telegram/Web
 | Host hardening | Brute force, unauthorized SSH, open ports |
 | Chainwatch denylist | rm -rf, sudo escalation, fork bombs, curl\|sh |
 | Chainwatch intercept | Non-bypassable API audit, tool call inspection |
+| ContextSpectre proxy | Thinking blocks, duplicate system reminders, oversized content — stripped before billing |
 | Pastewatch proxy + MCP | API keys, DB creds, SSH keys, emails, IPs leaking to LLM provider |
 | eBPF enforce (seccomp) | Privilege escalation, kernel manipulation, ptrace — blocked at kernel level |
 | eBPF observe | Full syscall audit trail for forensics |
