@@ -1,7 +1,6 @@
-import { PayNodeAgentClient, RequestOptions } from '@paynodelabs/sdk-js';
+import { PayNodeAgentClient, RequestOptions, ethers } from '@paynodelabs/sdk-js';
 import { join, parse } from 'path';
 import { tmpdir } from 'os';
-import { ethers } from 'ethers';
 import fs from 'fs';
 import { spawn } from 'child_process';
 import {
@@ -17,19 +16,17 @@ import {
     DEFAULT_TASK_DIR,
     DEFAULT_MAX_AGE_SECONDS,
     EXIT_CODES,
-    SKILL_VERSION
+    SKILL_VERSION,
+    GLOBAL_CONFIG,
+    BaseCliOptions,
+    maskAddress
 } from '../utils.ts';
 
-interface UnifiedRequestOptions {
+interface UnifiedRequestOptions extends BaseCliOptions {
     method?: string;
     data?: string;
     header?: string | string[];
-    network?: string;
-    rpc?: string;
-    json?: boolean;
-    confirmMainnet?: boolean;
     background?: boolean;
-    dryRun?: boolean;
     output?: string;
     maxAge?: number;
     taskDir?: string;
@@ -58,24 +55,25 @@ interface CoreResult {
 
 // --- Background Launcher ---
 function spawnBackground(url: string, args: string[], options: UnifiedRequestOptions) {
-    const taskId = generateTaskId();
+    const taskId = options.taskId || generateTaskId(); // Use existing if re-spawning (though unlikely)
     const taskDir = options.taskDir || DEFAULT_TASK_DIR;
     const maxAge = options.maxAge || DEFAULT_MAX_AGE_SECONDS;
     const outputPath = options.output || join(taskDir, `${taskId}.json`);
+    const logPath = join(taskDir, `${taskId}.log`);
 
     fs.mkdirSync(taskDir, { recursive: true });
     cleanupOldTasks(taskDir, maxAge);
 
     const originalArgs = process.argv.slice(2);
-    const flagsToRemove = ['--background', '--json', '--task-id', '--output', '--dry-run'];
+    const flagsToRemove = ['--background', '--json', '--task-id', '--output', '--dry-run', '--max-age', '--task-dir'];
     const childArgs: string[] = [];
-    
+
     for (let i = 0; i < originalArgs.length; i++) {
         const arg = originalArgs[i];
         if (flagsToRemove.includes(arg)) {
             // If flag takes an argument, skip both flag and value
-            if ((arg === '--output' || arg === '--task-id') && i + 1 < originalArgs.length) {
-                i++; 
+            if (['--output', '--task-id', '--max-age', '--task-dir'].includes(arg) && i + 1 < originalArgs.length) {
+                i++;
             }
             continue;
         }
@@ -83,12 +81,56 @@ function spawnBackground(url: string, args: string[], options: UnifiedRequestOpt
     }
     childArgs.push('--task-id', taskId, '--output', outputPath);
 
+    // [SECURITY & LOGIC] 
+    // This is a self-re-execution for background processing.
+    // 1. We spawn the same script (process.argv[1]) with filtered arguments.
+    // 2. We add '--task-id' which signals the next execution to use 'executeAndWrite' path.
+    // 3. This avoids infinite recursion because the sub-process will NOT have '--background' in its args.
+    // 4. Stderr is piped to a .log file to allow debugging of background failures.
+    
+    const logFd = fs.openSync(logPath, 'a');
+    // The child command is pinned to 'process.execPath' (the current runtime) and 'process.argv[1]' (the current script).
+    // Arguments are filtered to prevent recursive loops.
+    // [SECURITY] Filter environment variables passed to background child process.
+    // Minimizes exposure of non-essential credentials.
+    const whitelist = [
+        'CLIENT_PRIVATE_KEY',
+        'CUSTOM_ROUTER_ADDRESS',
+        'CUSTOM_USDC_ADDRESS',
+        'RPC_URL',
+        'ALCHEMY_API_KEY',
+        'INFURA_API_KEY',
+        'ETHERSCAN_API_KEY',
+        'HTTP_PROXY',
+        'HTTPS_PROXY',
+        'NODE_PATH',
+        'NVM_DIR',
+        'BUN_INSTALL'
+    ];
+    // Essential OS-level vars
+    const baseEnv = Object.fromEntries(
+        Object.entries({
+            PATH: process.env.PATH,
+            HOME: process.env.HOME,
+            TMPDIR: process.env.TMPDIR,
+            USER: process.env.USER,
+            SHELL: process.env.SHELL
+        }).filter(([, v]) => v !== undefined)
+    ) as Record<string, string>;
+    const childEnv: Record<string, string | undefined> = { ...baseEnv };
+    for (const key of whitelist) {
+        if (process.env[key]) childEnv[key] = process.env[key];
+    }
+
     const child = spawn(process.execPath, [process.argv[1], ...childArgs], {
         detached: true,
-        stdio: 'ignore',
-        env: process.env
+        stdio: ['ignore', 'ignore', logFd],
+        env: childEnv
     });
     child.unref();
+
+    // After unref. the parent no longer needs logFd. The child has its own copy.
+    fs.closeSync(logFd);
 
     const pendingInfo = {
         status: 'pending',
@@ -106,7 +148,8 @@ function spawnBackground(url: string, args: string[], options: UnifiedRequestOpt
         console.log(`\n🚀 **Background Task Started**`);
         console.log(`- **Task ID**: \`${taskId}\``);
         console.log(`- **Output**: \`${outputPath}\``);
-        console.log(`\nUse \`cat ${outputPath}\` to check progress.`);
+        console.log(`- **Log**:    \`${logPath}\``);
+        console.log(`\nUse \`cat ${outputPath}\` to check progress or \`tail -f ${logPath}\` for logs.`);
     }
     process.exit(0);
 }
@@ -114,10 +157,9 @@ function spawnBackground(url: string, args: string[], options: UnifiedRequestOpt
 // --- Core x402 Execution ---
 async function executeCore(url: string, args: string[], options: UnifiedRequestOptions): Promise<CoreResult> {
     const isJson = !!options.json || !!options.taskId;
-    const pk = getPrivateKey(isJson);
     const startTs = Date.now();
 
-    const { rpcUrls, networkName, isSandbox } = await resolveNetwork(options.rpc, options.network);
+    const { rpcUrls, networkName, isSandbox } = await resolveNetwork(options.rpc, options.network, options.rpcTimeout);
     requireMainnetConfirmation(isSandbox, !!options.confirmMainnet, isJson);
 
     // Handle params (k=v)
@@ -140,6 +182,11 @@ async function executeCore(url: string, args: string[], options: UnifiedRequestO
             headers[k.trim()] = v.join(':').trim();
         }
     }
+    // [P1] Inject network header for Proxy validation
+    const paynodeNetwork = isSandbox ? 'testnet' : 'mainnet';
+    if (!headers['X-PayNode-Network']) {
+        headers['X-PayNode-Network'] = paynodeNetwork;
+    }
 
     // Auto-sniff JSON body for manual data
     if (options.data && !headers['Content-Type'] && !headers['content-type']) {
@@ -155,19 +202,41 @@ async function executeCore(url: string, args: string[], options: UnifiedRequestO
     if (method === 'GET') {
         const urlObj = new URL(url);
         for (const [k, v] of Object.entries(kvParams)) {
-            urlObj.searchParams.append(k, v);
+            urlObj.searchParams.set(k, v);
         }
         targetUrl = urlObj.toString();
     } else {
         if (options.data) {
             requestOptions.body = options.data;
-        } else if (Object.keys(kvParams).length > 0) {
-            requestOptions.json = kvParams;
+        } else {
+            // [Smart Promotion] For POST/PUT, if no explicit body data is given but 
+            // query parameters exist (either in URL or as args), put them into JSON body.
+            const urlObj = new URL(url);
+            const combinedParams = { ...kvParams };
+
+            // If the user only passed the URL with query params (no extra args)
+            if (Object.keys(combinedParams).length === 0 && urlObj.searchParams.size > 0) {
+                for (const [k, v] of urlObj.searchParams.entries()) {
+                    combinedParams[k] = v;
+                }
+            }
+
+            if (Object.keys(combinedParams).length > 0) {
+                requestOptions.json = combinedParams;
+            }
         }
     }
 
     // Dry-run
     if (options.dryRun) {
+        const pkForAddress = GLOBAL_CONFIG.PRIVATE_KEY;
+        let walletAddr: string | undefined;
+        try {
+            if (pkForAddress && isJson) {
+                walletAddr = maskAddress((new ethers.Wallet(pkForAddress)).address);
+            }
+        } catch { /* skip if PK invalid */ }
+
         return {
             result: {
                 url: targetUrl,
@@ -179,12 +248,14 @@ async function executeCore(url: string, args: string[], options: UnifiedRequestO
                 data: null,
                 duration_ms: 0,
                 dry_run: true,
-                wallet: (new ethers.Wallet(pk)).address,
+                wallet: walletAddr,
                 message: 'Dry-run: request prepared but not sent.'
             },
             contentType: 'application/json'
         };
     }
+
+    const pk = getPrivateKey(isJson);
 
     const client = new PayNodeAgentClient(pk, rpcUrls);
     const response = await withRetry(
@@ -239,7 +310,7 @@ async function executeAndWrite(url: string, args: string[], options: UnifiedRequ
 
     try {
         const { result, binaryBuffer, contentType } = await executeCore(url, args, options);
-        
+
         if (binaryBuffer) {
             const { dir, name } = parse(outputPath);
             const binaryPath = join(dir, `${name}.bin`);
@@ -284,7 +355,7 @@ export async function requestAction(url: string, args: string[], options: Unifie
     }
 
     const isJson = !!options.json;
-    
+
     try {
         if (!isJson && !options.dryRun) {
             console.error(`🌐 x402 Request: ${url}...`);

@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import { ethers } from '@paynodelabs/sdk-js';
 import {
     getPrivateKey,
     resolveNetwork,
@@ -6,14 +6,11 @@ import {
     reportError,
     jsonEnvelope,
     withRetry,
-    EXIT_CODES
+    EXIT_CODES,
+    BaseCliOptions
 } from '../utils.ts';
 
-interface CheckOptions {
-    network?: string;
-    rpc?: string;
-    json?: boolean;
-    confirmMainnet?: boolean;
+interface CheckOptions extends BaseCliOptions {
 }
 
 // Minimum gas threshold: 0.001 ETH (in wei)
@@ -26,7 +23,8 @@ export async function checkAction(options: CheckOptions) {
     try {
         const { provider, usdcAddress, chainId, networkName, isSandbox } = await resolveNetwork(
             options.rpc,
-            options.network
+            options.network,
+            options.rpcTimeout
         );
 
         // Mainnet safety gate
@@ -81,7 +79,7 @@ export async function checkAction(options: CheckOptions) {
             console.log(`⛽ **ETH (Gas)**:  ${ethValue.toFixed(6)} ETH  ${isGasReady ? '✅ Ready' : '⚠️ Low balance'}`);
             console.log(`💵 **USDC**:       ${usdcValue.toFixed(2)} USDC  ${isTokensReady ? '✅ Ready' : '❌ Empty'}`);
             console.log(`──────────────────────────────────────────────────`);
-            
+
             if (isGasReady && isTokensReady) {
                 console.log(`🚀 **Status**: Ready to handle x402 autonomous payments.`);
             } else {
@@ -89,16 +87,25 @@ export async function checkAction(options: CheckOptions) {
             }
 
             // Safety Warning for Burner Wallets (Mainnet Only)
-            if (!isSandbox && usdcValue > 50) {
+            if (!isSandbox && usdcValue > 10) {
                 console.warn(
                     `\n> [!CAUTION]\n> High balance detected ($${usdcValue.toFixed(2)} USDC). This is a burner wallet. \n> Consider sweeping excess funds to cold storage to minimize risk.`
                 );
             }
 
             if (!isGasReady) {
-                console.warn(
-                    `\n> [!WARNING]\n> Gas balance is critically low (< 0.001 ETH). Please deposit ETH to \`${address}\` on ${networkName}.`
-                );
+                if (isSandbox) {
+                    console.warn(
+                        `\n> [!WARNING]\n> Gas balance is critically low (< 0.001 ETH). Please deposit ETH to \`${address}\` on ${networkName}.`
+                    );
+                    console.warn(
+                        `> **Faucet**: [console.optimism.io/faucet](https://console.optimism.io/faucet) (Recommended)`
+                    );
+                } else {
+                    console.warn(
+                        `\n> [!WARNING]\n> Gas balance is critically low (< 0.001 ETH). Please deposit ETH to \`${address}\` on ${networkName}.`
+                    );
+                }
             }
             if (!isTokensReady) {
                 if (isSandbox) {
