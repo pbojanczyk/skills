@@ -1,10 +1,12 @@
 ---
 name: business-plan-video
-version: "1.0.0"
+version: 1.0.5
 displayName: "Business Plan Video Maker — Create Business Strategy and Plan Videos"
 description: >
   Business Plan Video Maker — Create Business Strategy and Plan Videos.
 metadata: {"openclaw": {"emoji": "📊", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
+homepage: https://nemovideo.com
+repository: https://github.com/nemovideo/nemovideo_skills
 ---
 
 # Business Plan Video Maker — Business Strategy and Plan Videos
