@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
-AIG Client — CLI wrapper for AI-Infra-Guard taskapi.
+A.I.G Client — CLI wrapper for AI-Infra-Guard taskapi.
 
 Usage:
     python3 aig_client.py scan-infra      --targets URL [URL ...]
     python3 aig_client.py scan-ai-tools   --server-url URL | --github-url URL | --local-path PATH
     python3 aig_client.py scan-agent      --agent-id NAME
-    python3 aig_client.py scan-model-safety --target-model MODEL --target-token TOKEN --target-base-url URL
+    python3 aig_client.py scan-model-safety --target-model MODEL --target-token TOKEN --target-base-url URL \
+        --eval-model MODEL --eval-token TOKEN --eval-base-url URL
     python3 aig_client.py check-result    [--session-id ID]
     python3 aig_client.py list-agents
-    python3 aig_client.py upload          --file PATH
 
 Environment:
-    AIG_BASE_URL   (optional) AIG server root, defaults to http://localhost:8088
+    AIG_BASE_URL   (required) A.I.G server root, e.g. http://127.0.0.1:8088/
     AIG_API_KEY    (optional) API key for taskapi auth
     AIG_USERNAME   (optional) defaults to "openclaw"
 
@@ -33,7 +33,7 @@ from typing import Any
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-BASE_URL = os.environ.get("AIG_BASE_URL", "http://localhost:8088").rstrip("/")
+BASE_URL = os.environ.get("AIG_BASE_URL", "").strip().rstrip("/")
 API_KEY = os.environ.get("AIG_API_KEY", "")
 USERNAME = os.environ.get("AIG_USERNAME", "openclaw")
 
@@ -53,8 +53,14 @@ def _headers(content_type: str = "application/json") -> dict[str, str]:
 
 
 def _request(method: str, path: str, body: Any | None = None) -> Any:
-    """Make an HTTP request to AIG and return parsed data."""
-    # BASE_URL defaults to http://localhost:8088 if AIG_BASE_URL is not set
+    """Make an HTTP request to A.I.G and return parsed data."""
+    if not BASE_URL:
+        _die(
+            "AIG_BASE_URL is not configured.\n"
+            "Please set the A.I.G service address first, for example:\n"
+            "  http://127.0.0.1:8088/\n"
+            "  https://aig.example.com/"
+        )
 
     url = f"{BASE_URL}{path}"
     data = json.dumps(body).encode() if body is not None else None
@@ -63,26 +69,31 @@ def _request(method: str, path: str, body: Any | None = None) -> Any:
 
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
-            result = json.loads(resp.read().decode())
+            result = json.loads(resp.read())
     except urllib.error.HTTPError as e:
-        body_text = e.read().decode() if e.fp else ""
-        _die(f"AIG API {method} {path} -> HTTP {e.code}: {body_text}")
+        _die(f"A.I.G API {method} {path} -> HTTP {e.code}")
     except urllib.error.URLError as e:
         _die(
-            f"Cannot connect to AIG server at {BASE_URL}.\n"
-            f"Make sure AIG is running (docker compose up -d).\n"
+            f"Cannot connect to A.I.G server at {BASE_URL}.\n"
+            f"Make sure A.I.G is running (docker compose up -d).\n"
             f"Error: {e.reason}"
         )
 
     if result.get("status") != 0:
-        _die(f"AIG API error: {result.get('message', 'unknown error')}")
+        _die(f"A.I.G API error: {result.get('message', 'unknown error')}")
 
     return result.get("data")
 
 
 def _upload_file(file_path: str) -> dict:
     """Upload a file via multipart/form-data. Returns {fileUrl, filename, size}."""
-    # BASE_URL defaults to http://localhost:8088 if AIG_BASE_URL is not set
+    if not BASE_URL:
+        _die(
+            "AIG_BASE_URL is not configured.\n"
+            "Please set the A.I.G service address first, for example:\n"
+            "  http://127.0.0.1:8088/\n"
+            "  https://aig.example.com/"
+        )
 
     import mimetypes
 
@@ -117,7 +128,7 @@ def _upload_file(file_path: str) -> dict:
 
     try:
         with urllib.request.urlopen(req, timeout=120) as resp:
-            result = json.loads(resp.read().decode())
+            result = json.loads(resp.read())
     except urllib.error.HTTPError as e:
         _die(f"Upload failed -> HTTP {e.code}")
     except urllib.error.URLError as e:
@@ -142,7 +153,7 @@ def _print_json(data: Any) -> None:
 
 
 def _print_submission(session_id: str, task_type: str) -> None:
-    print(f"✅ AIG 任务已提交")
+    print(f"✅ A.I.G 任务已提交")
     print(f"Session ID: {session_id}")
     print(f"类型: {task_type}")
 
@@ -158,6 +169,25 @@ def _print_status(data: dict) -> None:
     log = data.get("log", "")
     if log:
         print(f"日志: {log[:500]}")
+
+
+def _normalize_github_url(url: str) -> str:
+    """Normalize GitHub file/tree URLs to repository root when possible."""
+    raw = url.strip()
+    if not raw:
+        return raw
+
+    parsed = urllib.parse.urlparse(raw)
+    if parsed.scheme not in ("http", "https") or parsed.netloc != "github.com":
+        return raw
+
+    parts = [p for p in parsed.path.split("/") if p]
+    if len(parts) < 2:
+        return raw
+
+    owner, repo = parts[0], parts[1]
+    normalized = f"{parsed.scheme}://{parsed.netloc}/{owner}/{repo}"
+    return normalized
 
 
 # ── Poll after submission ─────────────────────────────────────────────────────
@@ -198,7 +228,7 @@ def _submit_and_poll(task_type: str, content: dict) -> None:
     else:
         print(f"\n⏳ 任务仍在执行中 (状态: {st})")
         print(f"Session ID: {session_id}")
-        print(f"说明: AIG 后台继续执行，稍后可用以下命令查询:")
+        print(f"说明: A.I.G 后台继续执行，稍后可用以下命令查询:")
         print(f"  python3 aig_client.py check-result --session-id {session_id}")
 
 
@@ -273,7 +303,7 @@ def _format_result(result: Any, task_type: str) -> None:
             url = img if isinstance(img, str) else img.get("url", img.get("screenshot", ""))
             if url:
                 if url.startswith("https://"):
-                    print(f"  ![AIG screenshot {i}]({url})")
+                    print(f"  ![A.I.G screenshot {i}]({url})")
                 else:
                     print(f"  [📸 查看截图 {i}]({url})")
 
@@ -318,7 +348,7 @@ def cmd_scan_ai_tools(args: argparse.Namespace) -> None:
     if args.server_url:
         content["prompt"] = args.server_url
     elif args.github_url:
-        content["prompt"] = args.github_url
+        content["prompt"] = _normalize_github_url(args.github_url)
     elif args.local_path:
         print("📤 上传本地文件...")
         upload_data = _upload_file(args.local_path)
@@ -358,16 +388,15 @@ def cmd_scan_model_safety(args: argparse.Namespace) -> None:
             {
                 "model": args.target_model,
                 "token": args.target_token,
-                "base_url": args.target_base_url or "https://api.openai.com/v1",
+                "base_url": args.target_base_url,
             }
-        ]
-    }
-    if args.eval_model and args.eval_token:
-        content["eval_model"] = {
+        ],
+        "eval_model": {
             "model": args.eval_model,
             "token": args.eval_token,
-            "base_url": args.eval_base_url or "https://api.openai.com/v1",
-        }
+            "base_url": args.eval_base_url,
+        },
+    }
     if args.prompt:
         content["prompt"] = args.prompt
     else:
@@ -427,21 +456,12 @@ def cmd_list_agents(args: argparse.Namespace) -> None:
     print(f"\n共 {len(agents)} 个 Agent")
 
 
-def cmd_upload(args: argparse.Namespace) -> None:
-    print(f"📤 上传文件: {args.file}")
-    data = _upload_file(args.file)
-    print(f"✅ 上传成功")
-    print(f"  文件名: {data.get('filename')}")
-    print(f"  大小: {data.get('size', 0)} bytes")
-    print(f"  URL: {data.get('fileUrl')}")
-
-
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="AIG Client - AI-Infra-Guard security scanning CLI",
+        description="A.I.G Client - AI-Infra-Guard security scanning CLI",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     sub = parser.add_subparsers(dest="command", required=True)
@@ -471,7 +491,7 @@ def main() -> None:
 
     # scan-agent
     p = sub.add_parser("scan-agent", help="Agent Scan (Dify/Coze/custom agents)")
-    p.add_argument("--agent-id", required=True, help="Agent config name in AIG Web UI")
+    p.add_argument("--agent-id", required=True, help="Agent config name in A.I.G Web UI")
     p.add_argument("--language", default="zh", choices=["zh", "en"], help="Report language")
     p.add_argument("--eval-model", help="Eval model name")
     p.add_argument("--eval-token", help="Eval model token")
@@ -482,10 +502,10 @@ def main() -> None:
     p = sub.add_parser("scan-model-safety", help="LLM Jailbreak Evaluation (red-team)")
     p.add_argument("--target-model", required=True, help="Target LLM model name")
     p.add_argument("--target-token", required=True, help="Target model API token")
-    p.add_argument("--target-base-url", help="Target model base URL")
-    p.add_argument("--eval-model", help="Eval model name (optional)")
-    p.add_argument("--eval-token", help="Eval model token")
-    p.add_argument("--eval-base-url", help="Eval model base URL")
+    p.add_argument("--target-base-url", required=True, help="Target model base URL (required)")
+    p.add_argument("--eval-model", required=True, help="Evaluator model name (required)")
+    p.add_argument("--eval-token", required=True, help="Evaluator model token (required)")
+    p.add_argument("--eval-base-url", required=True, help="Evaluator model base URL (required)")
     p.add_argument(
         "--datasets", nargs="+",
         help="Dataset names (default: JailBench-Tiny). Options: JailBench-Tiny, JailbreakPrompts-Tiny, ChatGPT-Jailbreak-Prompts, JADE-db-v3.0, HarmfulEvalBenchmark",
@@ -502,10 +522,6 @@ def main() -> None:
     # list-agents
     sub.add_parser("list-agents", help="List visible Agent configs")
 
-    # upload
-    p = sub.add_parser("upload", help="Upload local archive for code scan")
-    p.add_argument("--file", required=True, help="File path (.zip, .tar.gz)")
-
     args = parser.parse_args()
     cmd_map = {
         "scan-infra": cmd_scan_infra,
@@ -514,7 +530,6 @@ def main() -> None:
         "scan-model-safety": cmd_scan_model_safety,
         "check-result": cmd_check_result,
         "list-agents": cmd_list_agents,
-        "upload": cmd_upload,
     }
     cmd_map[args.command](args)
 
