@@ -3,9 +3,15 @@
   "slug": "prediction-market-analyzer",
   "displayName": "Prediction Market Analyzer",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774340614680,
-    "commit": "https://github.com/openclaw/skills/commit/094c72f6d523455742b19f43a72321bd7925073f"
+    "version": "1.0.1",
+    "publishedAt": 1774839146760,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774340614680,
+      "commit": "https://github.com/openclaw/skills/commit/094c72f6d523455742b19f43a72321bd7925073f"
+    }
+  ]
 }
