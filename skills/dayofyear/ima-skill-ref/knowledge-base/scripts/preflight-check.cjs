@@ -40,7 +40,7 @@ Object.assign(CT_MAP, { 'text/x-markdown': 7, 'application/md': 7, 'application/
 
 const args = {};
 for (let i = 2; i < process.argv.length; i++) {
-  if (argv[i].startsWith('--') && i + 1 < process.argv.length) {
+  if (process.argv[i].startsWith('--') && i + 1 < process.argv.length) {
     args[process.argv[i].replace(/^--/, '')] = process.argv[++i];
   }
 }

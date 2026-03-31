@@ -5,7 +5,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const https = require('node:https');
 
-const REQUIRED = ['file','secret-id','secret-key','token','bucket','region','cos-key'];
+const REQUIRED = ['file','bucket','region','cos-key'];
 
 function parseArgs(argv) {
   const args = {};
@@ -16,6 +16,31 @@ function parseArgs(argv) {
     args[k] = v;
   }
   return args;
+}
+
+function loadCredentials(args) {
+  // 优先从凭证文件加载
+  if (args['cred-file']) {
+    try {
+      const credData = JSON.parse(fs.readFileSync(args['cred-file'], 'utf8'));
+      // 使用后删除临时凭证文件
+      try { fs.unlinkSync(args['cred-file']); } catch (e) { /* 忽略删除失败 */ }
+      return {
+        'secret-id': credData.secret_id,
+        'secret-key': credData.secret_key,
+        token: credData.token
+      };
+    } catch (e) {
+      console.error(`警告: 无法读取凭证文件: ${e.message}`);
+    }
+  }
+  
+  // 回退到命令行参数
+  return {
+    'secret-id': args['secret-id'],
+    'secret-key': args['secret-key'],
+    token: args.token
+  };
 }
 
 function hmacSha1(key, data) {
@@ -79,4 +104,14 @@ if (!fs.existsSync(args.file)) {
   console.error(`File not found: ${args.file}`);
   process.exit(1);
 }
-upload(args);
+
+// 加载凭证（优先从文件，其次从命令行参数）
+const credentials = loadCredentials(args);
+if (!credentials['secret-id'] || !credentials['secret-key'] || !credentials.token) {
+  console.error('Missing required credentials. Provide either --cred-file or --secret-id/--secret-key/--token');
+  process.exit(1);
+}
+
+// 合并凭证到args
+const uploadArgs = { ...args, ...credentials };
+upload(uploadArgs);

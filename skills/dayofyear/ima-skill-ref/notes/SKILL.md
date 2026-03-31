@@ -1,103 +1,92 @@
 # Notes
 
-前置：根SKILL.md凭证、`ima_api`函数。API路径: `openapi/note/v1`
+笔记管理模块：搜索、浏览、读取、新建、追加。
 
-支持：搜索笔记、浏览笔记本、读取正文、新建笔记、追加内容。
+## 脚本调用（推荐）
 
-> 群聊中只展示标题和摘要，禁止展示正文。
+前置：`IMA_OPENAPI_CLIENTID` + `IMA_OPENAPI_APIKEY` 或 `~/.config/ima/{client_id,api_key}`
 
-## 接口决策
+### search - 搜索笔记
+```
+node notes/scripts/notes-ops.cjs search --query <关键词> [--type title|content] [--start 0] [--end 20] [--json]
+```
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| `--query` | ✅ | 搜索关键词 |
+| `--type` | ❌ | `title`(默认) 或 `content` |
+| `--start` | ❌ | 起始位置，默认0 |
+| `--end` | ❌ | 结束位置，默认20 |
 
-| 意图 | 接口 | 关键参数 |
-|------|------|----------|
-| 搜索笔记（标题） | `search_note_book` | search_type=0、query_info.title |
-| 搜索笔记（正文） | `search_note_book` | search_type=1、query_info.content |
-| 列出笔记本 | `list_note_folder_by_cursor` | cursor="0"、limit |
-| 浏览笔记本里的笔记 | `list_note_by_folder_id` | folder_id（空=全部笔记）、cursor="" |
-| 读取正文 | `get_doc_content` | doc_id、target_content_format（推荐0） |
-| 新建笔记 | `import_doc` | content_format=1、content |
-| 追加到已有笔记 | `append_doc` | doc_id、content_format=1、content |
-
-## 新建 vs 追加
-
-### 直接新建
-"**新建**笔记"、"**创建**笔记"、"**写一篇**笔记" → `import_doc`
-
-### 直接追加
-"**追加到**《XX》"、"在那篇笔记**末尾加上**" → `append_doc`
-
-### 必须先询问
-意图不明确时，**必须先确认**：
-- "帮我记一下"、"保存为笔记"
-- "添加到笔记里"
-
-询问示例："您是想**创建新笔记**还是**追加到已有笔记**？"
-
-## 追加是敏感操作
-
-追加会**不可撤销修改**用户笔记：
-
-| 情况 | 处理 |
-|------|------|
-| 用户明确指定目标笔记 | 直接追加 |
-| 用户未明确指定 | 必须先询问确认 |
-
-## 常用流程
-
-### 搜索并读取
-```bash
-# 搜索（⚠️query_info.title不能为空，否则报错）
-ima_api "openapi/note/v1/search_note_book" '{"search_type":0,"query_info":{"title":"关键词"},"start":0,"end":20}'
-# 从 docs[].doc.basic_info.docid 取ID
-
-# 读取（纯文本）
-ima_api "openapi/note/v1/get_doc_content" '{"doc_id":"<id>","target_content_format":0}'
+### list-folders - 列出笔记本
+```
+node notes/scripts/notes-ops.cjs list-folders [--cursor "0"] [--limit 20] [--json]
 ```
 
-### 浏览笔记本
-```bash
-# 列出笔记本
-ima_api "openapi/note/v1/list_note_folder_by_cursor" '{"cursor":"0","limit":20}'
+### list-notes - 浏览笔记本内的笔记
+```
+node notes/scripts/notes-ops.cjs list-notes [--folder-id <id>] [--cursor ""] [--limit 20] [--json]
+```
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| `--folder-id` | ❌ | 空=全部笔记 |
 
-# 浏览某笔记本（空folder_id=全部笔记）
-ima_api "openapi/note/v1/list_note_by_folder_id" '{"folder_id":"","cursor":"","limit":20}'
+### read - 读取笔记正文
+```
+node notes/scripts/notes-ops.cjs read --doc-id <id> [--format 0] [--json]
 ```
 
-### 新建笔记
+### create - 新建笔记
+```
+node notes/scripts/notes-ops.cjs create --content <markdown> [--title <标题>] [--json]
+```
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| `--content` | ✅ | Markdown正文 |
+| `--title` | ❌ | 标题（会自动加#前缀） |
+
+### append - 追加到已有笔记
+```
+node notes/scripts/notes-ops.cjs append --doc-id <id> --content <追加内容> [--json]
+```
+⚠️ 追加会不可撤销修改用户笔记，**必须先确认目标笔记**。
+
+## 手动API调用
+
+API路径：`openapi/note/v1`
+
+凭证处理已封装在脚本中，手动调用时需自行处理：
 ```bash
-ima_api "openapi/note/v1/import_doc" '{"content_format":1,"content":"# 标题\n\n正文"}'
-# 返回 doc_id
+# Bash
+curl -X POST "https://ima.qq.com/openapi/note/v1/<endpoint>" \
+  -H "ima-openapi-clientid: $IMA_CLIENT_ID" \
+  -H "ima-openapi-apikey: $IMA_API_KEY" \
+  -H "Content-Type: application/json" -d '<body>'
 ```
 
-### 追加内容
-```bash
-ima_api "openapi/note/v1/append_doc" '{"doc_id":"<id>","content_format":1,"content":"\n## 补充\n\n内容"}'
-```
-
-## 核心响应字段
-
-| 结构 | 路径 | 关键字段 |
-|------|------|----------|
-| 搜索结果 | docs[].doc.basic_info | docid、title、summary、folder_id |
-| 笔记本 | note_book_folders[].folder.basic_info | folder_id、name、folder_type |
-| 笔记列表 | note_book_list[].basic_info.basic_info | docid、title、summary |
-
-时间字段为Unix毫秒，展示时转可读格式。
-
-## 枚举值
-
-| 枚举 | 值 | 说明 |
+### 关键参数
+| 字段 | 值 | 说明 |
 |------|-----|------|
-| content_format | 0 | 纯文本 |
-| content_format | 1 | Markdown（写入必须用1） |
-| search_type | 0 | 按标题（默认） |
-| search_type | 1 | 按正文 |
-| folder_type | 0 | 用户自建 |
-| folder_type | 1 | 全部笔记（根目录） |
-| folder_type | 2 | 未分类 |
+| content_format | 1 | Markdown格式（写入必须用1） |
+| search_type | 0 | 按标题搜索 |
+| search_type | 1 | 按正文搜索 |
+| query_info.title | 字符串 | 标题搜索词（**不可为空**） |
+
+### 响应格式
+```json
+{ "code": 0, "msg": "...", "data": {...} }
+```
+- code=0：成功，从 `data` 提取字段
+- code≠0：失败，展示 `msg`
+
+### 核心字段路径
+| 数据 | 路径 |
+|------|------|
+| 搜索结果docid | data.docs[].doc.basic_info.docid |
+| 笔记标题 | data.docs[].doc.basic_info.title |
+| 笔记本folder_id | note_book_folders[].folder.basic_info.folder_id |
 
 ## 注意事项
 
-- `folder_id`不可为"0"。根目录ID格式`user_list_{userid}`，从folder_type=1获取
-- 笔记有大小上限，超限返回100009，拆分多次`append_doc`
-- **本地图片不支持**：过滤`![](file:///...)`等路径，告知用户
+- `folder_id` 不可为"0"，根目录ID格式 `user_list_{userid}`
+- 笔记有大小上限(100009)，超限需拆分多次append
+- 本地图片不支持(`file:///...`)，过滤并告知用户
