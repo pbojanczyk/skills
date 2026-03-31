@@ -4,6 +4,7 @@ import argparse
 import getpass
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -234,10 +235,38 @@ def _render_missing_credentials_guidance() -> str:
     )
 
 
+def _dedupe_preserve_order(values: List[str]) -> List[str]:
+    seen = set()
+    ordered: List[str] = []
+    for value in values:
+        if value in seen:
+            continue
+        seen.add(value)
+        ordered.append(value)
+    return ordered
+
+
+def _format_missing_named_resource(resource_label: str, missing_name: str, available_names: List[str]) -> str:
+    lines = [f"등록된 {resource_label}을(를) 찾지 못했습니다: {missing_name}"]
+    if available_names:
+        lines.append("현재 등록된 항목: " + ", ".join(available_names))
+    else:
+        lines.append("현재 등록된 항목이 없습니다.")
+    return "\n".join(lines)
+
+
 def _format_exception_message(exc: Exception) -> str:
     message = str(exc).strip() or exc.__class__.__name__
     if MISSING_CREDENTIALS_ERROR in message:
         return _render_missing_credentials_guidance()
+    if "keyword group not found:" in message:
+        missing_name = message.split("keyword group not found:", 1)[1].strip().strip("'")
+        available = [group.get("name") for group in list_groups() if group.get("name")]
+        return _format_missing_named_resource("키워드 그룹", missing_name, available)
+    if "watch rule not found:" in message:
+        missing_name = message.split("watch rule not found:", 1)[1].strip().strip("'")
+        available = [rule.get("name") for rule in list_rules() if rule.get("name")]
+        return _format_missing_named_resource("watch rule", missing_name, available)
     return f"ERROR: {message}"
 
 
@@ -317,6 +346,28 @@ def _run_rule(rule: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def _format_watch_status_lines(entry: Dict[str, Any]) -> List[str]:
+    rule = entry["rule"]
+    summary = entry["summary"]
+    items = entry.get("all_items", [])
+    now = datetime.now().strftime("%m월 %d일 %H:%M")
+    query = summary.get("query") or rule.get("search_query") or rule.get("name")
+    current_top_count = len(items)
+    new_count = summary["new_count"]
+    lines = [
+        f"## {rule['name']}",
+        f"- {now} 기준, '{query}' 관련 상위 {current_top_count}건을 확인했고 이번 체크에서 신규 기사 {new_count}건이 추가됐습니다.",
+        f"- 전체 검색 결과: {summary.get('total', 0)}건",
+        f"- 이번 확인 신규 기사: {new_count}건",
+        f"- 현재 검색 상위 기사 수: {current_top_count}건",
+    ]
+    if items:
+        latest_pub = next((item.get("pub_date_iso") or item.get("pub_date") for item in items if item.get("pub_date_iso") or item.get("pub_date")), None)
+        if latest_pub:
+            lines.append(f"- 현재 기준 최신 기사 시각: {latest_pub}")
+    return lines
+
+
 def cmd_watch_check(args: argparse.Namespace) -> int:
     targets = [get_rule(args.name_or_id)] if args.name_or_id else list_rules()
     payload = [_run_rule(rule) for rule in targets]
@@ -329,7 +380,7 @@ def cmd_watch_check(args: argparse.Namespace) -> int:
     lines: List[str] = []
     for entry in payload:
         rule = entry["rule"]
-        lines.append(f"## {rule['name']} ({entry['summary']['new_count']}건 신규)")
+        lines.extend(_format_watch_status_lines(entry))
         lines.extend(_brief_lines({
             "query": rule["search_query"],
             "exclude_words": rule["exclude_words"],
@@ -339,7 +390,7 @@ def cmd_watch_check(args: argparse.Namespace) -> int:
             "filtered_out": entry["summary"]["filtered_out"],
             "too_old": entry["summary"]["too_old"],
             "items": entry["new_items"],
-        }, title=f"watch: {rule['name']}"))
+        }, title=f"watch: {rule['name']} 신규 기사 요약"))
         lines.append("")
     print("\n".join(lines).strip())
     return 0
@@ -452,7 +503,9 @@ def cmd_integration_plan(args: argparse.Namespace) -> int:
         assistant_channel=args.channel,
     )
     if args.output:
-        with open(args.output, "w", encoding="utf-8") as fp:
+        output_path = Path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, "w", encoding="utf-8") as fp:
             json.dump(bundle, fp, ensure_ascii=False, indent=2)
     _print_payload(bundle, as_json=args.json, render_text=render_integration_bundle_text)
     return 0
@@ -470,8 +523,12 @@ def cmd_plan_save(args: argparse.Namespace) -> int:
         tags.append("watch")
     if plan.query_mode == "group":
         tags.append("group")
+    tags = _dedupe_preserve_order(tags)
     if not plan.queries:
         raise ValueError("저장 가능한 주제 키워드를 찾지 못했습니다. 요청에 관심 주제를 포함해 주세요.")
+
+    if args.as_type == "watch" and plan.query_mode == "group":
+        raise ValueError("여러 주제를 포함한 그룹형 브리핑 요청입니다. --as group 으로 저장해 주세요.")
 
     if args.as_type == "group" or plan.query_mode == "group":
         group = create_group(
