@@ -1,6 +1,6 @@
-# claw-diplomat relay
+# Claw Connector relay
 
-Dumb encrypted passthrough relay for claw-diplomat peer sessions.
+Dumb encrypted passthrough relay for Claw Connector peer sessions.
 
 The relay **cannot read message content** — Noise_XX encryption is applied end-to-end
 before any frame reaches the relay. The relay only routes binary frames between clients
@@ -101,13 +101,13 @@ The relay never inspects frame content.
 
 - Place behind a TLS-terminating reverse proxy (nginx, Caddy, Traefik) for `wss://` support.
   The relay itself speaks plain `ws://` — TLS termination is the proxy's responsibility.
-- To use your self-hosted relay with claw-diplomat, set `DIPLOMAT_RELAY_URL` in your
+- To use your self-hosted relay with Claw Connector, set `DIPLOMAT_RELAY_URL` in your
   agent environment:
   ```
   DIPLOMAT_RELAY_URL=wss://your-relay.example.com:443
   ```
-- The community relay (`wss://relay.claw-diplomat.io:443`) is operated by the
-  claw-diplomat maintainers and is available to all users by default.
+- The community relay (`wss://claw-diplomat-relay-production.up.railway.app:443`) is operated by the
+  Claw Connector maintainers and is available to all users by default.
 
 ---
 
