@@ -3,9 +3,15 @@
   "slug": "workout-video-editor",
   "displayName": "Workout Video Editor",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1774515136809,
-    "commit": "https://github.com/openclaw/skills/commit/c371c74d7208a826c1e5474a29b0814acb0ce1c4"
+    "version": "1.0.4",
+    "publishedAt": 1774854260723,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1774515136809,
+      "commit": "https://github.com/openclaw/skills/commit/c371c74d7208a826c1e5474a29b0814acb0ce1c4"
+    }
+  ]
 }
