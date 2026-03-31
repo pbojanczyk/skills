@@ -1,6 +1,6 @@
 # OpenClaw Integration
 
-Complete setup and usage guide for integrating the self-improvement skill with OpenClaw.
+Complete setup and usage guide for integrating the verified-capability-evolver skill with OpenClaw.
 
 ## Overview
 
@@ -31,13 +31,13 @@ OpenClaw uses workspace-based prompt injection combined with event-driven hooks.
 ### 1. Install the Skill
 
 ```bash
-clawdhub install self-improving-agent
+clawdhub install verified-capability-evolver
 ```
 
 Or copy manually:
 
 ```bash
-cp -r self-improving-agent ~/.openclaw/skills/
+cp -r verified-capability-evolver ~/.openclaw/skills/
 ```
 
 ### 2. Install the Hook (Optional)
@@ -45,13 +45,13 @@ cp -r self-improving-agent ~/.openclaw/skills/
 Copy the hook to OpenClaw's hooks directory:
 
 ```bash
-cp -r hooks/openclaw ~/.openclaw/hooks/self-improvement
+cp -r hooks/openclaw ~/.openclaw/hooks/verified-capability-evolver
 ```
 
 Enable the hook:
 
 ```bash
-openclaw hooks enable self-improvement
+openclaw hooks enable verified-capability-evolver
 ```
 
 ### 3. Create Learning Files
@@ -65,7 +65,7 @@ mkdir -p ~/.openclaw/workspace/.learnings
 Or in the skill directory:
 
 ```bash
-mkdir -p ~/.openclaw/skills/self-improving-agent/.learnings
+mkdir -p ~/.openclaw/skills/verified-capability-evolver/.learnings
 ```
 
 ## Injected Prompt Files
@@ -114,8 +114,8 @@ Purpose: Tool capabilities, integration gotchas, local configuration.
 ```markdown
 # Tool Knowledge
 
-## Self-Improvement Skill
-Log learnings to `.learnings/` for continuous improvement.
+## Verified Capability Evolver Skill
+Log learnings to `.learnings/` for continuous improvement. Promote only after verification PASS when permanent behavior changes are involved.
 
 ## Local Tools
 - Document tool-specific gotchas here

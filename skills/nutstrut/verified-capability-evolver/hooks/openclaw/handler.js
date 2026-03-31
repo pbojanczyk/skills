@@ -6,7 +6,7 @@
  */
 
 const REMINDER_CONTENT = `
-## Self-Improvement Reminder
+## Verified Capability Evolver Reminder
 
 After completing tasks, evaluate if any learnings should be captured:
 
@@ -17,12 +17,12 @@ After completing tasks, evaluate if any learnings should be captured:
 - You discover your knowledge was wrong → \`.learnings/LEARNINGS.md\`
 - You find a better approach → \`.learnings/LEARNINGS.md\`
 
-**Promote when pattern is proven:**
+**Promote only after verification PASS:**
 - Behavioral patterns → \`SOUL.md\`
 - Workflow improvements → \`AGENTS.md\`
 - Tool gotchas → \`TOOLS.md\`
 
-Keep entries simple: date, title, what happened, what to do differently.
+Keep entries simple: date, title, what happened, what to do differently. For permanent behavior changes, define a verification spec before promotion.
 `.trim();
 
 const handler = async (event) => {
@@ -45,7 +45,7 @@ const handler = async (event) => {
   // Check that bootstrapFiles is an array before pushing
   if (Array.isArray(event.context.bootstrapFiles)) {
     event.context.bootstrapFiles.push({
-      path: 'SELF_IMPROVEMENT_REMINDER.md',
+      path: 'VERIFIED_CAPABILITY_EVOLVER_REMINDER.md',
       content: REMINDER_CONTENT,
       virtual: true,
     });

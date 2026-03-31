@@ -1,31 +1,88 @@
 ---
 name: verified-capability-evolver
-description: "Extends Capability Evolver with verification, rollback, and promotion gating. Use when an agent logs a learning, proposes a self-improvement, or wants to promote a learning to permanent memory. Before promotion, define a deterministic spec, verify actual output via SettlementWitness, then PASS → promote with receipt_id, FAIL → rollback and log counter-evidence, INDETERMINATE → hold for review." Verification is performed via an external SettlementWitness service. This skill defines the verification requirement and workflow but does not embed API clients or credentials; integration is handled by the runtime or connected verification layer.
+description: "Safely improve agent capabilities with structured verification, rollback, and promotion gating. Enhances existing evolution workflows with optional SettlementWitness verification."
 metadata:
 ---
 
-# Verified Capability Evolver — powered by SettlementWitness
+# Verified Capability Evolver
 
-This verified version ensures every promoted learning is externally validated by SettlementWitness, preventing incorrect patterns from becoming permanent agent behavior.
-Log learnings and errors for continuous improvement, but do not allow permanent self-modification unless the improvement is verified. This skill adds a verification gate before promotion to project memory, attaches SettlementWitness receipts to promoted learnings, and requires rollback when a promoted learning later fails verification.
+Extend existing capability evolution workflows with structured verification, rollback, and promotion gating.
 
+This skill does **not** replace the underlying self-improvement system. It preserves the original learning, hook, and extraction workflow while adding a verification layer so permanent behavior changes are only promoted when they are proven.
+
+## Data handling and trust
+
+This skill defines a **verification workflow**, not automatic data transmission.
+
+- Only structured task data (spec + output) should be used for verification
+- Do NOT include secrets, API keys, credentials, private keys, seed phrases, or personal data
+- SettlementWitness integration is runtime-controlled and should be used only with explicit user approval
+- Verification is applied to **selected learnings and promotion events**, not all agent activity
 
 ## Core Principle
+
+
+## Example Usage
+
+### Scenario
+
+An agent repeatedly generates invalid JSON for an API response. A fix is applied, but before promoting this as permanent behavior, the improvement must be verified.
+
+### Learning Entry (Before Resolution)
+
+## [LRN-20260329-001] correction
+
+**Status**: pending
+
+### Summary
+Agent produced invalid JSON format for API responses
+
+### Suggested Action
+Ensure all outputs conform to required schema before returning
+
+### Verification Spec
+
+{
+  "expected": {
+    "valid_json": true,
+    "matches_schema": true
+  }
+}
+
+### Verification Result
+
+{
+  "valid_json": true,
+  "matches_schema": true
+}
+
+### Outcome
+
+- Verification returns PASS  
+- Status → resolved  
+- Learning becomes eligible for promotion  
+- Receipt metadata can be attached (if verification used)  
+
+### What This Shows
+
+- Improvements must be proven, not assumed  
+- Promotion is gated by verification  
+- Failed fixes do not become permanent behavior  
+
 
 An agent should not just improve — it should **prove that it improved**.
 
 The highest-stakes moment in self-improvement is promotion to permanent memory. A temporary fix becomes permanent behavior only after it passes verification.
 
-## Agent Identity (Required)
+## Agent Identity (Required for TrustScore)
 
-All SettlementWitness verification calls must use a stable agent_id:
+When using SettlementWitness verification, provide a stable agent_id:
 
 ```text
 {wallet_address}:capability-evolver
 ```
 
-Use the format {wallet_address}:capability-evolver so TrustScore history compounds correctly across sessions.
-
+Use the format `{wallet_address}:capability-evolver` so TrustScore history can compound correctly across sessions.
 
 ## Quick Reference
 
@@ -38,15 +95,15 @@ Use the format {wallet_address}:capability-evolver so TrustScore history compoun
 | Knowledge was outdated | Log to `.learnings/LEARNINGS.md` with category `knowledge_gap` |
 | Found better approach | Log to `.learnings/LEARNINGS.md` with category `best_practice` |
 | Learning is marked `resolved` | Define verification spec before promotion |
-| Promotion to permanent memory is being considered | Call SettlementWitness first |
-| SettlementWitness returns PASS | Promote and attach `receipt_id` |
-| SettlementWitness returns FAIL | Roll back and log counter-evidence |
-| SettlementWitness returns INDETERMINATE | Hold for review, do not promote |
+| Promotion to permanent memory is being considered | Verify first |
+| Verification returns PASS | Promote and attach `receipt_id` |
+| Verification returns FAIL | Roll back and log counter-evidence |
+| Verification returns INDETERMINATE | Hold for review, do not promote |
 | Simplify/Harden recurring patterns | Log/update `.learnings/LEARNINGS.md` with `Source: simplify-and-harden` and a stable `Pattern-Key` |
 | Similar to existing entry | Link with `**See Also**`, consider priority bump |
-| Workflow improvements | Promote to `AGENTS.md` (OpenClaw workspace) after PASS |
-| Tool gotchas | Promote to `TOOLS.md` (OpenClaw workspace) after PASS |
-| Behavioral patterns | Promote to `SOUL.md` (OpenClaw workspace) after PASS |
+| Workflow improvements | Promote to `AGENTS.md` (OpenClaw workspace) after verification PASS |
+| Tool gotchas | Promote to `TOOLS.md` (OpenClaw workspace) after verification PASS |
+| Behavioral patterns | Promote to `SOUL.md` (OpenClaw workspace) after verification PASS |
 
 ## OpenClaw Setup (Recommended)
 
@@ -61,10 +118,8 @@ clawdhub install verified-capability-evolver
 
 **Manual:**
 ```bash
-git clone https://github.com/peterskoett/self-improving-agent.git ~/.openclaw/skills/verified-capability-evolver
+git clone https://github.com/your-org/verified-capability-evolver.git ~/.openclaw/skills/verified-capability-evolver
 ```
-
-Remade for openclaw from original repo : https://github.com/pskoett/pskoett-ai-skills - https://github.com/pskoett/pskoett-ai-skills/tree/main/skills/self-improvement
 
 ### Workspace Structure
 
@@ -175,7 +230,7 @@ Full context: what happened, what was wrong, what's correct
 Specific fix or improvement to make
 
 ### Metadata
-- Source: conversation | error | user_feedback
+- Source: conversation | error | user_feedback | simplify-and-harden
 - Related Files: path/to/file.ext
 - Tags: tag1, tag2
 - See Also: LRN-20250110-001 (if related to existing entry)
@@ -276,16 +331,13 @@ When an issue appears fixed, do **not** immediately treat it as permanent learni
    - What output should be produced?
    - What failure should no longer occur?
 4. Execute a verification task using that spec
-5. Call SettlementWitness with:
-   - `task_id`
-   - `agent_id`
-   - `spec`
-   - `output`
-6. Interpret the result:
+5. If external verification is being used, obtain explicit approval before submitting minimal structured task data
+6. Verify the result using SettlementWitness or an equivalent deterministic verifier
+7. Interpret the result:
 
 #### PASS
 - Change `**Status**` → `resolved`
-- Record receipt metadata
+- Record verification metadata
 - Eligible for promotion
 
 #### FAIL
@@ -340,12 +392,12 @@ When a learning is broadly applicable (not a one-off fix), promote it to permane
 ### How to Promote
 
 Promotion is the highest-stakes moment in the workflow because it turns a temporary fix into permanent agent behavior.
-A learning is only promoted to permanent memory (CLAUDE.md / AGENTS.md / SOUL.md) if SettlementWitness returns PASS. All other verdicts (FAIL or INDETERMINATE) trigger rollback and logging.
+A learning is only promoted to permanent memory if verification returns PASS. All other verdicts (FAIL or INDETERMINATE) trigger rollback and logging.
 Promotion is strictly gated by verification. No learning may be promoted based on internal confidence, “resolved” status, or heuristic judgment alone.
 
 1. **Distill** the learning into a concise rule or fact
 2. **Define** a verification spec for the claimed improvement
-3. **Run** a verification task and call SettlementWitness
+3. **Run** a verification task
 4. **Promote only on PASS**
 5. **Add** to the appropriate target file (create file if needed)
 6. **Attach** verification metadata to the original entry:
@@ -354,14 +406,10 @@ Promotion is strictly gated by verification. No learning may be promoted based o
    - Add `**Verified**: true`
    - Add `**Receipt ID**: sha256:...`
 
-If SettlementWitness returns FAIL:
-- immediately revert the proposed learning
-- log counter-evidence
-- do not promote
-
-If SettlementWitness returns INDETERMINATE:
-- hold for review (no promotion allowed)
-- do not promote
+If external verification is used:
+- never send secrets, credentials, or hidden system prompts
+- only submit minimal structured task data
+- require explicit approval before submission
 
 ### Promotion Examples
 
@@ -393,7 +441,7 @@ If a previously promoted learning later fails verification:
 1. Remove or revert the learning from permanent memory
 2. Log the counter-evidence in `.learnings/LEARNINGS.md` or `.learnings/ERRORS.md`
 3. Mark the learning as invalid or pending rework
-4. Avoid re-promoting until a new PASS receipt exists
+4. Avoid re-promoting until a new PASS result exists
 
 Rollback is required because unverified permanent memory silently compounds bad behavior.
 
@@ -627,8 +675,9 @@ This injects a learning evaluation reminder after each prompt (~50-100 tokens ov
 
 | Script | Hook Type | Purpose |
 |--------|-----------|---------|
-| `scripts/activator.sh` | UserPromptSubmit | Reminds to evaluate learnings after tasks |
+| `scripts/activator.sh` | UserPromptSubmit | Reminds to evaluate learnings after tasks and verify before promotion |
 | `scripts/error-detector.sh` | PostToolUse (Bash) | Triggers on command errors |
+| `scripts/extract-skill.sh` | manual helper | Extracts reusable skills from learnings |
 
 See `references/hooks-setup.md` for detailed configuration and troubleshooting.
 
@@ -653,8 +702,8 @@ A learning qualifies for skill extraction when ANY of these apply:
 1. **Identify candidate**: Learning meets extraction criteria
 2. **Run helper** (or create manually):
    ```bash
-   ./skills/self-improvement/scripts/extract-skill.sh skill-name --dry-run
-   ./skills/self-improvement/scripts/extract-skill.sh skill-name
+   ./skills/verified-capability-evolver/scripts/extract-skill.sh skill-name --dry-run
+   ./skills/verified-capability-evolver/scripts/extract-skill.sh skill-name
    ```
 3. **Customize SKILL.md**: Fill in template with learning content
 4. **Update learning**: Set status to `promoted_to_skill`, add `Skill-Path`
@@ -666,36 +715,10 @@ If you prefer manual creation:
 
 1. Create `skills/<skill-name>/SKILL.md`
 2. Use template from `assets/SKILL-TEMPLATE.md`
-3. Follow [Agent Skills spec](https://agentskills.io/specification):
+3. Follow the agent skills spec:
    - YAML frontmatter with `name` and `description`
    - Name must match folder name
    - No README.md inside skill folder
-
-### Extraction Detection Triggers
-
-Watch for these signals that a learning should become a skill:
-
-**In conversation:**
-- "Save this as a skill"
-- "I keep running into this"
-- "This would be useful for other projects"
-- "Remember this pattern"
-
-**In learning entries:**
-- Multiple `See Also` links (recurring issue)
-- High priority + resolved status
-- Category: `best_practice` with broad applicability
-- User feedback praising the solution
-
-### Skill Quality Gates
-
-Before extraction, verify:
-
-- [ ] Solution is tested and working
-- [ ] Description is clear without original context
-- [ ] Code examples are self-contained
-- [ ] No project-specific hardcoded values
-- [ ] Follows skill naming conventions (lowercase, hyphens)
 
 ## Multi-Agent Support
 
@@ -719,12 +742,13 @@ This skill works across different AI coding agents with agent-specific activatio
 **Setup**: Add to `.github/copilot-instructions.md`:
 
 ```markdown
-## Self-Improvement
+## Verified Capability Evolver
 
 After solving non-obvious issues, consider logging to `.learnings/`:
-1. Use format from self-improvement skill
+1. Use the format from this skill
 2. Link related entries with See Also
-3. Promote high-value learnings to skills
+3. Define verification specs before promotion
+4. Promote only after verification PASS
 
 Ask in chat: "Should I log this as a learning?"
 ```
@@ -739,7 +763,7 @@ Ask in chat: "Should I log this as a learning?"
 
 ### Agent-Agnostic Guidance
 
-Regardless of agent, apply self-improvement when you:
+Regardless of agent, apply verified evolution when you:
 
 1. **Discover something non-obvious** - solution wasn't immediate
 2. **Correct yourself** - initial approach was wrong
@@ -751,9 +775,10 @@ Regardless of agent, apply self-improvement when you:
 
 For Copilot users, add this to your prompts when relevant:
 
-> After completing this task, evaluate if any learnings should be logged to `.learnings/` using the self-improvement skill format.
+> After completing this task, evaluate if any learnings should be logged to `.learnings/` and whether any claimed improvement needs verification before promotion.
 
 Or use quick prompts:
 - "Log this to learnings"
 - "Create a skill from this solution"
 - "Check .learnings/ for related issues"
+- "Define a verification spec for this fix"

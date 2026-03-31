@@ -1,6 +1,6 @@
 # Hook Setup Guide
 
-Configure automatic self-improvement triggers for AI coding agents.
+Configure automatic verified-capability-evolver triggers for AI coding agents.
 
 ## Overview
 
@@ -23,7 +23,7 @@ Create `.claude/settings.json` in your project root:
         "hooks": [
           {
             "type": "command",
-            "command": "./skills/self-improvement/scripts/activator.sh"
+            "command": "./skills/verified-capability-evolver/scripts/activator.sh"
           }
         ]
       }
@@ -34,7 +34,7 @@ Create `.claude/settings.json` in your project root:
         "hooks": [
           {
             "type": "command",
-            "command": "./skills/self-improvement/scripts/error-detector.sh"
+            "command": "./skills/verified-capability-evolver/scripts/error-detector.sh"
           }
         ]
       }
@@ -56,7 +56,7 @@ Add to `~/.claude/settings.json` for global activation:
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/skills/self-improvement/scripts/activator.sh"
+            "command": "~/.claude/skills/verified-capability-evolver/scripts/activator.sh"
           }
         ]
       }
@@ -78,7 +78,7 @@ For lower overhead, use only the UserPromptSubmit hook:
         "hooks": [
           {
             "type": "command",
-            "command": "./skills/self-improvement/scripts/activator.sh"
+            "command": "./skills/verified-capability-evolver/scripts/activator.sh"
           }
         ]
       }
@@ -100,7 +100,7 @@ Codex uses the same hook system as Claude Code. Create `.codex/settings.json`:
         "hooks": [
           {
             "type": "command",
-            "command": "./skills/self-improvement/scripts/activator.sh"
+            "command": "./skills/verified-capability-evolver/scripts/activator.sh"
           }
         ]
       }
@@ -114,7 +114,7 @@ Codex uses the same hook system as Claude Code. Create `.codex/settings.json`:
 Copilot doesn't support hooks directly. Instead, add guidance to `.github/copilot-instructions.md`:
 
 ```markdown
-## Self-Improvement
+## Verified Capability Evolver
 
 After completing tasks that involved:
 - Debugging non-obvious issues
@@ -122,10 +122,15 @@ After completing tasks that involved:
 - Learning project-specific patterns
 - Resolving unexpected errors
 
-Consider logging the learning to `.learnings/` using the format from the self-improvement skill.
+Consider logging the learning to `.learnings/` using the format from the verified-capability-evolver skill.
 
 For high-value learnings that would benefit other sessions, consider skill extraction.
 ```
+
+
+## Verification Gate
+
+When a learning is likely to become permanent behavior, define a deterministic verification spec and promote only after verification returns PASS.
 
 ## Verification
 
@@ -134,7 +139,7 @@ For high-value learnings that would benefit other sessions, consider skill extra
 1. Enable the hook configuration
 2. Start a new Claude Code session
 3. Send any prompt
-4. Verify you see `<self-improvement-reminder>` in the context
+4. Verify you see `<verified-capability-evolver-reminder>` in the context
 
 ### Test Error Detector Hook
 
@@ -145,7 +150,7 @@ For high-value learnings that would benefit other sessions, consider skill extra
 ### Dry Run Extract Script
 
 ```bash
-./skills/self-improvement/scripts/extract-skill.sh test-skill --dry-run
+./skills/verified-capability-evolver/scripts/extract-skill.sh test-skill --dry-run
 ```
 
 Expected output shows the skill scaffold that would be created.
@@ -162,9 +167,9 @@ Expected output shows the skill scaffold that would be created.
 ### Permission Denied
 
 ```bash
-chmod +x ./skills/self-improvement/scripts/activator.sh
-chmod +x ./skills/self-improvement/scripts/error-detector.sh
-chmod +x ./skills/self-improvement/scripts/extract-skill.sh
+chmod +x ./skills/verified-capability-evolver/scripts/activator.sh
+chmod +x ./skills/verified-capability-evolver/scripts/error-detector.sh
+chmod +x ./skills/verified-capability-evolver/scripts/extract-skill.sh
 ```
 
 ### Script Not Found
@@ -173,7 +178,7 @@ If using relative paths, ensure you're in the correct directory or use absolute 
 
 ```json
 {
-  "command": "/absolute/path/to/skills/self-improvement/scripts/activator.sh"
+  "command": "/absolute/path/to/skills/verified-capability-evolver/scripts/activator.sh"
 }
 ```
 
