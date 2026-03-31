@@ -16,7 +16,7 @@ set -euo pipefail
 #   - --generate-only: TTS MP3 only, no sending
 
 WORKSPACE="${OPENCLAW_WORKSPACE:-$HOME/.openclaw/workspace}"
-SKILL_DIR="$WORKSPACE/skills/minimax-tts-plus"
+SKILL_DIR="$WORKSPACE/skills/voice-for-openclaw"
 TTS_PY="$SKILL_DIR/scripts/tts.py"
 AUDIO_DIR="$WORKSPACE/generated/tts-audio"
 FFMPEG="$(command -v ffmpeg 2>/dev/null || echo "")"

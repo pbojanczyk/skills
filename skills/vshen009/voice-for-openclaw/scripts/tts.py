@@ -14,7 +14,7 @@ API_BASE = "https://api.minimaxi.com"
 DEFAULT_VOICE = "Chinese (Mandarin)_Warm_Girl"
 DEFAULT_MODEL = "speech-2.8-turbo"
 WORKSPACE_DIR = os.path.expanduser("~/.openclaw/workspace")
-SKILL_DIR = os.path.join(WORKSPACE_DIR, "skills", "minimax-tts-cn")
+SKILL_DIR = os.path.join(WORKSPACE_DIR, "skills", "voice-for-openclaw")
 DEFAULT_OUTPUT_DIR = os.path.join(WORKSPACE_DIR, "generated", "tmp")
 ENV_FILE = os.path.join(SKILL_DIR, ".env")
 

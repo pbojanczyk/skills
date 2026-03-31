@@ -112,7 +112,7 @@ tts-xiaoye.sh --text "Text" [--voice VoiceID] [--model Model] [--caption Caption
 
 1. Copy `setup.txt` to `.env` and fill in your credentials:
 ```bash
-cp skills/minimax-tts-plus/setup.txt skills/minimax-tts-plus/.env
+cp skills/voice-for-openclaw/setup.txt skills/voice-for-openclaw/.env
 # Then edit .env with your real values
 ```
 
