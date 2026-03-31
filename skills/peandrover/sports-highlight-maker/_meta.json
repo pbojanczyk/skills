@@ -3,9 +3,15 @@
   "slug": "sports-highlight-maker",
   "displayName": "Sports Highlight Maker",
   "latest": {
-    "version": "1.0.1",
-    "publishedAt": 1774510185572,
-    "commit": "https://github.com/openclaw/skills/commit/bbc460d9df90daac401a52364853c9130cef3294"
+    "version": "1.0.5",
+    "publishedAt": 1774859773840,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.1",
+      "publishedAt": 1774510185572,
+      "commit": "https://github.com/openclaw/skills/commit/bbc460d9df90daac401a52364853c9130cef3294"
+    }
+  ]
 }
