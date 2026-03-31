@@ -2,7 +2,7 @@
 
 ## Contents
 
-- [Phase 6: CLI Auth](#phase-6-authenticate-with-secondme-develop-cli-auth)
+- [Phase 6: Skills Auth](#phase-6-authenticate-with-secondme-develop-skills-auth)
 - [Phase 7: Manage External OAuth Apps](#phase-7-manage-external-oauth-apps-on-secondme-develop)
   - [Developer Routes](#developer-routes)
   - [Public Routes](#public-routes)
@@ -16,38 +16,80 @@
   - [Manifest Shape](#manifest-shape)
   - [Field Rules](#field-rules)
   - [Create vs Update Rules](#create-vs-update-rules)
+- [Common Error Handling](#common-error-handling)
 
-## Phase 6: Authenticate With SecondMe Develop CLI Auth
+## Phase 6: Authenticate With SecondMe Develop (Skills Auth)
 
 Use the gateway base:
 
-- `https://app.mindos.com/gate/lab/api`
+- `https://app.mindos.com/gate/lab`
 
 Routes:
 
-- `POST /auth/cli/session`
-- `GET /auth/cli/session/{sessionId}/poll`
-- `POST /auth/cli/session/{sessionId}/authorize`
-- `POST /auth/cli/session/authorize-by-code`
+- `POST /api/auth/skills/token` — exchange auth code for access token (public, no auth required)
 
 Process:
 
-1. create a CLI auth session
-2. show the user:
-   - auth URL: `https://develop.second.me/auth/cli?session={sessionId}`
-   - `userCode`
-   - expiry time if available
-3. tell the user that if the page asks for a manual code, they should paste `userCode`
-4. poll until `authorized`, `expired`, or timeout
-5. if the token contains `|suffix`, strip the suffix and use only the substring before `|`
-6. if the token does not contain `|suffix`, use it as returned
-7. use that normalized token form for the rest of the session
+1. generate PKCE parameters locally:
 
-Poll states:
+```bash
+CODE_VERIFIER=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
+CODE_CHALLENGE=$(printf '%s' "$CODE_VERIFIER" | openssl dgst -sha256 -binary | openssl base64 -A | tr '+/' '-_' | tr -d '=')
+```
 
-- `pending`
-- `authorized`
-- `expired`
+2. direct the user to open `https://develop.second.me/auth/skills?challenge=<CODE_CHALLENGE>` in their browser
+3. the user logs in (if not already) and the page automatically generates a one-time authorization code (`lba_ac_xxx`)
+4. the user copies the code back to the terminal
+5. exchange the code for a token (include `codeVerifier` from step 1):
+
+```
+POST {BASE}/api/auth/skills/token
+Content-Type: application/json
+Body: { "code": "lba_ac_xxx", "codeVerifier": "<CODE_VERIFIER>" }
+```
+
+5. expected response:
+
+```json
+{
+  "code": 0,
+  "data": {
+    "accessToken": "lba_at_xxx",
+    "tokenType": "Bearer",
+    "expiresIn": 604800
+  }
+}
+```
+
+6. save the token to `~/.secondme/dev_credentials`:
+
+```json
+{
+  "accessToken": "lba_at_xxx",
+  "tokenType": "Bearer"
+}
+```
+
+7. use `Authorization: Bearer <accessToken>` for all subsequent API calls
+
+Credential file:
+
+- path: `~/.secondme/dev_credentials`
+- directory: `~/.secondme`
+- preferred permissions: directory `700`, file `600`
+
+Rules:
+
+1. if the task needs authentication, first try reading `~/.secondme/dev_credentials`
+2. if the file is missing, empty, or the token is expired/rejected (401), start the auth flow above
+3. after saving, continue using the stored value instead of re-asking
+4. never print the raw token in summaries
+
+Code rules:
+
+- the auth code starts with `lba_ac_` prefix
+- the code is valid for 5 minutes and single-use only
+- if the code is expired or already used, ask the user to generate a new one
 
 Route debugging rule:
 
@@ -273,3 +315,24 @@ Use these actions to cover the Develop list and detail pages:
 - if there is no match, prepare a create payload
 - if there are multiple plausible matches, ask the user which one to update
 - when manifest fields are incomplete, gather the missing facts and draft the integration payload yourself; do not default to telling the user to author the whole manifest manually
+
+## Common Error Handling
+
+All control-plane API responses follow the standard `{ "code": 0, "data": {...} }` structure. When `code` is not `0`, treat it as an error.
+
+Common HTTP-level and business-level errors:
+
+| Status / Code | Meaning | Action |
+|---------------|---------|--------|
+| 401 | Token expired or invalid | Delete `~/.secondme/dev_credentials` and restart Skills Auth flow |
+| 403 | Insufficient permissions or app banned | Report to user; do not retry with same token |
+| 404 | Resource not found (app/integration ID invalid) | Re-list resources to confirm correct ID |
+| 422 | Validation failed (manifest or app fields) | Inspect `result.message` for field-level issues and fix before retrying |
+| 429 | Rate limit exceeded | Wait and retry after a short delay |
+| 502 | Upstream service error | Retry once; if persistent, report to user |
+
+Rules:
+
+- always check `result.code` before consuming `result.data`
+- if a 401 is received, do not retry with the same token — delete stale credentials and re-authenticate
+- surface the error message to the user rather than silently swallowing failures

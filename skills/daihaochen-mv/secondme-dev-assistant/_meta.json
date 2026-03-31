@@ -3,9 +3,15 @@
   "slug": "secondme-dev-assistant",
   "displayName": "Secondme Dev Assistant",
   "latest": {
-    "version": "0.1.0",
-    "publishedAt": 1774255333367,
-    "commit": "https://github.com/openclaw/skills/commit/82206ba0320f5b03e7b6085cdf3a422f1651d7d3"
+    "version": "2.1.0",
+    "publishedAt": 1774858089930,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "0.1.0",
+      "publishedAt": 1774255333367,
+      "commit": "https://github.com/openclaw/skills/commit/82206ba0320f5b03e7b6085cdf3a422f1651d7d3"
+    }
+  ]
 }
