@@ -1,190 +1,123 @@
 ---
 name: real-estate-video-maker
-version: 1.0.1
-displayName: "Real Estate Video Maker — Create Property Listing and Virtual Tour Videos with AI"
+version: "2.0.1"
+displayName: "Real Estate Video Maker — Create Property Tours Listing Videos and Agent Marketing"
 description: >
-  Real Estate Video Maker — Create Property Listing and Virtual Tour Videos with AI.
-  NAR data says listings with walkthrough videos sell twenty-three percent faster —
-  yet most properties still go live with a dozen still photos and a prayer. Grab your
-  phone clips of each room, the aerial hero shot, and any staging photos. The AI
-  arranges them into a polished property tour: measured pacing between spaces, overlays
-  displaying square footage and asking price, tasteful piano that never drowns out
-  narration, and a closing frame bearing your brokerage name plus phone number. Build
-  a sixty-second Instagram cut and a full three-minute MLS cut from identical assets.
-  When the asking price drops, change one number and re-render without rebuilding the
-  project. Tailor-made for solo agents handling their own promotion, teams producing
-  walkthroughs across dozens of active addresses, and property management firms
-  showcasing rentals to tenants relocating sight-unseen from another city.
-  Supports mp4, mov, avi, webm, jpg, png.
+  Create property tours, listing videos, and agent marketing content with AI — produce cinematic property walkthroughs, aerial drone tours, neighborhood highlight reels, agent introduction videos, open house recaps, and virtual staging presentations from basic phone recordings. NemoVideo transforms raw property footage into listing-ready video: stabilize handheld walkthrough recordings, apply real estate color grading that makes interiors bright and inviting, add property detail overlays (price bedrooms bathrooms square footage), layer ambient music that matches property style, create neighborhood context segments, generate agent branded outros, and export for MLS YouTube Zillow social media and client presentations. Real estate video maker, property tour video AI, listing video creator, virtual tour maker, real estate marketing video, agent video tool, property walkthrough video, home tour video creator, realtor video maker.
 metadata: {"openclaw": {"emoji": "🏠", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
 homepage: https://nemovideo.com
 repository: https://github.com/nemovideo/nemovideo_skills
 ---
 
-# AI Video Editing — Describe It, Done
+# Real Estate Video Maker — Sell Properties Faster with Video That Makes Buyers Schedule Showings
 
-No timeline. No panels. No export button. Just tell the AI what you want and it happens. "Cut the first 10 seconds, add upbeat music, put a title card at the start" — that's a complete editing session.
+Video listings receive 403% more inquiries than listings without video. Properties with video tours sell 20% faster and for up to 6% more than comparable listings without video. The National Association of Realtors reports that 73% of homeowners prefer agents who use video. The data is unambiguous: video is the most effective tool in real estate marketing. Yet fewer than 10% of property listings include professional video. The reason is production cost. A professional real estate videographer charges $300-1,500 per property for a basic walkthrough. Drone aerial footage adds $200-500. Full cinematic production with music, graphics, and agent narration runs $1,000-5,000 per listing. For an agent handling 3-5 listings per month, professional video for every property costs $3,000-25,000 monthly — prohibitive for most agents. The alternative — shooting on a phone and posting raw footage — produces shaky, dark, unflattering videos that harm listings more than help them. NemoVideo eliminates this tradeoff. Walk through the property with your phone, record room by room, and NemoVideo produces listing-ready video: stabilized walkthrough, bright inviting color grading, property detail overlays, ambient music, neighborhood context, agent branding, and multi-platform export. Professional real estate video from a phone recording, for every listing, every time.
 
-## 1. How It Works
+## Use Cases
 
-You are an OpenClaw agent that turns **natural language descriptions into video edits**. Users describe changes in everyday words; you translate those into backend API calls and deliver results.
+1. **Property Walkthrough — Phone to Cinematic Tour (2-8 min)** — An agent walks through a 3-bedroom home recording on their phone. The raw footage: handheld shake with every step, rooms alternating between too dark (interior hallway) and too bright (sunlit kitchen), the agent narrating with occasional "um"s, and a 20-second segment of them fumbling with a door handle. NemoVideo: stabilizes the entire walkthrough (removing step-bounce while preserving the forward walking movement), applies real estate color grading (bright, warm, inviting — the specific look that makes properties sell: slightly lifted shadows to show room detail, warm tone shift for welcoming feel, gentle highlight recovery on windows so outdoor views are visible), removes the fumble segment and filler words, adds room labels as the tour transitions ("Primary Bedroom — 14' × 16'"), displays property details as a persistent lower-third bar ("4 BR | 3 BA | 2,850 sq ft | $649,000"), layers ambient music (light acoustic or modern lounge — matching the property's style and price range), and adds the agent's branded outro (name, photo, phone, email). Shaky phone walkthrough → cinematic property tour in minutes.
 
-**The editing model is conversational:**
-- User describes an edit → you send it to the backend → backend processes → you report results
-- No timelines, no panels, no drag-and-drop — the conversation IS the interface
-- Multiple edits stack in sequence: "trim" → "add music" → "title" → "export" is a normal session
+2. **Aerial + Ground Combined — Complete Property Presentation (3-10 min)** — An agent has drone footage showing the property from above and the surrounding neighborhood, plus interior walkthrough footage from a phone. NemoVideo: opens with the aerial establishing shot (drone approaching the property from above, setting the scene), transitions smoothly from aerial to ground-level (visual dissolve as perspective shifts from sky to front door), continues with the interior walkthrough (room-by-room tour with stabilization and color grading), inserts aerial neighborhood footage between interior sections (showing proximity to parks, schools, shopping — with distance overlays: "0.5 mi to Elementary School"), adds property specifications as animated graphics (floor plan overlay, lot dimensions, year built), and closes with a final aerial pull-away shot (the cinematic ending that shows the property in its full context). The complete presentation that covers the property and its location from every perspective.
 
-**The backend assumes a GUI exists.** When it says "click Export" or "open the color panel", you execute the equivalent API action instead.
+3. **Neighborhood Highlight — Location Sells (60-120s)** — The property's strongest selling point is its location: walkable downtown, great school district, near parks and trails, vibrant restaurant scene. NemoVideo: creates a 90-second neighborhood highlight reel from the agent's phone clips of local spots (café, park, school, main street), adds location labels with walking/driving distances from the property ("Downtown Coffee District — 4 min walk"), layers upbeat music matching the neighborhood's vibe (trendy for urban, warm for suburban, adventurous for rural), intersperses drone shots showing proximity, and ends with the property positioned as the center of this lifestyle. Location marketing that sells the life, not just the house.
 
-### Environment Variables
+4. **Agent Introduction — Personal Brand Video (60-90s)** — A realtor needs a personal brand video for their website, social media, and email signature. NemoVideo: takes a 5-minute phone recording of the agent talking about their experience and approach, selects the strongest 60-90 seconds (confidence, warmth, specificity about what makes them different), cleans up audio and lighting, adds professional lower third (name, brokerage, credentials, phone), layers subtle branded background music, inserts B-roll of the agent at properties (from listing footage), and adds a closing CTA ("Ready to find your next home? Call me."). The personal brand video that builds trust before the first meeting.
 
-| Variable | Required | Default |
-|----------|----------|---------|
-| `NEMO_TOKEN` | No | Auto-generated on first use |
-| `NEMO_API_URL` | No | `https://mega-api-prod.nemovideo.ai` |
-| `NEMO_WEB_URL` | No | `https://nemovideo.com` |
-| `NEMO_CLIENT_ID` | No | Auto-generated UUID, persisted to `~/.config/nemovideo/client_id` |
-| `SKILL_SOURCE` | No | Auto-detected from install path |
+5. **Luxury Property — Cinematic Showcase (3-8 min)** — A high-end listing ($1M+) demands production quality that matches the property's prestige. NemoVideo: applies luxury-grade color grading (deeper contrast, cinematic depth, golden-hour warmth even if shot midday), uses slower pacing (lingering on architectural details, letting the viewer absorb finishes and materials), adds elegant typography overlays (serif fonts, minimal design — "The Grand Foyer" rather than "LIVING ROOM 15x20"), layers cinematic music (orchestral or sophisticated electronic — matching the property's design aesthetic), includes lifestyle moments (wine glasses on the terrace at sunset, morning coffee in the kitchen — AI-generated ambiance overlays), and exports at 4K for maximum visual impression. Phone footage treated with the visual language of luxury that high-end buyers expect.
 
-Token setup if `NEMO_TOKEN` is not set:
+## How It Works
+
+### Step 1 — Upload Property Footage
+Phone walkthrough, drone aerials, room-by-room clips, agent recording, or any combination. Multiple video sources per property.
+
+### Step 2 — Provide Property Details
+Address, price, bedrooms, bathrooms, square footage, lot size, year built, key features, agent info. These populate overlays automatically.
+
+### Step 3 — Generate
 ```bash
-CLIENT_ID="${NEMO_CLIENT_ID:-$(cat ~/.config/nemovideo/client_id 2>/dev/null)}"
-if [ -z "$CLIENT_ID" ]; then
-  CLIENT_ID=$(uuidgen 2>/dev/null || echo "client-$(date +%s)-$RANDOM")
-  mkdir -p ~/.config/nemovideo & echo "$CLIENT_ID" > ~/.config/nemovideo/client_id
-fi
-curl -s -X POST "$API/api/auth/anonymous-token" -H "X-Client-Id: $CLIENT_ID"
-```
-Save `token` as `NEMO_TOKEN`. Expires after 7 days; re-request with same `X-Client-Id`.
-
-## 2. What Users Can Say
-
-Every edit request goes through the SSE workflow. No special syntax needed — natural language works:
-
-| User says (examples) | What happens |
-|----------------------|-------------|
-| "trim the first 5 seconds" | Cut operation via SSE |
-| "add some chill background music" | BGM insertion via SSE |
-| "make the colors warmer" | Color grading via SSE |
-| "put 'Chapter 1' at the start for 3 seconds" | Title card via SSE |
-| "merge these two clips" | Concatenation via SSE |
-| "speed up the middle part" | Time remapping via SSE |
-| "add a fade between scenes" | Transition via SSE |
-| "export" / "send me the video" | Render §3.5, deliver file |
-| "upload" / sends file | Upload §3.2, ready to edit |
-| "credits" / "balance" | Balance check §3.3 |
-| "show me what we have" | State query §3.4, show track summary |
-
-**After every edit**, summarize what changed: "✅ Trimmed 5s from the start. Video is now 0:45. Want to add music next"
-
-## 3. API Reference
-
-`$API` = `${NEMO_API_URL:-https://mega-api-prod.nemovideo.ai}`, `$TOKEN` = `${NEMO_TOKEN}`, `$WEB` = `${NEMO_WEB_URL:-https://nemovideo.com}`.
-
-All requests require:
-```
-X-Skill-Source: $SKILL_NAME
-X-Skill-Version: $SKILL_VERSION
-X-Skill-Platform: $SKILL_SOURCE
+curl -X POST https://mega-api-prod.nemovideo.ai/api/v1/generate \
+  -H "Authorization: Bearer $NEMO_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "skill": "real-estate-video-maker",
+    "prompt": "Create a 4-minute property tour from phone walkthrough footage. Stabilize the handheld walking. Real estate color grading: bright, warm, inviting. Room labels as each space is entered. Property detail bar: 4 BR | 3 BA | 2,850 sq ft | $649,000 | Built 2019. Key feature callouts: quartz countertops in kitchen, walk-in closet in primary, smart home system. Background music: modern acoustic, warm, aspirational. Agent outro: Sarah Mitchell, Compass Realty, 555-0123, sarah@compass.com — with headshot and brokerage logo. Export: 16:9 for YouTube/MLS, 9:16 for Instagram Reels listing ad, 1:1 for Facebook listing post.",
+    "property": {
+      "address": "742 Maple Drive, Austin TX 78704",
+      "price": "$649,000",
+      "bedrooms": 4, "bathrooms": 3,
+      "sqft": 2850, "lot": "0.25 acres",
+      "year_built": 2019,
+      "features": ["quartz countertops", "walk-in closet", "smart home system"]
+    },
+    "agent": {
+      "name": "Sarah Mitchell",
+      "brokerage": "Compass Realty",
+      "phone": "555-0123",
+      "email": "sarah@compass.com"
+    },
+    "color_grade": "bright-warm-inviting",
+    "stabilize": true,
+    "music": "modern-acoustic-warm",
+    "formats": ["16:9", "9:16", "1:1"]
+  }'
 ```
 
-### 3.0 Session
-```bash
-curl -s -X POST "$API/api/tasks/me/with-session/nemo_agent" \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" \
-  -d '{"task_name":"editing_session","language":"<lang>"}'
-```
-Save `session_id`, `task_id`. Browser: `$WEB/workspace/claim?task={task_id}&session={session_id}&skill_name=$SKILL_NAME&skill_version=$SKILL_VERSION&skill_source=$SKILL_SOURCE`
+### Step 4 — Review and Distribute
+Preview the tour. Verify: rooms are properly labeled, property details are accurate, agent info is correct, music matches the property's personality. Upload to MLS, YouTube, Zillow, Instagram, and agent website.
 
-### 3.1 Send Edit (SSE)
+## Parameters
 
-Pass user's natural language directly — the backend interprets it:
-```bash
-curl -s -X POST "$API/run_sse" \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -H "Accept: text/event-stream" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" --max-time 900 \
-  -d '{"app_name":"nemo_agent","user_id":"me","session_id":"<sid>","new_message":{"parts":[{"text":"<user_edit_request>"}]}}'
-```
-SSE: text → show (strip GUI refs); tools → wait silently; heartbeat → "⏳ Editing..."; close → summarize changes. Typical: text 5-15s, edits 10-30s, generation 100-300s.
+| Parameter | Type | Required | Description |
+|-----------|------|:--------:|-------------|
+| `prompt` | string | ✅ | Property video requirements |
+| `property` | object | | {address, price, bedrooms, bathrooms, sqft, lot, year_built, features} |
+| `agent` | object | | {name, brokerage, phone, email, headshot_url, logo_url} |
+| `video_type` | string | | "walkthrough", "aerial-combined", "neighborhood", "agent-intro", "luxury" |
+| `color_grade` | string | | "bright-warm-inviting", "luxury-cinematic", "modern-clean" |
+| `stabilize` | boolean | | Stabilize handheld footage |
+| `room_labels` | boolean | | Auto-detect and label rooms |
+| `music` | string | | Music style matching property tier |
+| `overlays` | object | | {property_bar, room_labels, feature_callouts, distance_markers} |
+| `formats` | array | | ["16:9", "9:16", "1:1"] |
 
-**Silent edits (~30%)**: Query §3.4, compare with previous state, report what changed. Never leave user with silence.
+## Output Example
 
-**Two-stage generation**: Backend may auto-add BGM/title after raw video. Report raw result immediately, then report enhancements when done.
-
-### 3.2 Upload
-**File**: `curl -s -X POST "$API/api/upload-video/nemo_agent/me/<sid>" -H "Authorization: Bearer $TOKEN" -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" -F "files=@/path/to/file"`
-
-**URL**: same endpoint, `-d '{"urls":["<url>"],"source_type":"url"}'`
-
-Accepts: mp4, mov, avi, webm, mkv, jpg, png, gif, webp, mp3, wav, m4a, aac.
-
-### 3.3 Credits
-```bash
-curl -s "$API/api/credits/balance/simple" -H "Authorization: Bearer $TOKEN" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE"
+```json
+{
+  "job_id": "revm-20260329-001",
+  "status": "completed",
+  "property": "742 Maple Drive, Austin TX",
+  "tour_duration": "3:48",
+  "rooms_labeled": 9,
+  "features_highlighted": 3,
+  "outputs": {
+    "youtube_mls": {"file": "742-maple-tour-16x9.mp4", "resolution": "1920x1080"},
+    "instagram": {"file": "742-maple-reel-9x16.mp4", "resolution": "1080x1920"},
+    "facebook": {"file": "742-maple-post-1x1.mp4", "resolution": "1080x1080"}
+  }
+}
 ```
 
-### 3.4 Project State
-```bash
-curl -s "$API/api/state/nemo_agent/me/<sid>/latest" -H "Authorization: Bearer $TOKEN" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE"
-```
-Draft: `t`=tracks, `tt`=type (0=video, 1=audio, 7=text), `sg`=segments, `d`=duration(ms), `m`=metadata. Show as: `Timeline (3 tracks): 1. Video: clip (0-10s) 2. BGM: Lo-fi (0-10s, 35%) 3. Title: "Intro" (0-3s)`
+## Tips
 
-### 3.5 Export & Deliver
-Export is free. Verify draft has tracks with segments (§3.4), then:
-```bash
-curl -s -X POST "$API/api/render/proxy/lambda" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -H "X-Skill-Source: $SKILL_NAME" -H "X-Skill-Version: $SKILL_VERSION" -H "X-Skill-Platform: $SKILL_SOURCE" \
-  -d '{"id":"render_<ts>","sessionId":"<sid>","draft":<json>,"output":{"format":"mp4","quality":"high"}}'
-```
-Poll `GET $API/api/render/proxy/lambda/<id>` every 30s. Download `output.url`, deliver with task link. Progress: "⏳ Rendering ~30s" → "✅ Video ready!"
+1. **Bright, warm color grading is the real estate standard for a reason** — Dark rooms feel small and uninviting. Cool-toned rooms feel sterile. The bright-warm treatment makes every room feel spacious, welcoming, and livable — exactly the emotional response that motivates showing requests.
+2. **Walking stabilization is the single biggest quality improvement** — Nothing screams "amateur" like footage that bounces with every step. Stabilizing a walkthrough transforms it from uncomfortable-to-watch to smooth-and-professional in one operation. Always stabilize walking footage.
+3. **Property detail overlays prevent the #1 viewer frustration** — The most common comment on listing videos without overlays: "How many bedrooms? What's the price?" Persistent property detail bars answer these questions immediately, keeping the viewer engaged with the visual tour rather than hunting for listing details.
+4. **Music must match the property tier and style** — A $250K starter home gets light acoustic guitar. A $1.5M modern farmhouse gets sophisticated lo-fi. A $5M luxury estate gets cinematic orchestral. Music that mismatches the property's price point creates cognitive dissonance that undermines the presentation.
+5. **Agent branded outros convert viewers into leads** — A property tour without agent contact info is a missed lead. Every viewer who watches to the end is a high-intent prospect. The branded outro with name, phone, and email converts that intent into a call. Never publish a listing video without agent attribution.
 
-### 3.6 Disconnect Recovery
-Don't re-send. Wait 30s → §3.4. After 5 unchanged → report failure.
+## Output Formats
 
-## 4. GUI Translation
+| Format | Resolution | Use Case |
+|--------|-----------|----------|
+| MP4 16:9 | 1080p / 4K | YouTube / MLS / Zillow / agent website |
+| MP4 9:16 | 1080x1920 | Instagram Reels / TikTok / Stories |
+| MP4 1:1 | 1080x1080 | Facebook / Instagram Feed |
+| MP4 4:5 | 1080x1350 | Facebook / Instagram ads |
 
-| Backend says | You do |
-|-------------|--------|
-| "click Export" / "导出" | §3.5 render + deliver |
-| "open timeline" / "open panel" | Show state §3.4 |
-| "drag clip" / "drop here" | Send as SSE edit §3.1 |
-| "preview in player" | Show track summary |
-| "check account" | §3.3 |
+## Related Skills
 
-## 5. Conversation Patterns
-
-**Multi-edit sessions**: Users often chain 3-5 edits. After each, confirm and suggest next: "Trimmed ✅. Music next Or want to add a title"
-
-**Vague requests**: "make it better" → ask one clarifying question, then act: "Want me to add background music and color-correct, or something else"
-
-**Non-video requests**: Redirect politely. "I handle video editing — for images try an image skill."
-
-## 6. Limitations
-
-Be upfront about these:
-- Aspect ratio change → requires regeneration
-- YouTube/Spotify URLs for music → "The built-in library has similar styles"
-- Photo editing → "I can make a slideshow from images"
-- Local files → user must send in chat or provide a URL
-
-## 7. Error Handling
-
-| Code | Meaning | Action |
-|------|---------|--------|
-| 0 | OK | Continue |
-| 1001 | Token expired | Re-auth |
-| 1002 | Session gone | New session |
-| 2001 | No credits | Show registration link |
-| 4001 | Bad format | List accepted formats |
-| 402 | Export restricted | "Register at nemovideo.ai" |
-| 429 | Rate limited | Wait 30s, retry |
-
-No video in session → "Send me a video first, or describe what you want to create from scratch."
-
-## 8. Costs & Updates
-
-Token scopes: `read` | `write` | `upload` | `render` | `*`. Check for updates: `clawhub search ai-video-editing --json`.
+- [ai-video-caption-generator](/skills/ai-video-caption-generator) — Property tour captions
+- [ai-video-text-overlay](/skills/ai-video-text-overlay) — Room labels and feature callouts
+- [ai-video-thumbnail-maker](/skills/ai-video-thumbnail-maker) — Listing thumbnails
+- [ai-video-intro-maker](/skills/ai-video-intro-maker) — Agent branded intros
