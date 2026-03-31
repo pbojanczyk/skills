@@ -1,21 +1,17 @@
 #!/bin/bash
-# Setup script for 雨课堂 Skill
-
 set -e
 
+SECRET_URL="https://ykt-envning.rainclassroom.com/ai-workspace/open-claw-skill"
+
+# ── 计时 ──
 now_ms() {
+  # GNU coreutils
   ts=$(date +%s%3N 2>/dev/null)
-  case "$ts" in
-    *N*) ;;
-    "") ;;
-    *) echo "$ts"; return ;;
-  esac
-
+  case "$ts" in *N*|"") ;; *) echo "$ts"; return ;; esac
+  # Python fallback
   if command -v python3 >/dev/null 2>&1; then
-    python3 -c 'import time; print(int(time.time()*1000))'
-    return
+    python3 -c 'import time; print(int(time.time()*1000))'; return
   fi
-
   echo $(( $(date +%s) * 1000 ))
 }
 
@@ -24,60 +20,94 @@ START=$(now_ms)
 echo "🚀 设置雨课堂 Skill..."
 echo ""
 
-## 检查 mcporter
-#if ! command -v mcporter &> /dev/null; then
-#    echo "⚠️  未找到 mcporter，正在安装..."
-#    npm install mcporter
-#    echo "✅ mcporter 安装完成"
-#fi
-
-MCP_URL="https://open-envning.rainclassroom.com/openapi/v1/mcp-server/sse"
-SECRET_URL="https://ykt-envning.rainclassroom.com/ai-workspace/open-claw-skill"
-
-# 新增：检查 YUKETANG_SECRET 环境变量
-echo "🔍 检查雨课堂 Secret 环境变量..."
+# ── 1. 检查 Secret ──
 if [ -z "$YUKETANG_SECRET" ]; then
-    echo "❌ 错误：未检测到 YUKETANG_SECRET 环境变量！"
-    echo "请先执行以下命令设置环境变量（替换为真实 Secret）："
-    echo "  export YUKETANG_SECRET=\"your_actual_secret_here\""
-    echo "或在执行脚本时直接传入："
-    echo "  YUKETANG_SECRET=\"your_actual_secret_here\" bash setup.sh"
-    exit 1  # 退出脚本，避免后续无效操作
-else
-    echo "✅ YUKETANG_SECRET 环境变量已配置"
+    echo "❌ 未检测到 YUKETANG_SECRET 环境变量"
+    echo ""
+    echo "请先获取 Secret：$SECRET_URL"
+    echo ""
+    echo "然后用以下任一方式运行："
+    echo "  export YUKETANG_SECRET=\"你的Secret\""
+    echo "  bash setup.sh"
+    echo ""
+    echo "  # 或一行搞定："
+    echo "  YUKETANG_SECRET=\"你的Secret\" bash setup.sh"
+    exit 1
 fi
+echo "✅ YUKETANG_SECRET 已配置"
 echo ""
 
-# 添加 MCP 配置
-echo "🔧 配置 mcporter..."
+# ── 2. 注册 MCP 服务 ──
+AUTHORIZATION="Bearer $YUKETANG_SECRET"
 
-# 从环境变量中读取用户填写的 Secret
-authorization="Bearer $YUKETANG_SECRET"
-npx mcporter config add yuketang-mcp  \
-    --url ${MCP_URL} \
-    --header "Authorization=$authorization" \
+register_with_mcporter() {
+  npx mcporter config add yuketang-mcp \
+    --url "https://open-envning.rainclassroom.com/openapi/v1/mcp-server/sse" \
+    --header "Authorization=$AUTHORIZATION" \
     --scope project
+}
 
-echo "✅ 配置完成！"
+print_manual_config() {
+  echo ""
+  echo "─────────────────────────────────────"
+  echo "📋 请手动将以下配置添加到你的 MCP 客户端配置文件中："
+  echo ""
+  echo "{"
+  echo "  \"mcpServers\": {"
+  echo "    \"yuketang-mcp\": {"
+  echo "      \"url\": \"https://open-envning.rainclassroom.com/openapi/v1/mcp-server/sse\","
+  echo "      \"headers\": {"
+  echo "        \"Authorization\": \"Bearer \${YUKETANG_SECRET}\""
+  echo "      }"
+  echo "    }"
+  echo "  }"
+  echo "}"
+  echo ""
+  echo "常见配置文件位置："
+  echo "  OpenClaw  → 项目根目录 .mcp/config.json"
+  echo "  Cursor    → 项目根目录 .cursor/mcp.json"
+  echo "  CodeBuddy → 参考 CodeBuddy 文档"
+  echo "─────────────────────────────────────"
+}
 
-# 验证配置
-echo "🧪 验证配置..."
-if npx mcporter list 2>&1 | grep -q "yuketang-mcp"; then
-    echo "✅ 配置验证成功！"
-    echo ""
-    npx mcporter list | grep -A 1 "yuketang-mcp" || true
+if command -v npx >/dev/null 2>&1; then
+  echo "🔧 通过 mcporter 注册服务..."
+  if register_with_mcporter; then
+    echo "✅ 注册成功"
+  else
+    echo "⚠️  mcporter 注册失败，请手动配置 ↓"
+    print_manual_config
+  fi
 else
-    echo "⚠️  配置验证失败，请检查网络或 Secret 是否有效"
-    echo ""
-    echo "如有问题，请访问 ${SECRET_URL} 获取 Secret"
+  echo "⚠️  未检测到 npx，请手动配置 ↓"
+  print_manual_config
 fi
 
+echo ""
 
+# ── 3. 验证 ──
+if command -v npx >/dev/null 2>&1; then
+  echo "🧪 验证配置..."
+  if npx mcporter list 2>&1 | grep -q "yuketang-mcp"; then
+    echo "✅ 验证通过"
+    npx mcporter list | grep -A 1 "yuketang-mcp" || true
+  else
+    echo "⚠️  验证未通过，但配置可能已写入"
+    echo "   你可以直接尝试使用，如果失败请检查 Secret 是否正确"
+  fi
+fi
+
+# ── 4. 上报（静默） ──
 END=$(now_ms)
 DURATION=$((END - START))
-npx mcporter call yuketang-mcp claw_report --args "{\"payload\": {\"durationMs\": ${DURATION}}, \"action\": \"install\"}" >/dev/null 2>&1
+if command -v npx >/dev/null 2>&1; then
+  npx mcporter call yuketang-mcp claw_report \
+    --args "{\"payload\":{\"durationMs\":${DURATION}},\"action\":\"install\"}" \
+    >/dev/null 2>&1 || true
+fi
 
 echo ""
 echo "─────────────────────────────────────"
 echo "🎉 设置完成！"
-
+echo "   试试对 AI 说：「我的雨课堂ID是多少」"
+echo "─────────────────────────────────────"

@@ -1,260 +1,353 @@
-# yuketang-mcp
+---
+name: yuketang
+---
 
-雨课堂 MCP 服务
+## 前置配置（只需一次）
 
-## 详细参考文档
+### 第一步：获取 Secret
 
-如需查看每个工具的详细调用示例、参数说明和返回值，请参考：
-- `references/api_references.md` - 所有工具的完整参数说明与调用示例
+打开 <https://ykt-envning.rainclassroom.com/ai-workspace/open-claw-skill>，登录后复制你的个人 Secret。
 
-## 配置要求
+> **没有配置 Secret？** 所有工具调用都会返回鉴权失败。请先完成上述步骤。
 
-> **如果已有 MCP 配置**（如在 CodeBuddy 或其他 IDE 中），无需重复配置，可直接使用工具。
+### 第二步：设置环境变量
 
-### 获取 Secret
+**macOS / Linux：**
+```
+export YUKETANG_SECRET="你的Secret"
+```
 
-1. 访问 https://ykt-envning.rainclassroom.com/ai-workspace/open-claw-skill 获取你的 Secret
-2. 登录后复制个人 Secret
-3. 如果在 OpenClaw 中，配置环境变量 `YUKETANG_SECRET`
+**Windows（PowerShell）：**
+```
+$env:YUKETANG_SECRET="你的Secret"
+```
 
-> **如果用户未配置 Secret**，请引导用户访问上方链接获取 Secret，否则所有工具调用将返回鉴权失败。
+**Windows（CMD）：**
+```
+set YUKETANG_SECRET=你的Secret
+```
 
-## 快速开始（首次使用必读）
+### 第三步：运行安装脚本
 
-首次使用前，运行 setup.sh 完成 MCP 服务注册：
-
-```bash
+**macOS / Linux：**
+```
 bash setup.sh
 ```
 
-### 验证配置
-
-```bash
-npx mcporter list | grep yuketang-mcp
+**Windows 或任何有 Node.js 的环境：**
 ```
+node setup.js
+```
+
+> 具体配置文件路径取决于你使用的客户端（OpenClaw / CodeBuddy / Cursor 等），请参考对应文档。
+
+### 第四步：验证
+
+配置完成后，尝试问一句 **"我的雨课堂ID是多少"**。如果正常返回用户信息，说明配置成功。
 
 ---
 
 ## 触发场景
 
-1. **优先判断用户意图：**
+### 意图 → 工具 速查表
 
 | 用户意图 | 调用工具 |
-|----------|--------|
-| 查询我开的课 | ykt_teaching_list |
-| 查询账号 / 我的ID / 雨课堂ID | claw_current_user |
-| 查询我的班级数据 / 班级教学数据 / XXX班级数据情况 | ykt_classroom_statistics |
-| 查询预警学生名单 / 重点关注学生名单 | ykt_classroom_warning_overview |
-| 查询某个具体班级的预警学生名单 / 重点关注学生名单 | ykt_classroom_warning_student |
-| 请帮我整理今天上课的情况 / 今天的课有多少人来上课了 / 今天的答题率怎么样 | cube_teacher_today_teaching |
-| 预约开课 | cube_lesson_reservation |
----
+|----------|---------|
+| 查询账号 / 我的ID / 雨课堂ID | `claw_current_user` |
+| 查询我开的课 / 我教了哪些班 | `ykt_teaching_list` |
+| 查询我的班级数据 / 班级教学数据 | `ykt_classroom_statistics` |
+| 查询预警学生名单 / 重点关注学生 | `ykt_classroom_warning_overview` |
+| 查询某个具体班级的预警学生名单 | `ykt_classroom_warning_student` |
+| 今天上课情况总览 / 今天答题率 / 到课率 | `cube_teacher_today_teaching` |
+| 预约开课 | `cube_lesson_reservation` |
+| 查询我有哪些待批改的作业 / 考试 / 课堂/ 课件 | `ykt_teacher_correct_statistic` |
+| 查询最近发布的作业 / 我在xx班发布的作业完成情况 /最近一次发布的作业完成情况 | `ykt_recent_exercise_submit` |
+| 查询最近发布的公告 / 我在xx班发布的公告阅读情况 /最近一次公告的阅读情况 | `ykt_recent_notice_read` |
+| 查询今天上课的情况/今天的课有多少人来上课了 | `cube_teacher_today_teaching_detail` |
 
-2. **避免误触发**
 
-以下情况不要触发：
+### 不要触发的情况
 
-- 讨论教学方法（非查询）
-- 纯聊天提到“课程”
-- 非雨课堂场景
+- 讨论教学方法（不是在查询数据）
+- 纯聊天中提到"课程"
+- 与雨课堂无关的场景
 
----
+### 组合调用示例
 
-3. **组合使用（高级）**
+> 用户说："帮我看看我是谁，还有我开了哪些班"
 
-当用户表达：
-
-> 帮我看一下我是谁 + 我开了哪些班
-
-👉 可以依次调用：
-
+依次调用：
 1. `claw_current_user`
 2. `ykt_teaching_list`
 
 ---
 
-## 工具列表
+## 工具详细说明
 
-- 如果用户输入 classroom_name，先通过 `ykt_classroom_id_by_name` 查询 classroom_id。
-- 预约开课前二次确认：向用户展示要预约的课堂信息，确认后再执行预约。
-- 所有相对时间（昨天/今天/明天/近N天等），必须以「当前系统的绝对时间（北京时间 UTC+8）」为唯一基准，禁止硬编码年份。
-- 若用户未指定具体年份，默认使用 **当前年份**（如2026年），禁止使用2025年及更早年份；
-- 如果有用户指定的参数格式不对，不要主动修改，提示用户参数格式需要修改
+### 全局规则
 
-### 1. `ykt_teaching_list` - 查询当前账号开设的班级列表
-
-**典型用途：**
-
-- 我教了哪些班
-- 帮我查询一下这个学期我教的课
-
-**调用示例：**
-```bash
-npx mcporter call yuketang-mcp ykt_teaching_list
-```
-
-**注意事项**
-- 保留emoji
+- **班级名称 → ID**：如果用户给的是班级名称而非 ID，先调用 `ykt_classroom_id_by_name` 拿到 `classroomId`，再调用目标工具。
+- **时间处理**：所有相对时间（昨天/今天/明天/近N天）以当前系统北京时间（UTC+8）为基准，禁止硬编码年份。若用户未指定年份，默认使用当前年份。
+- **参数格式**：如果用户给的参数格式不对，不要自动修正，提示用户修改。
+- **预约开课**：执行前必须向用户展示即将预约的课堂信息，二次确认后再调用。
+- **mcp 服务使用注意事项**：
+    - 推荐使用 npx mcporter 调用 MCP 服务（无需全局安装），不建议直接使用 curl；
+    - 如果 mcp 服务提示鉴权失败，请引导用户重新获取 YUKETANG_SECRET 并修改环境变量；
+    - 如果 mcp 服务找不到，注意指定 mcp 配置文件的路径；
+    - 如果调用失败，可以换一种方式重试，但若多次尝试仍不成功，请停止并检查配置。
 
 ---
 
-### 3. `claw_current_user` - 查询当前雨课堂用户ID
+### 1. `claw_current_user`
 
-**典型用途：**
+查询当前雨课堂用户 ID。
 
-- 我的雨课堂ID是多少
-- 帮我确认一下当前账号
-- 查一下我的用户ID
+**典型问法：** "我的雨课堂ID是多少" / "帮我确认一下当前账号"
 
-**调用示例：**
-```bash
-npx mcporter call yuketang-mcp claw_current_user
-```
+**参数：** 无
 
 ---
 
-### 4. `ykt_classroom_statistics` - 查询当前账号作为班级教师/协同教师的本学期班级数据概览
+### 2. `ykt_teaching_list`
 
-**典型用途：**
+查询当前账号开设的班级列表。
 
-- 我的班级数据
-- 班级教学数据
-- XXX班级数据情况
+**典型问法：** "我教了哪些班" / "这学期我教的课"
 
-#### 交互规则：
-1. 返回本学期班级数据概览
+**参数：** 无
 
-当用户第一次发起查询，或未明确指定具体班级时，返回本学期班级数据概览。
+**注意：** 返回结果中的 emoji 需保留。
 
-**调用示例：**
-```bash
-npx mcporter call yuketang-mcp ykt_classroom_statistics
-```
+---
 
-2. 返回指定班级的数据概览
+### 3. `ykt_classroom_statistics`
 
-当用户输入以下任一形式时，应识别为目标班级查询：
+查询本学期班级数据概览。
 
-- 班级序号，如：1、2、3
-- 完整班级名称
-- 可识别的班级简称或部分名称，如：高等数学A-2
+**典型问法：** "我的班级数据" / "XXX 班级数据情况"
 
-然后返回该班级的数据概览。
+**参数：**
 
-**调用示例：**
-```bash
-npx mcporter call yuketang-mcp ykt_classroom_statistics --args '{"classroomName": "xxx"}'
-```
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| `classroomName` | 否 | 不传则返回本学期所有班级概览；传入后返回指定班级详情 |
 
-### 5. `cube_teacher_today_teaching` - 查询当天授课的情况
+**交互规则：**
+- 用户第一次查询或未指定班级 → 返回全部班级概览
+- 用户输入班级序号（1、2、3）、完整名称或可识别的简称 → 返回该班级详情
 
-**典型用途：**
+---
 
-- 请帮我整理今天上课的情况
-- 今天的课有多少人来上课了
-- 今天的答题率怎么样？
+### 4. `ykt_classroom_warning_overview`
 
-**调用示例：**
-```bash
-npx mcporter call yuketang-mcp cube_teacher_today_teaching
-```
+查询本学期各班级的学习活动完成率预警总览。
 
-### 6. 班级预警学生查询
+**典型问法：** "查看班级预警情况"
 
-#### 功能说明
-这个工具用于帮助教师或教学管理人员查看班级学习活动完成率预警情况，支持两步式查询：
+**参数：** 无
 
-1. 先展示本学期各班级的预警总览，包括：
-   - 教学班名称
-   - 完成率 = 0% 人数
-   - 预警人数（完成率 < 80%）
-   - 数据统计截止时间
+**返回内容包括：** 教学班名称、完成率 = 0% 人数、预警人数（完成率 < 80%）、数据截止时间。
 
-2. 再根据用户输入的班级编号或班级名称，返回该班级的预警学生名单。
+---
 
-#### 适用场景：
-当用户有以下意图时，应使用本工具：
+### 5. `ykt_classroom_warning_student`
 
-- 查看班级预警情况
-- 查看班级学习活动完成率预警总览
-- 查看某个班级的预警学生
-- 查询完成率低于 80% 的学生名单
-- 查询未参与学习活动（完成率为 0%）的学生
+查询指定班级的预警学生名单。
 
-#### 交互规则：
-1. 返回班级预警总览
+**典型问法：** "高等数学A-2 的预警学生" / "第 1 个班级的预警名单"
 
-当用户第一次发起查询，或未明确指定具体班级时，返回班级预警总览。
+**参数：**
 
-**调用示例：**
-```bash
-npx mcporter call yuketang-mcp ykt_classroom_warning_overview
-```
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| `classroomName` | 是 | 班级名称、序号或可识别简称 |
 
-2. 返回指定班级的学生预警名单
+**交互规则：**
+- 如果用户未指定班级，先调用 `ykt_classroom_warning_overview` 展示总览，再让用户选择。
 
-当用户输入以下任一形式时，应识别为目标班级查询：
+---
 
-- 班级序号，如：1、2、3
-- 完整班级名称
-- 可识别的班级简称或部分名称，如：高等数学A-2
+### 6. `cube_teacher_today_teaching` - 查询教师当日授课总览
 
-然后返回该班级的预警学生名单。
+查询教师某天的授课总览信息，如课堂状态、到课情况、答题情况等。
 
-**调用示例：**
-```bash
-npx mcporter call yuketang-mcp ykt_classroom_warning_student --args '{"classroomName": "xxx"}'
-```
+**典型问法：** "今天上课情况怎么样" / "今天有多少人来上课了" / "我今天有课吗" / "看一下今天的授课总览" / "今天课堂进行得怎么样"
 
-### 7. `ykt_classroom_id_by_name` — 通过班级名称查询ID
+**参数：** 
 
-**参数**: `classroomName`(必填)
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| `date` | 否 | 查询日期 yyyy-MM-dd，缺省当天（北京） |
 
-**调用示例：**
-```bash
-npx mcporter call yuketang-mcp ykt_classroom_id_by_name --args '{"classroomName": "xxx"}'
-```
+** 输出规范 **
+- 若 `data.clawUserText` 非空，assistant 的最终输出必须且只能为 `data.clawUserText`
+- 不得添加标题、emoji、列表、表格、总结、提示语
+- 不得改写、压缩、润色或转述 `data.clawUserText`
+- 不得基于 `date`、`hasLessons`、`lessons` 等其他字段生成回复
+- 仅当 `data.clawUserText` 为空或缺失时，才可基于其他字段组织回复
 
-### 8. `cube_lesson_reservation` - 预约开课
+---
 
-用于为指定教学班预约开课，支持通过班级名称或班级ID进行操作。
+### 7. `ykt_classroom_id_by_name`
 
-**参数**: `classroomId`(必填), `startDateTime`, `startEpochMs`, `lessonTitle`, `lessonDurationMinutes`, `meetingType`
+通过班级名称查询班级 ID（辅助工具，通常由其他工具间接调用）。
 
-> 调用示例请参考：`references/api_references.md` - cube_lesson_reservation
+**参数：**
+
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| `classroomName` | 是 | 班级名称 |
+
+---
+
+### 8. `cube_lesson_reservation`
+
+为指定教学班预约开课。
+
+**参数：**
+
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| `classroomId` | 是 | 班级 ID |
+| `startDateTime` | 否 | 开课时间（字符串） |
+| `startEpochMs` | 否 | 开课时间（毫秒时间戳） |
+| `lessonTitle` | 否 | 课次标题 |
+| `lessonDurationMinutes` | 否 | 课次时长（分钟） |
+| `meetingType` | 否 | 会议类型 |
 
 **使用逻辑：**
-- 情况一：用户提供班级名称
-调用 ykt_classroom_id_by_name 获取 classroomId
-使用返回的 classroomId 调用 cube_lesson_reservation
+- 用户给班级名称 → 先调 `ykt_classroom_id_by_name` 获取 `classroomId`，再调本工具
+- 用户直接给 `classroomId` → 直接调用
 
-- 情况二：用户直接提供 classroomId
-直接调用 cube_lesson_reservation
+> 详细参数说明见 `references/api_references.md` 中 `cube_lesson_reservation` 部分。
+
+** 输出规范 **
+- 当存在`✅ 课堂预约成功！`时， 内容禁止渲染成表格
+
+
+### 9. `ykt_teacher_correct_statistic` - 教师待批改/已批改统计
+
+用于按课程班级查询教师的作业、考试、课堂、课件批改统计，包括待批改、已批改数量等信息。
+
+** 适用场景：**
+当用户有以下意图时，应使用本工具：
+- 查看作业、考试、课堂、课件的批改情况
+- 查询待批改数量
+- 查询已批改数量
+
+**输出规范**
+- 不得省略班级
+- 不得省略任一班级下的统计数据
+- 若结果包含 `🔗去班级内批改`，必须：
+  - 在对应班级下展示
+  - 严格按照原始返回内容输出
+  - 不得修改其位置、文案或格式
+- 每个班级下均必须展示 `🔗去班级内批改`
+
+
+
+### 10. `ykt_recent_exercise_submit` - 教师发布的作业完成情况
+
+用于查询教师发布作业完成情况
+
+**参数**: 
+
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| classroomId | ❌ | 班级 ID |
+| classroomName | ❌ | 班级名称 |
+| isLatest | ❌ | `1` 表示仅查询最近一次；不传表示查询最近三天 |
+
+**使用逻辑：**
+- 用户给班级名称 → 先调 `ykt_classroom_id_by_name` 获取 `classroomId`，再调本工具
+- 用户直接给 `classroomId` → 直接调用
+- 用户查询“最近一次发布的作业情况” → 调本工具时使用 `isLatest = 1` 
+
+
+
+### 11. `ykt_recent_notice_read` - 教师发布的公告阅读情况
+
+用于查询用户发布的所有近7天发布公告，按照发布时间顺序倒序排列
+
+**参数**:
+
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| classroomId | ❌ | 班级 ID |
+| classroomName | ❌ | 班级名称 |
+| isLatest | ❌ | `1` 表示仅查询最近一次；不传表示查询最近七天 |
+
+**使用逻辑：**
+- 用户给班级名称 → 先调 `ykt_classroom_id_by_name` 获取 `classroomId`，再调本工具
+- 用户直接给 `classroomId` → 直接调用
+- 用户查询“最近一次发布的公告情况” → 调本工具时使用 `isLatest = 1`
+
+
+
+### 12. `cube_lesson_resolve_by_names`  - 按名称解析 lessonId
+
+用于按照 “课程名+教学班名+课堂名（课节标题）”查询当日 lessonId（辅助工具，通常由其他工具间接调用）。
+
+**参数**:
+
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| courseName | ✅ | 班级名称 |
+| classroomName | ✅ | 班级名称 |
+| lessonTitle | ❌ |课堂名，即课节标题；可与 lessonName 二选一 |
+| lessonName | ❌ | 同 lessonTitle（课堂名） |
+| date | ❌ | 日历日 yyyy-MM-dd，默认当天（北京）；须与查详情为同一天 |
+| fuzzy | ❌ | true 时三项名称允许包含匹配（精确匹配优先） |
+
+** 默认值策略 **
+- `date` 默认当天（北京时间）
+- `lessonTitle` 与 `lessonName` 二选一
+- `fuzzy` 默认传 `true`
+
+
+### 13. `cube_teacher_today_teaching_detail`  - 查询当日单个课程的详情
+
+用于查询当日单个课程的详情；lessonId 来自 cube_lesson_resolve_by_names
+
+** 🎯 适用场景 **
+当用户有以下意图时，应使用本工具：
+
+- 查看某一节课的课堂详情
+- 用户已经提供了 `lessonId`
+- 或用户已能通过上游工具`cube_lesson_resolve_by_names`解析出 `lessonId`
+
+**参数**:
+
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| lessonId | ✅ | 课堂ID |
+| date | ❌ | 日历日 yyyy-MM-dd，默认当天（北京）；须与查详情为同一天 |
+
+** 默认值策略 **
+- `date` 默认当天（北京时间）， 必须与解析时保持同一天
+
+**交互规则：**
+- 如果用户未指定班级，先调用 `cube_teacher_today_teaching` 展示总览，再让用户选择。
+
+**使用逻辑：**
+- 用户给课程名称、班级名称、课堂名称 → 先调 `cube_lesson_resolve_by_names` 获取 `lessonId`，再调本工具
+- 用户直接给 `lessonId` → 直接调用
+- 如果用户未指定“课程名称、班级名称、课堂名称”，先调用 `cube_teacher_today_teaching` 展示总览，再让用户选择。
+
+
+
+
 
 ---
 
-## 输出要求
+## 输出规范
 
-- 结果要结构化（列表形式）
-- 结果需要保留 emoji，尽量保留 tool 的格式，减少自由发挥
-- 课程信息建议包含：课程名 / 班级名
+- 结果结构化展示（列表形式）
+- 保留工具返回的 emoji 和原始文案，不要自由发挥改写
+- 课程信息至少包含：课程名、班级名
+- 严格保留表头
 
----
+## 红线
 
-## 限制
-
-- 不要编造课程数据
-- 必须依赖 tool 返回
+- 不编造任何课程数据，必须依赖工具返回
 - 不做权限外操作（如选课、退课）
-
----
-
-## 调用方式
-
-```bash
-# 示例：查询当前雨课堂账号ID
-npx mcporter call yuketang-mcp claw_current_user
-
-# 示例: 查询当前账号的课程 / 班级列表
-npx mcporter call yuketang-mcp ykt_learning_list
-```

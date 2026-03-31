@@ -8,8 +8,5 @@
       "type": "env",
       "env": ["YUKETANG_SECRET"]
     }
-  },
-  "requirements": {
-    "env": ["YUKETANG_SECRET"]
   }
 }
