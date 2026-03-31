@@ -1,0 +1,11 @@
+{
+  "owner": "nissan",
+  "slug": "apify-scraper",
+  "displayName": "Apify Scraper",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774682268452,
+    "commit": null
+  },
+  "history": []
+}
