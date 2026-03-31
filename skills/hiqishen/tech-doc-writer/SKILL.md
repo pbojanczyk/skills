@@ -1,7 +1,7 @@
 ---
 name: tech-doc-writer
-description: This skill should be used when the user wants to write detailed technical learning documentation, study notes, or knowledge summaries for deep learning, machine learning, or any technical topic. Use when user says "写一篇...文档", "整理...笔记", "写一篇关于...的学习资料", "结合文章写一份文档", or requests comprehensive technical documentation with formulas, code examples, and comparisons. Produces structured, detailed markdown documents with mathematical formulas, code examples, comparison tables, and decision guides following a consistent high-quality format.
-version: 1.3.0
+description: This skill should be used when the user wants to write detailed technical learning documentation, study notes, or knowledge summaries for deep learning, machine learning, or any technical topic. Use when user says "技术文档写作", "写一篇...文档", "整理...笔记", "写一篇关于...的学习资料", "结合文章写一份文档", or requests comprehensive technical documentation with formulas, code examples, and comparisons. Produces structured, detailed markdown documents with mathematical formulas, code examples, comparison tables, and decision guides following a consistent high-quality format.
+version: 1.5.0
 ---
 
 # 技术学习文档写作 Skill
@@ -89,6 +89,8 @@ version: 1.3.0
 
 每篇技术文档必须包含以下模块（按需取舍）：
 
+**通用结构（算法/框架类）：**
+
 ```
 1. 引言（为什么需要 XXX）
 2. 统一视角 / 核心框架（用一个视角统一理解所有方法）
@@ -97,6 +99,67 @@ version: 1.3.0
 5. 选择指南 / 决策树（实用建议）
 6. 代码示例（PyTorch / Python）
 7. 参考资料
+```
+
+**命令行工具专属结构（⚠️ 如文档主题是 CLI 工具/命令行程序，必须额外包含参数完整索引章节）：**
+
+```
+1. 引言（工具简介、与其他工具对比、安装）
+2. 核心概念（命令/子命令体系、配置文件等）
+3. 各子命令详解（每个子命令独立一节，含常用选项示例）
+4. 配置详解（配置文件格式、优先级等）
+5. 工程集成（CI/CD、编辑器、预提交钩子等）
+6. 最佳实践与常见陷阱
+N-1. 参数完整索引（⚠️ 必须包含，见下方格式规范）
+N.   参考资料
+```
+
+> **判断标准**：文档主题涉及命令行工具（如 ruff、curl、git、uv、docker、kubectl 等）时，必须包含「参数完整索引」章节作为倒数第二章节。
+
+**工具/框架类专属结构（⚠️ 如文档主题是有配置项的工具/框架，必须包含环境变量章节）：**
+
+> **判断标准**：文档主题涉及有环境变量支持的工具/框架（如 uv、docker、node、python、git 等）时，必须包含「环境变量」章节，完整列出所有支持的环境变量。
+
+环境变量章节规范：
+- **位置**：放在「安装与配置」章节内，或作为独立章节（配置后、实战案例前）
+- **分组**：按功能分组（如「路径/目录」「网络/代理」「认证」「行为控制」等）
+- **格式**：每组一张 3 列表格 `变量名 | 说明 | 示例/默认值`，重要变量标注加入版本
+- **完整性**：必须覆盖官方文档的全部环境变量，不可只列「常用」的几个
+- **弃用标注**：已弃用的变量须注明 ⚠️ 已弃用及替代变量
+- **外部变量**：除工具自身定义的变量外，还需列出工具读取的外部系统变量（如代理、TLS 证书等）
+
+```markdown
+### X.X 环境变量（完整列表）
+
+> 官方参考：https://docs.xxx.xxx/reference/environment/
+
+#### X.X.1 <工具名> 自身定义的环境变量
+
+**📁 路径与目录**
+
+| 变量 | 说明 | 示例/默认值 |
+|------|------|-----------|
+| `TOOL_CACHE_DIR` | 缓存目录 | `~/.cache/tool` |
+
+**🌐 网络与代理**
+
+| 变量 | 说明 | 示例/默认值 |
+|------|------|-----------|
+| `TOOL_HTTP_TIMEOUT` | HTTP 超时（秒） | `30` |
+
+#### X.X.2 <工具名> 读取的外部变量
+
+| 变量 | 说明 |
+|------|------|
+| `HTTP_PROXY` | HTTP 代理 |
+| `HTTPS_PROXY` | HTTPS 代理 |
+
+#### X.X.3 使用示例
+
+```bash
+# 示例注释
+TOOL_VAR=value tool command
+```
 ```
 
 ### Step 3：写各方法详解
@@ -237,6 +300,50 @@ LN: 在 C×H×W 上统计（跨通道）
 | 正则化效果 | mini-batch 噪声类似 Dropout |
 ```
 
+### 参数完整索引规范（CLI 工具文档专用）
+
+当文档主题为命令行工具时，**倒数第二章节**必须是「参数完整索引」，按功能分组，每个分组一张 4 列表格。
+
+**列顺序**：`短参数 | 长参数 | 说明 | 示例`
+
+**格式要求**：
+- 无短参数的行，短参数列**留空**（不写 `—` 或 `/`）
+- 示例列必须是**可直接运行**的完整命令片段
+- 同一子命令的参数按「修复/输出/规则选择/文件选择/其他」等功能子分组，用 `####` 小标题分隔
+- 子命令本身单独列一张「子命令一览」表，包含「子命令 / 说明 / 是否修改文件 / 示例」4 列
+
+**标准模板：**
+
+```markdown
+## N. 参数完整索引
+
+> 按功能分类整理所有常用参数，便于快速查阅。
+
+### N.1 子命令一览
+
+| 子命令 | 说明 | 是否修改文件 | 示例 |
+|--------|------|------------|------|
+| `check` | 执行 lint 检查 | 否（`--fix` 时是） | `ruff check .` |
+| `format` | 执行代码格式化 | 是（`--check` 时否） | `ruff format .` |
+
+### N.2 全局选项
+
+| 短参数 | 长参数 | 说明 | 示例 |
+|--------|--------|------|------|
+| `-v` | `--verbose` | 启用详细日志 | `-v` |
+| | `--config <FILE>` | 指定配置文件 | `--config ruff.toml` |
+
+### N.3 <子命令名> 选项
+
+#### 修复相关
+
+| 短参数 | 长参数 | 说明 | 示例 |
+|--------|--------|------|------|
+| | `--fix` | 应用安全修复 | `ruff check --fix .` |
+```
+
+**参考示例**：见 `zwy/stats/py_base/002_doc_ruff.md` 第 9 章、`zwy/stats/shell/004_doc_curl_wget_shell.md` 第 10 章。
+
 ### 引用、警告块
 
 用 blockquote 标注重要修正或补充：
@@ -281,6 +388,22 @@ LN: 在 C×H×W 上统计（跨通道）
 - [ ] 提到了**实际使用中的陷阱**
 - [ ] 参考了**最新的 SOTA 实践**
 - [ ] 考虑了**跨领域应用**的差异
+
+**【CLI 工具文档专项检查】**
+- [ ] 文档主题是 CLI 工具时，已包含**参数完整索引**章节（倒数第二章）
+- [ ] 参数索引表列顺序为「**短参数 / 长参数 / 说明 / 示例**」
+- [ ] 无短参数的行，短参数列**留空**（不写 `—`）
+- [ ] 每行示例列为**可直接运行**的命令片段
+- [ ] 参数按**功能分组**，用 `####` 小标题分隔（修复/输出/规则选择/文件/其他）
+- [ ] 包含**子命令一览**表（含「是否修改文件」列）
+
+**【环境变量章节检查（有环境变量支持的工具/框架类文档专用）】**
+- [ ] 已包含**环境变量完整列表**章节（不仅仅是「常用」几个）
+- [ ] 环境变量按**功能分组**，每组一张 3 列表格
+- [ ] 已弃用的变量已标注 ⚠️ 并注明**替代变量**
+- [ ] 列出了工具读取的**外部系统变量**（代理、TLS 证书、认证 token 等）
+- [ ] 包含**使用示例**小节（至少 5 个实用场景）
+- [ ] 变量来源于**官方文档**，而非仅凭记忆列举（关键变量需标注加入版本）
 
 ---
 
