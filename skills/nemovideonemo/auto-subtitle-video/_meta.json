@@ -3,9 +3,15 @@
   "slug": "auto-subtitle-video",
   "displayName": "Auto Subtitle Video",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774536062098,
-    "commit": "https://github.com/openclaw/skills/commit/3f60c866fbc759a7a75d1846735b18a9bebafe4c"
+    "version": "1.0.1",
+    "publishedAt": 1774748740566,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774536062098,
+      "commit": "https://github.com/openclaw/skills/commit/3f60c866fbc759a7a75d1846735b18a9bebafe4c"
+    }
+  ]
 }
