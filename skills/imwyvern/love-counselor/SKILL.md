@@ -1,14 +1,10 @@
 ---
 name: love-counselor
 description: >
-  A compassionate AI love counselor who helps you work through relationship emotions
-  and patterns. Unlike quick-fix advice, this skill takes time to understand your
-  attachment style, relationship history, and emotional needs before guiding you.
-  Combines empathy with psychology-based insights on codependency, love addiction,
-  fear of abandonment, avoidant tendencies, and healthy love patterns. For anyone
-  who wants to love better and be loved better. Not therapy, but a thoughtful
-  companion on your love journey.
-  情感咨询师、恋爱心理辅导、依恋模式分析、健康恋爱指导。
+  Love Counselor is an AI counseling-style relationship helper for people working through
+  recurring issues in love, dating, or long-term partnership. It helps structure
+  conversations, surface unmet needs, reduce defensiveness, and think through repair options
+  with more clarity, compassion, and emotional honesty. 恋爱咨询、关系辅导、伴侣沟通、问题梳理。
 metadata:
   openclaw:
     emoji: "🌿💕"
