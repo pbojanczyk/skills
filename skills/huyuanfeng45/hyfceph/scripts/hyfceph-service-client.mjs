@@ -6,6 +6,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { parseArgs } from 'node:util';
 import { generateHyfcephPdfReport } from './hyfceph-report-pdf.mjs';
+import { qrcode } from './vendor/qrcode.mjs';
 
 const DEFAULT_PORTAL_BASE_URL = 'https://hyfceph.52ortho.com/';
 const LAST_RESULT_STATE_PATH = path.join(os.homedir(), '.codex/state/hyfceph-last-result.json');
@@ -52,6 +53,7 @@ Options:
   --annotated-svg-output <file>  Output SVG path
   --contour-png-output <file>    Output contour PNG path
   --contour-svg-output <file>    Output contour SVG path
+  --no-report                    Do not request the server-side HTML report link
   --generate-pdf                 Generate a local PDF after the current measurement run
   --pdf-output <file>            Output PDF path
   --pdf-input <file>             Generate a PDF from an existing HYFCeph result JSON
@@ -109,6 +111,12 @@ async function writeBase64(filePath, base64) {
   return path.resolve(filePath);
 }
 
+async function writeBuffer(filePath, buffer) {
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  await fs.writeFile(filePath, buffer);
+  return path.resolve(filePath);
+}
+
 async function readLastResultState() {
   try {
     const raw = await fs.readFile(LAST_RESULT_STATE_PATH, 'utf8');
@@ -152,6 +160,15 @@ function redactApiKey(value) {
   if (!apiKey) return null;
   if (apiKey.length <= 12) return `${apiKey.slice(0, 4)}...`;
   return `${apiKey.slice(0, 8)}...${apiKey.slice(-6)}`;
+}
+
+async function generateQrPng(url, outputPath) {
+  if (!url) return null;
+  const qr = qrcode(0, 'M');
+  qr.addData(url);
+  qr.make();
+  const svgText = qr.createSvgTag(10, 20, 'HYFCeph report QR', 'HYFCeph report QR');
+  return writeText(outputPath, svgText);
 }
 
 async function requestPdfUploadTicket({
@@ -337,6 +354,7 @@ async function main() {
       'annotated-svg-output': { type: 'string' },
       'contour-png-output': { type: 'string' },
       'contour-svg-output': { type: 'string' },
+      'no-report': { type: 'boolean', default: false },
       'generate-pdf': { type: 'boolean', default: false },
       'pdf-output': { type: 'string' },
       'pdf-input': { type: 'string' },
@@ -482,6 +500,8 @@ async function main() {
   const shareUrl = String(values['share-url'] || '').trim();
   const currentCase = values['current-case'] || (!shareUrl && !imagePath);
   const overlapMode = Boolean(imagePath && compareImagePath);
+  const shouldGeneratePdf = Boolean(values['generate-pdf']);
+  const shouldRequestReport = !values['no-report'];
   const alignMode = String(values['align-mode'] || 'SN').trim().toUpperCase() || 'SN';
   const auth = await resolveApiKey({
     explicitApiKey: String(values['api-key'] || process.env.HYFCEPH_API_KEY || '').trim(),
@@ -523,6 +543,8 @@ async function main() {
             compareMimeType: mimeTypeFromPath(resolvedCompareImagePath),
             compareImageBase64: compareImageBuffer.toString('base64'),
             alignMode,
+            generateReport: shouldRequestReport,
+            patientName: patientName || '',
           };
         })()
       : imagePath
@@ -533,8 +555,8 @@ async function main() {
             fileName: path.basename(resolvedImagePath),
             mimeType: mimeTypeFromPath(resolvedImagePath),
             imageBase64: imageBuffer.toString('base64'),
-            generatePdf: true,
             patientName: patientName || '',
+            generateReport: shouldRequestReport,
           };
         })()
         : (shareUrl ? { shareUrl } : {});
@@ -562,6 +584,8 @@ async function main() {
   let resolvedSvgPath = null;
   let resolvedContourPngPath = null;
   let resolvedContourSvgPath = null;
+  let resolvedReportQrPngPath = null;
+  let resolvedPrettyReportQrPngPath = null;
 
   if (artifacts.annotatedPngBase64) {
     resolvedPngPath = await writeBase64(annotatedPngPath, artifacts.annotatedPngBase64);
@@ -598,19 +622,49 @@ async function main() {
     metrics: result.metrics || [],
     taskId: result.taskId || null,
     resultUrl: result.resultUrl || null,
-    pdfShareUrl: result.pdf?.ok ? result.pdf.pdfShareUrl || null : null,
-    pdfUpload: result.pdf || null,
+    pdfShareUrl: null,
+    pdfUpload: null,
+    reportShareUrl: result.report?.ok ? result.report.reportShareUrl || null : null,
+    reportUpload: result.report || null,
+    prettyReportShareUrl: result.prettyReport?.ok ? result.prettyReport.reportShareUrl || null : null,
+    prettyReportUpload: result.prettyReport || null,
+    reportQrPngPath: null,
+    prettyReportQrPngPath: null,
     annotatedPngPath: resolvedPngPath,
     annotatedSvgPath: resolvedSvgPath,
     contourPngPath: resolvedContourPngPath,
     contourSvgPath: resolvedContourSvgPath,
   };
 
+  if (output.reportShareUrl) {
+    try {
+      resolvedReportQrPngPath = await generateQrPng(
+        output.reportShareUrl,
+        path.join(outputDir, `${baseName}.report-qr.svg`),
+      );
+      output.reportQrPngPath = resolvedReportQrPngPath;
+    } catch {
+      output.reportQrPngPath = null;
+    }
+  }
+
+  if (output.prettyReportShareUrl) {
+    try {
+      resolvedPrettyReportQrPngPath = await generateQrPng(
+        output.prettyReportShareUrl,
+        path.join(outputDir, `${baseName}.report-pretty-qr.svg`),
+      );
+      output.prettyReportQrPngPath = resolvedPrettyReportQrPngPath;
+    } catch {
+      output.prettyReportQrPngPath = null;
+    }
+  }
+
   await writeJson(outputPath, output);
 
   let pdfReportPath = null;
-  let pdfUpload = output.pdfUpload || null;
-  if (values['generate-pdf']) {
+  let pdfUpload = null;
+  if (shouldGeneratePdf) {
     pdfReportPath = await generateHyfcephPdfReport({
       inputPath: outputPath,
       outputPath: pdfOutput || undefined,
@@ -642,6 +696,12 @@ async function main() {
     annotatedSvgPath: resolvedSvgPath,
     contourPngPath: resolvedContourPngPath,
     contourSvgPath: resolvedContourSvgPath,
+    reportUpload: output.reportUpload || null,
+    reportShareUrl: output.reportShareUrl || null,
+    reportQrPngPath: output.reportQrPngPath || null,
+    prettyReportUpload: output.prettyReportUpload || null,
+    prettyReportShareUrl: output.prettyReportShareUrl || null,
+    prettyReportQrPngPath: output.prettyReportQrPngPath || null,
     pdfReportPath,
     pdfUpload,
     pdfShareUrl: output.pdfShareUrl || null,
@@ -656,6 +716,12 @@ async function main() {
     annotatedSvgPath: resolvedSvgPath,
     contourPngPath: resolvedContourPngPath,
     contourSvgPath: resolvedContourSvgPath,
+    reportUpload: output.reportUpload || null,
+    reportShareUrl: output.reportShareUrl || null,
+    reportQrPngPath: output.reportQrPngPath || null,
+    prettyReportUpload: output.prettyReportUpload || null,
+    prettyReportShareUrl: output.prettyReportShareUrl || null,
+    prettyReportQrPngPath: output.prettyReportQrPngPath || null,
     pdfReportPath,
     pdfUpload,
     pdfShareUrl: output.pdfShareUrl || null,

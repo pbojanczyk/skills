@@ -101,11 +101,9 @@ If you already know the exact result JSON path, you may use:
 node scripts/hyfceph-service-client.mjs --pdf-input /absolute/path/to/result.json --patient-name '患者姓名'
 ```
 
-For single-image measurement, generate the PDF by default even if the user did not explicitly ask yet. The preferred path is now portal-side generation: the measurement request should ask the portal to generate the PDF and upload it directly, then the reply should use the returned `pdfShareUrl`. If the patient name is still unknown, it is acceptable to generate the first PDF without a name so the user can get the link immediately; if they later provide the patient name, regenerate the PDF with the name.
+For measurement replies, prefer the server-side static HTML report link instead of generating a local PDF. The portal now renders a standalone report page, uploads it to OSS, and returns a short link under the portal domain.
 
-If the portal-side PDF link is unavailable, only then fall back to local PDF generation. If the upload fails, still send the local PDF and briefly note that the online link is temporarily unavailable. If the user later asks for additional analysis frameworks, or the case is a treatment-before/after overlap comparison, the PDF should include those framework tables and overlap comparison pages as well.
-
-Before generating the PDF, ask the user once for the patient name if they have not already provided it. Put that name at the beginning of the PDF.
+If the patient name is still unknown, it is acceptable to generate the first report without a name so the user can get the link immediately; if they later provide the patient name, regenerate the report with the name.
 
 ## Outputs
 
@@ -115,8 +113,10 @@ Prefer these reply-facing artifacts:
 
 - `annotatedPngPath`: PNG landmark overlay for direct display when the user asks for 标点图
 - `contourPngPath`: white-background PNG contour trace with tooth fill and no points, for direct display when the user asks for 轮廓图
-- `pdfShareUrl`: portal-side uploaded online PDF link when generation and OSS upload both succeed
-- `pdfReportPath`: local PDF path
+- `reportShareUrl`: standard online static report link
+- `prettyReportShareUrl`: beautified online static report link
+- `reportUpload`: standard report upload metadata
+- `prettyReportUpload`: beautified report upload metadata
 - `metrics`: supported measurements
 - `analysis.riskLabel`: short classification summary
 - `analysis.insight`: concise interpretation
@@ -136,26 +136,39 @@ When the run succeeds:
 7. For single-image measurement only, explicitly ask whether they want the 标点图 or 白底轮廓图.
 8. If the user asks for 标点图, show `annotatedPngPath` directly with Markdown image syntax using the absolute local path.
 9. If the user asks for 轮廓图, show `contourPngPath` directly with Markdown image syntax using the absolute local path.
-10. Keep the existing data-and-analysis reply shape unchanged. The PDF and image artifacts are additional additions, not replacements for the normal measurement reply.
-11. For single-image measurement, proactively tell the user that the PDF has been generated and prefer `pdfShareUrl`.
-12. Only mention `pdfReportPath` when a local PDF was actually generated and available.
-13. If the uploaded share link is unavailable, briefly say that only the local PDF is available right now.
+10. Keep the existing data-and-analysis reply shape unchanged. The static report link and image artifacts are additional additions, not replacements for the normal measurement reply.
+11. For single-image measurement, proactively tell the user that the static reports have been generated and prefer `reportShareUrl` plus `prettyReportShareUrl`.
+12. If `reportShareUrl` exists, output it on its own line using this exact prefix:
+
+`在线报告链接：<url>`
+
+13. If `prettyReportShareUrl` exists, output it on its own line using this exact prefix:
+
+`美化报告链接：<url>`
+
+14. If `reportQrPngPath` exists, tell the user this QR can be scanned in WeChat to open the standard report, then show `reportQrPngPath` directly with Markdown image syntax using the absolute local path.
+
+15. If `prettyReportQrPngPath` exists, tell the user this QR can be scanned in WeChat to open the beautified report, then show `prettyReportQrPngPath` directly with Markdown image syntax using the absolute local path.
 
 Use this exact style for the closing choice line:
 
 `可继续按以下分析法整理：Downs、Steiner、北大分析法、ABO、Ricketts、Tweed、McNamara、Jarabak。你选一个，我按那个口径继续解读。`
 
-For single-image measurement, add this exact PDF follow-up line before the image follow-up line:
+For single-image measurement, add this exact report follow-up line before the image follow-up line:
 
-`这次的 PDF 我也已经整理好了；我会把本地 PDF 和下载链接一起发你。`
+`这次的静态报告我也已经整理好了；我会把标准版和美化版链接一起发你。`
+
+If QR codes exist, add this exact line after the two report links:
+
+`如果你在微信里打不开链接，可以直接扫下面的二维码进入报告。`
 
 For single-image measurement, add this exact image follow-up line after it:
 
 `如果你要，我也可以把这次的标点图和白底轮廓图发你。`
 
-If the user says they want the PDF and the patient name is still unknown, ask this exact line first:
+If the user says they want把患者姓名写进报告 and the patient name is still unknown, ask this exact line first:
 
-`可以。我先补一下患者姓名，PDF 开头会带上这个名字。`
+`可以。我先补一下患者姓名，报告开头会带上这个名字。`
 
 ## Constraints
 
