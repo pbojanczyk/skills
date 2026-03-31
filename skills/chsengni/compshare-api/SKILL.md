@@ -23,9 +23,9 @@ pip install ucloud-sdk-python3 PyYAML paramiko
 ```
 
 ### 配置文件
-在使用前，需要配置文件
+在使用前，需要在Skill目录下创建配置文件 `assets/config.yaml`：
 
-1.编辑配置文件，填入API凭证：
+1. 编辑配置文件，填入API凭证：
 ```yaml
 compshare:
   public_key: "your-public-key"
