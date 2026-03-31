@@ -1,129 +1,134 @@
 ---
 name: ai-plan-generator
-description: Converts Code Archaeology analysis results into AI-executable development task lists with focus on business functionality decomposition rather than language-specific implementation.
+description: Generates comprehensive campaign documents, task decompositions, and context documents from minimal input for ClawTeam continuous iteration. Supports Code Archaeology integration with unified directory structure.
 user-invocable: true
 disable-model-invocation: false
-metadata: {"openclaw":{"emoji":"📋","os":["darwin","linux","win32"],"requires":{"bins":["python","git","bash"]}}}
+metadata: {"openclaw":{"emoji":"📋","os":["darwin","linux","win32"],"requires":{"bins":["node","git","bash"]}}}
 ---
 
-# AI Plan Generator
+# AI Plan Generator v2
 
-AI Plan Generator converts Code Archaeology analysis results into structured, AI-executable development task lists. It focuses on **business functionality decomposition** rather than language-specific implementation details, enabling flexible execution across different programming languages and frameworks.
+AI Plan Generator v2 extends the original business functionality decomposition with **comprehensive campaign document generation**, **task decomposition**, **context document generation**, and **Code Archaeology integration** for ClawTeam continuous iteration.
 
-## Core Philosophy
+## Core Capabilities
 
-### Language-Agnostic Task Generation
-- **Business logic is universal**: Business rules and workflows are independent of programming languages
-- **Implementation flexibility**: AI agents can implement tasks in any language based on user requirements  
-- **Focus on what, not how**: Tasks describe business functionality, not technical implementation details
+### 1. Campaign Document Generation
+- **Minimal Input Processing**: Only 4 key inputs required (project name, business goal, scope boundary, code location)
+- **Multi-Language Support**: Java, Python, Go, C#, Rust, JavaScript
+- **Project Type Detection**: Automatically identifies new vs iteration projects
+- **Domain-Specific Templates**: Finance, User Management, General domains
 
-### Business-Centric Task Decomposition
-- **Medium-granularity tasks**: Each task represents a specific business function (e.g., "submit approval", "update customer info")
-- **Complete business context**: Each task includes full business domain context for AI understanding
-- **Clear validation criteria**: Success criteria based on business requirements, not technical specifications
+### 2. Task Decomposition  
+- **Detailed Task Generation**: Complete tasks with priorities, dependencies, acceptance criteria
+- **Multiple Output Formats**: JSON, Markdown, ClawTeam formats
+- **Domain-Specific Tasks**: Finance (payment, invoicing, reconciliation), User (auth, permissions)
+- **Source File Location**: Precise source code location tracking
 
-## Priority Strategy
+### 3. Context Document Generation
+- **Business Rules**: AI-executable business constraints and validation rules
+- **Technical Specifications**: Data models, API contracts, integration specifications  
+- **Validation Standards**: Comprehensive testing requirements and coverage criteria
+- **Integration Configuration**: External system configuration with timeout/retry settings
 
-### Phase-Based Execution Order
-1. **Phase 1: Core Business Functionality** (Highest Priority)
-   - Business-critical operations that deliver immediate value
-   - Examples: contract creation, customer updates, payment processing
-   
-2. **Phase 2: Infrastructure and Architecture** (Medium Priority)  
-   - Foundational components that support business functionality
-   - Examples: multi-tenant middleware, authentication systems, caching mechanisms
+### 4. Code Archaeology Integration
+- **Unified Directory Structure**: results/, process/, source/ subdirectories
+- **Real Analysis Results**: Extracts precise information from actual Code Archaeology output
+- **Completeness Analysis**: Validates document completeness and AI executability
+- **Clarification Questions**: Automatically generates questions for missing/incomplete information
 
-3. **Phase 3: Security Vulnerability Inventory** (Lowest Priority)
-   - Complete security vulnerability inventory for risk assessment
-   - Actual security fixes executed last to avoid blocking business delivery
+## Unified Workflow
 
-## Input Processing
+### Complete End-to-End Process
+```bash
+# 1. Generate complete workflow from minimal input
+ai-plan-generator generate-complete-workflow input.json /path/to/code-archaeology
 
-### Code Archaeology Results Structure
-The skill processes analysis results from the following directory structure:
-```
-analysis_directory/
-├── domains/
-│   ├── contract_management.analysis.md    # Business rules and analysis
-│   ├── contract_management.flows.json     # Business workflows and state transitions  
-│   ├── contract_management.model.json     # Data models and entity relationships
-│   └── [other business domains...]
-├── memory/
-│   ├── FINDINGS.jsonl                    # Security vulnerabilities (if available)
-│   └── STATE.json                        # Analysis metadata
-└── progress/
-    └── PROGRESS.md                       # Analysis progress tracking
-```
-
-### Business Function Extraction
-From each business domain, the skill extracts:
-- **Core operations**: create, update, delete, view, submit, approve, reject, complete
-- **Business workflows**: State transitions and process flows from `.flows.json`
-- **Business rules**: Validation rules and constraints from `.analysis.md`
-- **Data models**: Entity relationships and attributes from `.model.json`
-
-## Output Formats
-
-### Markdown Format (Primary)
-- **Human-readable task list** suitable for review and collaboration
-- **Organized by priority phases** with clear business function descriptions
-- **Complete business context** for each task including rules and workflows
-- **Vulnerability inventory** as a separate reference section
-
-### JSON Format (Backup)  
-- **Machine-processable structure** for automated execution
-- **Standardized task objects** with consistent fields and formats
-- **Task dependencies and relationships** for proper execution ordering
-- **Validation criteria** for automated quality assurance
-
-## Task Structure
-
-Each generated task includes:
-
-### Task Metadata
-- **Task ID**: Unique identifier following `module_function_sequence` pattern
-- **Task Type**: `feature_implementation`, `infrastructure_setup`, or `security_fix`
-- **Priority**: `critical`, `high`, `medium`, or `low`
-- **Phase**: `1` (core business), `2` (infrastructure), or `3` (security)
-
-### Business Context
-- **Business Rules**: Complete list of relevant business rules (language-agnostic)
-- **Business Workflows**: State transitions and process flows
-- **Data Models**: Entity relationships and key attributes
-- **Validation Criteria**: Business-focused success criteria
-
-### Implementation Guidelines
-- **Business Function Description**: Clear description of what the task should accomplish
-- **Input/Output Specifications**: Business-level data requirements (not technical formats)
-- **Dependencies**: Other tasks that must be completed first
-- **Quality Standards**: Business-focused validation criteria
-
-## Usage Examples
-
-### Basic Invocation
-```
-Generate AI-executable development plan from Code Archaeology results in /path/to/analysis/directory
+# 2. Creates standardized directory structure:
+project-name/
+├── project-name-campaign.md          # Campaign document
+├── task-decomposition/              # Task decomposition  
+│   ├── tasks.json                   # JSON format
+│   ├── tasks.md                     # Markdown format
+│   └── clawteam-tasks.json          # ClawTeam format
+├── context-documents/               # Context documents
+│   ├── business-rules.json          # Business rules
+│   ├── technical-specs.yaml         # Technical specifications
+│   ├── validation-standards.md      # Validation standards
+│   ├── integration-config.json       # Integration configuration
+│   └── analysis-report.json         # Completeness analysis report
+└── process-files-report.json        # Process file location report
 ```
 
-### Natural Language Flexibility
-The skill works with any target language or framework because it focuses on business functionality:
-- User says: "Rebuild this in Java" → AI agents implement tasks in Java
-- User says: "Convert to Python" → AI agents implement tasks in Python  
-- User says: "Modernize with Node.js" → AI agents implement tasks in Node.js
+### Code Archaeology Integration
+```bash
+# Convert Code Archaeology results to AI Plan Generator format
+ai-plan-generator generate-context-from-archaeology \
+  /path/to/project_code_archaeology \
+  context-documents \
+  finance
+```
 
-The AI Plan Generator provides the **what** (business functionality), while AI agents determine the **how** (technical implementation).
+## Minimal Input Requirements
 
-## Integration with AI Development Tools
+Only 4 key pieces of information are required:
 
-This skill integrates seamlessly with:
-- **Code Archaeology**: Direct input processing from Code Archaeology results
-- **ClawTeam**: Generated tasks can be executed by ClawTeam multi-agent teams
-- **AI Development Agents**: Tasks are structured for direct AI agent consumption
-- **Project Management Tools**: JSON output can integrate with external PM systems
+```json
+{
+  "projectName": "dms-erp-finance-migration-v1",
+  "businessGoal": "Migrate financial module to Java", 
+  "scopeBoundary": "Backend services only, no frontend",
+  "codeLocation": "src/main/java/com/dms/financialmanagement/"
+}
+```
+
+## Domain-Specific Intelligence
+
+### Financial Domain
+- **Payment Processing**: Contract payment handling with amount validation
+- **Invoice Generation**: Tax calculation, invoice types, compliance  
+- **Account Reconciliation**: Partial refunds, multiple reconciliations
+- **Security Requirements**: Hardcoded credential removal, SQL injection prevention
+
+### User Management Domain  
+- **Authentication**: Registration, login, session management
+- **Authorization**: Role-based permissions, fine-grained access control
+- **Security**: Password complexity, OAuth integration, CSRF protection
+
+## ClawTeam Integration
+
+Generated artifacts are directly compatible with ClawTeam:
+
+- **Campaign Documents**: Used as team description for `clawteam create`
+- **Task Decomposition**: Directly importable as `clawteam task create` commands  
+- **Context Documents**: Provide AI-executable reference for agent implementation
+- **Completeness Analysis**: Ensures high-quality input before team creation
 
 ## Best Practices
 
-- **Review Before Execution**: Always review the generated markdown plan before AI execution
-- **Business Context Preservation**: Maintain complete business context to ensure AI understanding  
-- **Priority Adherence**: Follow the three-phase priority structure for optimal results
-- **Language Flexibility**: Leverage the language-agnostic nature for maximum implementation flexibility
+### Input Quality
+- **Project Name**: Include domain keywords (finance, user, order)
+- **Business Goal**: Be specific about core business value
+- **Scope Boundary**: Clearly define inclusions/exclusions
+- **Code Location**: Use complete package paths
+
+### Iteration Strategy
+- **Start Simple**: Begin with minimal input, let AI infer details
+- **Validate Early**: Run completeness analysis before team creation  
+- **Clarify Issues**: Address high-priority clarification questions
+- **Iterate Refinement**: Use feedback to improve subsequent iterations
+
+## Example Use Cases
+
+### Legacy PHP to Java Migration
+**Input**: Financial module migration from zbs_php to dms-erp
+**Output**: Complete campaign document with security remediation, task decomposition with data migration tasks, context documents with precise business rules
+
+### New Microservice Development  
+**Input**: Create new user authentication service
+**Output**: Campaign document with architecture decisions, task decomposition with OAuth integration, context documents with security requirements
+
+### API Modernization
+**Input**: Standardize legacy RPC APIs to RESTful design
+**Output**: Campaign document with versioning strategy, task decomposition with backward compatibility, context documents with API specifications
+
+AI Plan Generator v2 transforms minimal input into comprehensive, AI-executable documentation that powers successful ClawTeam continuous iteration.
