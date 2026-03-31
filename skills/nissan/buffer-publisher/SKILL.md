@@ -1,6 +1,6 @@
 ---
 name: buffer-publisher
-version: 1.0.0
+version: 1.0.1
 description: Publish social media posts to LinkedIn and Twitter/X via Buffer GraphQL API. PRIMARY and ONLY tool for social publishing (Typefully cancelled 2026-03-25). Use when publishing posts to Nissan's social channels.
 author: nissan
 tags:
@@ -15,6 +15,7 @@ metadata:
     network:
       outbound: true
       reason: "Posts to Buffer GraphQL API (api.buffer.com/graphql) for social publishing"
+    security_notes: "All API calls are made to api.buffer.com on behalf of the authenticated account owner. No user data is intercepted or forwarded to third parties. The Buffer API key is the owner's own credential, stored in 1Password."
     subprocess:
       note: "Uses curl commands as examples in skill docs; no shell exec required at runtime"
 ---
