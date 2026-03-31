@@ -125,6 +125,37 @@ Use explicit states such as:
 
 Do not collapse partial progress into fake completion.
 
+## Demo workflow (layered operating flow)
+
+### 1. Intelligence layer
+Hunter runs:
+- Reddit + X research
+- Pain Map
+- selection layer
+- Intel Pack
+- X viral-learning loop
+- marketing-assets sync
+
+### 2. Packaging layer
+JK converts same-day research and durable assets into a cleaner writing substrate for execution lanes.
+
+### 3. Execution layer
+Parallel lanes operate from the same-day packaged inputs:
+- Elon → social publishing
+- Tony → blog publishing
+- Jenny → lifecycle / activation
+
+### 4. QA / truth layer
+- Peter verifies live/public blog reality
+- Karen checks whether claimed completion matches evidence
+
+### 5. State closure layer
+Mission Control records the verified same-day state:
+- PASS / FAIL / BLOCKED
+- blockers
+- make-up work
+- anti-optimism truth mirror
+
 ## Recommended execution order
 
 1. Hunter research + X viral-learning
