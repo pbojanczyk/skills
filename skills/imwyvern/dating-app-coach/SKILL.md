@@ -1,13 +1,10 @@
 ---
 name: dating-app-coach
 description: >
-  Master dating apps with an AI dating app coach. Get help writing standout dating
-  profiles, crafting attention-grabbing opening messages, building engaging conversations,
-  and converting matches to real dates. Covers Tinder, Bumble, Hinge, Coffee Meets
-  Bagel, TanTan (探探), Momo (陌陌), and other dating platforms. Includes profile photo
-  optimization, bio writing, prompt answers, first message templates, conversation
-  transition strategies, and when to ask for the date. Stop matching and start meeting.
-  约会软件攻略、Tinder技巧、探探开场白、陌陌聊天、约会APP配对。
+  Dating App Coach is an AI strategist for Tinder, Bumble, Hinge, and other dating apps where
+  profile, opener, and timing decide everything. It helps optimize bios, photos, first
+  messages, follow-ups, date conversion, and rejection recovery so online matches turn into
+  better real-life dates. 约会软件指导、Tinder/Bumble/Hinge、开场白、资料优化。
 metadata:
   openclaw:
     emoji: "📱💘"
