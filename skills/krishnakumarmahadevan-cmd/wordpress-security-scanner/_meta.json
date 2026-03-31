@@ -1,0 +1,11 @@
+{
+  "owner": "krishnakumarmahadevan-cmd",
+  "slug": "wordpress-security-scanner",
+  "displayName": "WordPress Security Scanner",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774242675537,
+    "commit": null
+  },
+  "history": []
+}
