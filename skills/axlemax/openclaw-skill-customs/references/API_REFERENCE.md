@@ -131,24 +131,6 @@ Only works for `failed` tasks.
 
 ---
 
-## File Type Enum
+## File Type Enum & Segment Type Enum
 
-| Value | Chinese | English |
-|---|---|---|
-| `invoice` | 发票/商业发票 | Commercial Invoice |
-| `packing_list` | 装箱单 | Packing List |
-| `bill_of_lading` | 提单 | Bill of Lading |
-| `contract` | 合同 | Sales Contract |
-| `draft` | 汇票 | Draft |
-| `certificate_of_origin` | 原产地证 | Certificate of Origin |
-| `insurance` | 保险单 | Insurance Policy |
-| `unknown` | 未知 | Unrecognized |
-
-## Segment Type Enum
-
-| Value | Use Case |
-|---|---|
-| `page` | PDF documents (by page number) |
-| `image` | Image files (whole image = one segment) |
-| `sheet` | Excel files (by sheet) |
-| `text` | Plain text content |
+→ 完整的文件类型枚举、分片类型枚举、合并漏斗规则和置信度解读，请参见 [FILE_TYPES.md](FILE_TYPES.md)。

@@ -39,4 +39,4 @@
 | 任务仍为 `pending` | 📬 任务排队中，等待处理器分配资源... |
 | 任务 `completed` | ✅ 处理完成！共耗时约 {elapsed}秒 |
 | 任务 `failed` | ❌ 任务失败：{error_message}。建议检查源文件是否完整，或尝试重试。 |
-| 轮询超时（30次后） | 🕐 已等待超过 4 分钟，任务可能仍在执行。可稍后用以下命令手动查询：<br>`python scripts/poll_task.py <result_id>` |
+| 轮询超时（30次后） | 🕐 已等待超过 4 分钟，任务可能仍在执行。可稍后用以下命令手动查询：<br>`python scripts/submit_and_poll.py --mode poll --result-id <result_id>` |
