@@ -3,9 +3,15 @@
   "slug": "tacoclawcom",
   "displayName": "Tacoclaw",
   "latest": {
-    "version": "1.0.0",
-    "publishedAt": 1774357645208,
-    "commit": "https://github.com/openclaw/skills/commit/f247cfb577ba3279cbf45e21bf2d4d68d4ebe7d3"
+    "version": "1.0.1",
+    "publishedAt": 1774607010108,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.0.0",
+      "publishedAt": 1774357645208,
+      "commit": "https://github.com/openclaw/skills/commit/f247cfb577ba3279cbf45e21bf2d4d68d4ebe7d3"
+    }
+  ]
 }
