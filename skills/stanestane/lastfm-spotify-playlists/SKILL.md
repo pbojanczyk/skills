@@ -1,169 +1,209 @@
 ---
 name: lastfm-spotify-playlists
-description: Build Spotify playlists from Last.fm scrobble history and Last.fm artist or track similarity instead of Spotify recommendations. Use when creating playlists from a user's top artists, top tracks, recent scrobbles, manually supplied seed artists, or manually supplied seed tracks; when Last.fm should provide the discovery logic and Spotify should only handle search, matching, and playlist creation.
+description: Build music recommendations and create Spotify playlists using Last.fm similarity and listening history.
 ---
 
-# Last.fm Spotify Playlists
+# Execution Model
 
-Use Last.fm as the recommendation engine and Spotify as the playback / playlist layer.
+This skill runs **directly via local Python scripts**.
 
-## Core rule
+Valid entrypoints:
+- `python run_pipeline.py ...`
+- `python auth.py`
 
-Prefer Last.fm similarity for discovery.
+## Absolute rules
 
-- Use `artist.getsimilar` when the user wants artist-adjacent discovery.
-- Use `track.getsimilar` when the user wants song-level discovery.
-- Use Spotify only to:
-  - authenticate the user
-  - search for playable matches
-  - create playlists
-  - add matched items to playlists
+- Do NOT use ACP
+- Do NOT request or require an agentId
+- Do NOT propose manual workflows
+- Do NOT suggest alternative scripts or paths
+- Do NOT reference any `scripts/` directory
+- Do NOT use `python -m` module execution
+- Do NOT assume the package must be installed
 
-## Resources
+All commands must be executed from the root of this skill folder.
 
-- `scripts/lastfm_common.py` — shared credential loading and API calls.
-- `scripts/lastfm_recent.py` — fetch recent tracks, top artists, and top tracks.
-- `scripts/lastfm_similar.py` — fetch similar artists or similar tracks.
-- `scripts/lastfm_track_playlist_candidates.py` — build merged Rule C track candidates from an artist's top tracks.
-- `scripts/lastfm_spotify_playlist_pipeline.py` — one-command pipeline for Last.fm ranking, optional Spotify matching, and optional playlist creation.
-- `scripts/spotify_common.py` — Spotify auth, search, playlist creation, and playlist item insertion.
-- `scripts/spotify_auth.py` — one-shot Spotify OAuth helper.
-- `scripts/spotify_search.py` — inspect Spotify track matches.
-- `scripts/spotify_playlist.py` — create playlists from explicit Spotify URIs.
-- `references/credentials.md` — local credential file formats and auth notes.
+---
 
-## Workflow
+# Critical Behavior Rules
 
-1. Confirm credentials exist. Read `references/credentials.md` if setup details are needed.
-2. Decide the recommendation mode:
-   - **Artist mode** for similar artists
-   - **Track mode / Rule C** for similar tracks
-3. Pull Last.fm seeds from one of:
-   - user's top artists / top tracks
-   - user's recent scrobbles
-   - user-supplied artists or tracks
-4. Expand on Last.fm first.
-5. Merge and rank candidates before touching Spotify.
-6. If the user wants suggestions only, stop after merged candidate ranking and return Last.fm-native results.
-7. Authenticate Spotify only if playlist output is requested.
-8. Search Spotify for exact artist + track matches when possible.
-9. Create the playlist on Spotify.
-10. Add tracks through the playlist `/items` endpoint, not the older `/tracks` write endpoint.
-11. Report unmatched candidates explicitly instead of silently dropping them.
+If the user asks for:
+- creating a playlist
+- adding songs to Spotify
+- saving results to Spotify
 
-## Recommended patterns
-
-### A. Similar artists from a seed artist
-
-Use when the user wants nearby artists, not necessarily exact song similarity.
+You MUST execute:
 
 ```bash
-python skills/lastfm-spotify-playlists/scripts/lastfm_similar.py artist "Placebo" --limit 20
+--output-mode spotify --create-playlist
+
+Primary entrypoints:
+- `python run_pipeline.py ...`
+- `python auth.py ...`
+
+This skill is intentionally organized as plain scripts plus helper modules:
+- `run_pipeline.py`
+- `auth.py`
+- `lastfm.py`
+- `spotify.py`
+- `pipeline.py`
+- `common.py`
+
+No package installation is required.
+
+# Purpose
+
+This skill:
+- uses Last.fm as the discovery engine
+- expands seeds through `track.getsimilar`
+- ranks merged candidates
+- optionally matches results on Spotify
+- optionally creates Spotify playlists
+
+# Requirements
+
+## Python
+A normal local Python interpreter must be available.
+
+## Last.fm credentials
+Supported sources:
+- environment variables:
+  - `LASTFM_API_KEY`
+  - `LASTFM_SHARED_SECRET`
+  - `LASTFM_USERNAME`
+- credentials file:
+  - `~/.openclaw/lastfm-credentials.json`
+- explicit file path via command flag:
+  - `--creds <path>`
+
+Example file:
+```json
+{
+  "api_key": "YOUR_LASTFM_API_KEY",
+  "shared_secret": "YOUR_LASTFM_SHARED_SECRET",
+  "username": "YOUR_LASTFM_USERNAME"
+}
 ```
 
-Then inspect Spotify manually or with `spotify_search.py`.
+## Spotify credentials
+Needed only for Spotify matching or playlist creation.
 
-### B. Similar tracks from one seed track
+Supported sources:
+- environment variables:
+  - `SPOTIFY_CLIENT_ID`
+  - `SPOTIFY_CLIENT_SECRET`
+  - `SPOTIFY_REDIRECT_URI`
+- credentials file:
+  - `~/.openclaw/spotify-credentials.json`
+- explicit file path via command flag:
+  - `--spotify-creds <path>`
 
-Use when the user gives a specific song.
+Saved token location:
+- `~/.openclaw/spotify-token.json`
+- or explicit path via `--spotify-token <path>`
+
+# Command Selection
+
+## 1. Recommend from recent Last.fm listening
+Use when the request is based on a user's recent scrobbles.
 
 ```bash
-python skills/lastfm-spotify-playlists/scripts/lastfm_similar.py track "Placebo" "Every You Every Me" --limit 20
+python run_pipeline.py recent-tracks   --user "<LASTFM_USER>"   --recent-count 10   --similar-per-seed 5   --final-limit 20   --output-mode lastfm-only
 ```
 
-### C. Rule C playlist candidates from one artist's top tracks
-
-Use when the user wants the most Last.fm-native discovery flow.
+## 2. Recommend from a seed artist
+Use when the request is based on one artist.
 
 ```bash
-python skills/lastfm-spotify-playlists/scripts/lastfm_track_playlist_candidates.py "Placebo" --seed-count 5 --similar-per-seed 10 --final-limit 20
+python run_pipeline.py artist-rule-c   "<ARTIST_NAME>"   --seed-count 5   --similar-per-seed 10   --final-limit 20   --output-mode lastfm-only
 ```
 
-This:
-- fetches the artist's top tracks from Last.fm
-- expands each track via `track.getsimilar`
-- merges duplicate candidates across seed tracks
-- ranks results by source count and total similarity score
-
-### D. Suggestion-only mode with no Spotify writes
-
-Use when the user wants a ranked suggestion list but does not want a Spotify playlist created.
+## 3. Recommend from top artists
+Use when the request is based on a user's broader taste profile.
 
 ```bash
-python skills/lastfm-spotify-playlists/scripts/lastfm_spotify_playlist_pipeline.py recent-tracks --output-mode lastfm-only --final-limit 20
+python run_pipeline.py top-artists-blend   --user "<LASTFM_USER>"   --period 1month   --artist-count 5   --seed-count-per-artist 3   --similar-per-seed 5   --final-limit 20   --output-mode lastfm-only
 ```
 
-## Spotify auth
-
-Run this before playlist creation if the token is missing or outdated:
+## 4. Match recommendations to Spotify
+Use when the user wants playable Spotify results but not necessarily a playlist.
 
 ```bash
-python skills/lastfm-spotify-playlists/scripts/spotify_auth.py --scopes playlist-modify-private playlist-modify-public playlist-read-private user-read-private
+python run_pipeline.py recent-tracks   --user "<LASTFM_USER>"   --recent-count 10   --final-limit 20   --output-mode spotify
 ```
 
-## Playlist creation notes
+## 5. Create Spotify playlist
+Use when the user explicitly wants a playlist created.
 
-- Create playlists through `/me/playlists`.
-- Add tracks through `/playlists/{playlist_id}/items`.
-- Do not rely on the older `/tracks` write endpoint in this environment.
-- Expect some Last.fm candidates to fail Spotify matching; report them.
+```bash
+python run_pipeline.py recent-tracks   --user "<LASTFM_USER>"   --recent-count 10   --final-limit 20   --output-mode spotify   --create-playlist   --playlist-name "Last.fm Recommendations"
+```
 
-## Good outputs
+## 6. Run Spotify auth
+Use when Spotify token setup is required.
 
-Return:
-- seed artist or tracks used
-- candidate tracks considered
-- ranked Last.fm suggestions when using suggestion-only mode
-- matched Spotify tracks when using Spotify mode
-- unmatched candidates
-- final playlist URL when creation succeeds
+```bash
+python auth.py
+```
 
-## Scope of this skill
+Optional explicit paths:
 
-Include:
-- Last.fm seed collection
-- Last.fm similarity expansion
-- merged candidate ranking
-- optional suggestion-only output
-- Spotify track matching
-- Spotify playlist creation and population
-- one-command artist / recent / top-artist blend pipelines
+```bash
+python auth.py   --spotify-creds "<PATH_TO_SPOTIFY_CREDS_JSON>"   --spotify-token "<PATH_TO_SPOTIFY_TOKEN_JSON>"
+```
 
-Exclude from the packaged skill:
-- real API keys
-- real secrets
-- real token files
-- user-specific exported candidate JSON unless the user explicitly wants example artifacts kept
+# Behavior Rules
 
-## Publishing readiness (new)
+- Prefer Last.fm for recommendation discovery
+- Use Spotify only for:
+  - search
+  - playlist creation
+  - playlist population
+- If the user only wants suggestions, use `--output-mode lastfm-only`
+- If the user wants Spotify results, use `--output-mode spotify`
+- If the user wants a playlist created, add `--create-playlist`
+- Never invent missing credentials
+- Never fall back to ACP or agent execution
 
-- This skill is designed for publishing in controlled environments. Before publish, verify:
-  - No embedded credentials or secrets anywhere in code or docs.
-  - All credential references point to environment variables or external credential files.
-  - Scripts have clear inputs/outputs and error cases documented.
-  - Licensing and attribution are in place where applicable.
-  - Version tag and a changelog placeholder exist.
+# Output Expectations
 
-## Quickstart for publishing (example)
+The scripts print JSON to stdout.
 
-1) Publish scaffold: ensure SKILL.md, script docs, and credentials guide exist.
-2) Run a dry-run of key workflows to verify outputs:
-   - artist-rule-c with a seed artist
-   - recent-tracks with a user
-3) If all good, attach a publish note with a changelog entry and version.
+Return the JSON result directly or summarize it faithfully.
 
-## Credentials and secrets (new)
+Typical fields include:
+- `mode`
+- `user`
+- `seed_artist`
+- `seed_tracks`
+- `suggestions`
+- `matched_tracks`
+- `unmatched_tracks`
+- `playlist`
 
-- Last.fm: API key, shared secret, username
-  - Environment: LASTFM_API_KEY, LASTFM_SHARED_SECRET, LASTFM_USERNAME
-  - File: ~/.openclaw/lastfm-credentials.json
-- Spotify: Client ID, Client Secret, Redirect URI
-  - Environment: SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT_URI
-  - File: ~/.openclaw/spotify-credentials.json
+# Error Handling
 
-## Troubleshooting (new)
+If the script exits with an error:
+- surface stderr or the raised error message directly
+- do not retry through ACP
+- do not ask for an agentId
+- do not claim the skill is unavailable because it is not a package
 
-- Credential not found: verify environment or credentials file path
-- Last.fm API rate limits: consider increasing limit or adding backoff
-- Spotify auth/token refresh failures: ensure refresh_token exists; run spotify_auth.py to re-authorize
+Common expected failures:
+- missing Last.fm API key
+- missing Last.fm username
+- missing Spotify credentials
+- missing Spotify token
+- expired Spotify token without refresh token
 
+# Notes
+
+This skill is intentionally script-based for reliability.
+
+It should work as long as:
+- the skill folder is present
+- Python is present
+- credentials are configured
+- commands are executed from the skill folder root
+
+It must not depend on package installation, editable installs, or import path manipulation.
