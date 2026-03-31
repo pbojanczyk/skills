@@ -1,137 +1,122 @@
 ---
 name: travel-vlog-maker
-version: "1.0.1"
-displayName: "Travel Vlog Maker"
+version: "1.1.0"
+displayName: "Travel Vlog Maker — Create Cinematic Travel Videos and Trip Highlight Reels with AI"
 description: >
-  Describe your travel and NemoVideo creates the video. Destination guides, trip recaps, travel day documentation, city walking tours, cultural immersion content, one-year travel anniversaries — narrate where you went, what surprised you, what the logistics actually looked like, and the specific moments that made the trip worth remembering, and get travel vlog content for the audience that watche...
-
-  Works by connecting to the NemoVideo AI backend at mega-api-prod.nemovideo.ai.
-  Supports MP4, MOV, AVI, WebM.
-homepage: https://nemovideo.com
-repository: https://github.com/nemovideo/nemovideo_skills
-license: MIT-0
+  Create cinematic travel videos and trip highlight reels with AI — transform raw vacation footage into polished travel content with cinematic color grading, location title cards, map route animations, ambient local music, smooth transitions between destinations, day-by-day chapter structure, and multi-platform export. NemoVideo turns hours of scattered phone clips into a compelling travel narrative: stabilize handheld walking footage, apply destination-appropriate color grades (warm Mediterranean, moody Nordic, vibrant Southeast Asian), add animated location pins and route maps, layer ambient soundscapes from each destination, create day-by-day or city-by-city chapter navigation, and produce both long-form YouTube vlogs and short-form social highlights. Travel vlog maker AI, trip video creator, vacation video editor, travel highlight reel, cinematic travel video, destination video maker, travel content creator tool, adventure video editor, travel montage maker.
+metadata: {"openclaw": {"emoji": "✈️", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
 ---
 
-## 0. First Contact
+# Travel Vlog Maker — Your Trips Deserve Better Than a Camera Roll
 
-When the user opens this skill or sends their first message, **greet them immediately**:
+Every traveler returns with the same problem: hundreds of phone clips — sunsets, street food, landmark panoramas, hotel room tours, accidental pocket recordings — scattered across their camera roll in no particular order, with no narrative, no music, and no way to share the experience without subjecting friends to a 45-minute scroll-through of unedited footage. The gap between the trip you experienced and the trip your footage communicates is enormous. You remember the feeling of walking through a Moroccan souk at dusk — the colors, the sounds, the spice-heavy air. Your phone captured a shaky 12-second clip of blurry stalls with wind noise drowning out the ambiance. You remember the awe of standing at the edge of the Grand Canyon at sunrise. Your phone captured a washed-out panorama that looks like every other Grand Canyon photo. The experience was extraordinary. The footage is ordinary. Professional travel creators bridge this gap through production: cinematic color grading that enhances the mood of each destination, stabilization that turns handheld walking into smooth steadicam, music that evokes the emotional texture of each place, title cards that orient the viewer geographically and temporally, and narrative structure that transforms scattered moments into a story with a beginning, middle, and end. NemoVideo applies this entire production layer to your raw travel footage. Upload your scattered clips — in any order, from any device — and receive a cinematic travel video that communicates what the trip actually felt like, not just what your phone sensor recorded.
 
-> 🚀 Hey! I'm ready to help you travel vlog maker. Send me a video file or just tell me what you need!
+## Use Cases
 
-**Try saying:**
-- "help me create a short video"
-- "edit my video"
-- "add effects to this clip"
+1. **Multi-City Trip — Narrative Travel Film (5-20 min)** — A two-week Europe trip: 4 cities, 340 phone clips, zero organization. NemoVideo: auto-sorts clips by GPS metadata and timestamp (organizing the chaos into chronological, location-grouped sequences), applies destination-specific color grading (warm golden for Rome, cool blue-gray for London, vibrant saturated for Barcelona, moody atmospheric for Amsterdam), stabilizes all handheld walking footage (cobblestone streets no longer induce nausea), adds animated map transitions between cities (a dotted line traces the route from Rome to London with a plane icon, grounding the viewer geographically), creates location title cards for each destination ("Barcelona, Spain — Day 8" appearing over an establishing shot), layers location-appropriate ambient music (acoustic guitar for Rome, electronic for London, flamenco-influenced for Barcelona, café jazz for Amsterdam), structures as chapters (one per city, navigable on YouTube), and produces a 15-minute travel film that makes everyone who watches it want to book the same trip.
 
-**IMPORTANT**: Do NOT wait silently. Always greet the user proactively on first contact.
+2. **Adventure Trip — Action Highlight Reel (2-5 min)** — A hiking, surfing, skiing, or diving trip with action footage from GoPro, drone, and phone. NemoVideo: identifies high-energy moments (waves, powder turns, summit arrivals, underwater encounters), compiles them into an adrenaline-paced highlight reel with beat-synced editing (cuts landing on music beats for visceral rhythm), applies adventure-grade color grading (punchy contrast, saturated blues and greens, golden hour warmth), adds slow-motion on peak action moments (the wave break, the cliff jump, the summit celebration), intersperses with establishing drone shots (showing the landscape context for each activity), and builds to a crescendo-climax-resolution structure (arrival → activities building intensity → peak moment → reflective sunset closing). The adventure highlight reel that gets shared because it transmits adrenaline through the screen.
 
-### Auto-Setup
+3. **Food and Culture — Culinary Travel Documentary (5-15 min)** — A food-focused trip: street food markets, restaurant meals, cooking classes, local food encounters. NemoVideo: creates close-up montage sequences of food preparation and plating (the sizzle, the pour, the garnish — food content that triggers visceral appetite response), adds dish identification overlays ("Pad Thai — Khao San Road, Bangkok — ฿60"), intersperses with cultural context shots (the market atmosphere, the chef's face, the dining environment), layers ambient sounds of each food scene (sizzling woks, market chatter, clinking glasses), adds location and price context for each food experience, and structures as a culinary journey narrative (morning street food → afternoon cooking class → evening fine dining). Travel food content that makes viewers both hungry and inspired to travel.
 
-When the user first interacts, set up the connection:
+4. **Family Vacation — Memory Keepsake Video (5-10 min)** — A family trip with clips from every family member's phone: parents' footage, teenager's TikTok-style clips, grandparent's accidentally vertical video, kid's 47 clips of the hotel pool. NemoVideo: aggregates all sources, auto-sorts by timestamp, selects the strongest moments from each person's perspective (the genuine reactions, the spontaneous laughter, the awe faces at landmarks), balances coverage across family members (everyone appears, nobody dominates), applies warm, nostalgic color grading (slightly golden, soft contrast — the look of treasured memories), adds a family-appropriate music bed (uplifting without being saccharine), and creates chapter markers for each day or major activity. A family memory video that becomes more precious every year — the digital equivalent of a photo album, except it moves and sounds like the trip actually felt.
 
-1. **Check token**: If `NEMO_TOKEN` env var is set, use it. Otherwise:
-2. **Read or generate Client-ID**:
-   - Read `~/.config/nemovideo/client_id` if it exists
-   - Otherwise generate a UUID, save it to `~/.config/nemovideo/client_id`
-3. **Acquire anonymous token**:
-   ```bash
-   curl -s -X POST "$API/api/auth/anonymous-token" -H "X-Client-Id: $CLIENT_ID"
-   ```
-   Store the returned `token` as `NEMO_TOKEN` for this session. You get 100 free credits.
-4. **Create a session** (§3.0) so you're ready to work immediately.
+5. **Solo Travel — Personal Journey Narrative (5-15 min)** — A solo traveler's clips: selfie-mode walking tours, café journal moments, sunset contemplations, interactions with locals, and phone-as-diary voiceover reflections. NemoVideo: structures the footage as a personal narrative (not just a location guide — a story about the traveler's internal journey), uses the voiceover reflections as narration connectors between visual sequences, applies contemplative color grading (softer, slightly desaturated — the look of personal reflection rather than tourism promotion), adds text overlay quotes from the traveler's journal entries at key moments, layers atmospheric ambient sound that emphasizes solitude and presence (distant church bells, rain on a café window, waves on an empty beach), and creates an intimate travel film that is as much about personal growth as geographic exploration.
 
-Let the user know briefly: "Setting things up… ready!" then proceed with their request.
+## How It Works
 
+### Step 1 — Upload All Trip Footage
+Every clip from every device — phone, GoPro, drone, any family member's phone. Any order. NemoVideo auto-sorts by time and location.
 
-# Travel Vlog Maker — Create Destination, Journey, and Travel Life Videos
+### Step 2 — Choose Travel Video Style
+Cinematic narrative, action highlight, food/culture focus, family keepsake, solo journey, or quick social recap.
 
-Describe your travel and NemoVideo creates the video. Destination guides, trip recaps, travel day documentation, city walking tours, cultural immersion content, one-year travel anniversaries — narrate where you went, what surprised you, what the logistics actually looked like, and the specific moments that made the trip worth remembering, and get travel vlog content for the audience that watches travel videos while planning their own trips or living vicariously through yours.
-
-## When to Use This Skill
-
-Use this skill for travel documentation and destination content:
-- Create destination guide videos with practical tips and honest impressions
-- Film trip recap and travel day documentation content
-- Build city walking tour and neighborhood exploration content
-- Document slow travel and long-term travel lifestyle content
-- Create "what I wish I knew before going to X" honest travel advice
-- Produce travel planning and logistics breakdown content
-
-## How to Describe Your Travel Content
-
-Be specific about the destination, the specific neighborhoods and experiences, the logistics, the costs, and the honest impressions — good and bad.
-
-**Examples of good prompts:**
-- "3 weeks in Japan — what surprised me after 6 months of planning: The surprises: (1) 7-Eleven is actually exceptional — I ate at convenience stores by choice, not necessity. The onigiri, sandos, and hot foods are better than most sit-down restaurants I've had in the US. (2) The trains are as punctual as advertised but the system is genuinely confusing even with a Suica card and Google Maps — build in extra time for the first week. (3) Tokyo is loud, overwhelming, and I loved it. Kyoto is quieter and I found it harder to connect to. (4) The language barrier is less of a problem than expected — Google Translate camera mode is effectively a superpower in restaurants and train stations. Budget reality: $85-110/day for everything in Tokyo, $65-75/day in Kyoto and smaller cities. Show the Golden Gai neon night, the morning Fushimi Inari hike before the crowds, and the vending machine that sold hot sake."
-- "Solo traveling Europe for 45 days on $2,400 total: The breakdown: $800 flights, $900 accommodation (hostels + 3 Airbnbs), $500 food, $200 transportation within Europe. The route: Lisbon (7 nights) → Madrid (5) → Barcelona (4) → Rome (7) → Florence (3) → Prague (5) → Vienna (4) → Budapest (5) → home. The one thing nobody tells you about budget travel in Europe: the free stuff is almost always better than the paid stuff. Free walking tours, public beaches, park picnics, street food. The expensive mistake: 3 nights in a bad hostel in Rome because I didn't read the reviews carefully. The best unexpected decision: 2 extra days in Prague after a train delay — now my favorite city."
-- "Moving to Medellín for 3 months as a digital nomad: What it's actually like vs the hype. The cost breakdown: $650/month apartment in El Poblado, $200 food (restaurants twice a day, groceries for the rest), $80 coworking membership, $15 local transport. Total: $945/month all-in vs $3,200 in San Francisco. The reality: 70°F year-round is real (it's called the City of Eternal Spring for a reason), Spanish immersion happens whether you want it to or not (good), the safety concern in El Poblado is overstated (I never had an incident in 3 months), the traffic noise from the main avenues is undersold (choose a side street). Would I go back? Yes, and I'm planning 6 months this time."
-
-## Key Parameters
-
-| Parameter | Description | Example |
-|-----------|-------------|---------|
-| `content_type` | Video category | `"destination_guide"`, `"trip_recap"`, `"day_in_life"`, `"nomad_life"`, `"walking_tour"`, `"budget_breakdown"` |
-| `destination` | Where you traveled | `"Japan"`, `"Medellín"`, `"45-day Europe"` |
-| `duration_of_trip` | Trip length | `"3 weeks"`, `"45 days"`, `"3 months"` |
-| `budget_per_day` | Daily spend | `"$85-110/day"`, `"$945/month"` |
-| `key_moments` | Highlight experiences | `["Golden Gai at night"`, `"Fushimi Inari morning hike"`, `"Prague after train delay"]` |
-| `honest_negatives` | What didn't work | `["bad hostel in Rome"`, `"Kyoto harder to connect"]` |
-| `practical_tips` | Logistics advice | `["Suica card"`, `"Google Translate camera"`, `"read hostel reviews"]` |
-| `tone` | Content energy | `"honest"`, `"enthusiastic"`, `"practical"`, `"documentary"` |
-| `duration_minutes` | Video length | `8`, `12`, `20` |
-| `platform` | Distribution | `"youtube"`, `"instagram"`, `"tiktok"` |
-
-## Workflow
-
-1. Describe the destination, the trip length, the budget, the key experiences, and the honest impressions
-2. NemoVideo structures the travel narrative with location markers and cost callouts
-3. Destination names, budget figures, logistics tips, and day markers added automatically
-4. Export with travel vlog pacing suited to the content's energy
-
-## API Usage
-
-### Destination Guide Video
-
+### Step 3 — Generate
 ```bash
-curl -X POST https://mega-api-prod.nemovideo.ai/v1/run \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+curl -X POST https://mega-api-prod.nemovideo.ai/api/v1/generate \
+  -H "Authorization: Bearer $NEMO_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "skill": "travel-vlog-maker",
-    "input": {
-      "prompt": "First time in Southeast Asia — 4 weeks, 4 countries, $1,800: Thailand (Bangkok 4 nights, Chiang Mai 5 nights), Vietnam (Hanoi 3 nights, Hội An 4 nights, Ho Chi Minh 3 nights), Cambodia (Siem Reap/Angkor Wat 3 nights), back through Bangkok. The things that make first-time Southeast Asia overwhelming: everything is incredibly cheap and that distorts your spending (the number of times I upgraded accommodation for $3 more because it was trivially affordable), the heat in March is real and requires planning around it (visit temples early morning, midday is for cafes and AC), the scooter question (I rented one in Chiang Mai with no prior experience — probably fine, objectively not smart). The Angkor Wat sunrise moment: 4:30am, pre-booked tuk-tuk, arrived before the tour buses — the 45 minutes before the sun fully clears the towers is genuinely one of the best things I've ever seen. Total cost: $1,800 including flights from LA.",
-      "content_type": "trip_recap",
-      "destination": "Southeast Asia — Thailand, Vietnam, Cambodia",
-      "duration_of_trip": "4 weeks",
-      "budget_per_day": "$64/day all-in including flights",
-      "key_moments": ["Angkor Wat sunrise", "Chiang Mai scooter", "Hội An lanterns"],
-      "practical_tips": ["arrive Angkor Wat 4:30am", "midday temple heat strategy", "book tuk-tuk in advance"],
-      "tone": "honest",
-      "duration_minutes": 15,
-      "platform": "youtube",
-      "hashtags": ["TravelVlog", "SoutheastAsia", "BudgetTravel", "BackpackingAsia", "Angkor"]
-    }
+    "prompt": "Create a 12-minute cinematic travel film from a 10-day Japan trip. 280 phone clips + 40 drone clips. Structure by city: Tokyo (Days 1-3), Kyoto (Days 4-6), Osaka (Days 7-8), Hiroshima (Days 9-10). Color grade: vibrant but natural — enhance neon colors in Tokyo, golden temple warmth in Kyoto, street food saturation in Osaka, contemplative soft tones in Hiroshima. Animated map showing route between cities with bullet train icon. Location title cards for each city. Music: Japanese-influenced ambient electronic for Tokyo, traditional instruments for Kyoto, upbeat for Osaka, reflective piano for Hiroshima. Stabilize all walking footage. Slow-mo on key moments: Fushimi Inari sunrise, Shibuya crossing, first ramen reaction. Chapter markers per city. Export 16:9 YouTube + 60-second 9:16 highlight for Instagram Reels.",
+    "trip": {
+      "destinations": ["Tokyo", "Kyoto", "Osaka", "Hiroshima"],
+      "duration": "10 days",
+      "sources": {"phone_clips": 280, "drone_clips": 40}
+    },
+    "style": "cinematic-narrative",
+    "target_duration": "12:00",
+    "color_grade": "destination-specific",
+    "map_animation": {"route": true, "transport_icon": "bullet-train"},
+    "location_titles": true,
+    "music": "destination-matched",
+    "stabilize": true,
+    "slow_motion": ["fushimi-inari-sunrise", "shibuya-crossing", "first-ramen"],
+    "chapters": true,
+    "formats": {"full": "16:9", "highlight": {"format": "9:16", "duration": 60}}
   }'
 ```
 
-## Tips for Best Results
+### Step 4 — Review the Journey
+Watch the complete travel film. Verify: geographic flow makes sense, color grading enhances each destination's mood, music matches the emotional feel, map transitions orient the viewer, slow-motion moments are the right ones. Adjust and re-render.
 
-- **The honest negative is what builds trust**: "The bad hostel in Rome because I didn't read reviews" or "traffic noise from main avenues undersold" — travel content that admits the things that didn't work is more trusted and more shared than pure highlight reels
-- **Specific cost breakdowns are the most searched travel content**: "$945/month all-in in Medellín vs $3,200 in San Francisco" — the actual cost number with breakdown drives more search traffic than any destination photograph
-- **The unexpected discovery is the hook**: "7-Eleven in Japan is genuinely better than most sit-down restaurants in the US" — the non-obvious specific observation is what people share and remember
-- **Show the logistics, not just the highlights**: "Suica card + Google Maps, build in extra time first week" — practical logistics advice is what gets saved and revisited before trips
-- **Destination comparison creates decision-making content**: "Tokyo overwhelming and loved it, Kyoto quieter and harder to connect to" — honest destination comparisons help viewers plan their own versions of the trip
+## Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|:--------:|-------------|
+| `prompt` | string | ✅ | Travel video description |
+| `trip` | object | | {destinations, duration, sources} |
+| `style` | string | | "cinematic-narrative", "action-highlight", "food-culture", "family-keepsake", "solo-journey" |
+| `target_duration` | string | | Target output length |
+| `color_grade` | string | | "destination-specific", "warm-golden", "moody-atmospheric", "vibrant-saturated" |
+| `map_animation` | object | | {route, transport_icon, style} |
+| `location_titles` | boolean | | Add city/location title cards |
+| `music` | string | | "destination-matched", "cinematic", "upbeat", "reflective" |
+| `stabilize` | boolean | | Stabilize handheld footage |
+| `slow_motion` | array | | Key moments for slow-mo treatment |
+| `chapters` | boolean | | Day or city chapter markers |
+| `formats` | object | | {full, highlight} output configurations |
+
+## Output Example
+
+```json
+{
+  "job_id": "tvlog-20260329-001",
+  "status": "completed",
+  "trip": "Japan — 10 days, 4 cities",
+  "source_clips": 320,
+  "clips_used": 94,
+  "total_duration": "12:22",
+  "chapters": 4,
+  "map_transitions": 3,
+  "slow_motion_moments": 3,
+  "outputs": {
+    "full_film": {"file": "japan-10days-16x9.mp4", "resolution": "1920x1080", "duration": "12:22"},
+    "ig_highlight": {"file": "japan-highlight-9x16.mp4", "resolution": "1080x1920", "duration": "0:58"}
+  }
+}
+```
+
+## Tips
+
+1. **Destination-specific color grading is what separates travel vlogs from vacation slideshows** — Tokyo at night demands neon-enhanced cool tones. Kyoto temples demand golden warmth. A Greek island demands bright whites and saturated blues. Applying the same LUT to an entire multi-destination trip makes everywhere look the same. Destination-specific grading makes each place feel distinct and authentic.
+2. **Animated map transitions orient the viewer geographically and create breathing room** — When the film cuts from Tokyo to Kyoto, the viewer needs a moment to reset context. A 3-second animated map showing the route creates that reset while communicating how the journey connected. Without it, the viewer is confused about where they are.
+3. **Music sets emotional memory more than visuals** — Ask someone what they remember about a great travel video, and they often describe how it felt. That feeling was created primarily by the music. Destination-matched music (local instruments, local genres, local rhythm) embeds the footage in cultural authenticity that generic stock music cannot achieve.
+4. **Stabilization is mandatory for walking footage** — Travel footage is overwhelmingly handheld and walking. Every step creates bounce that accumulates into unwatchable shakiness over 30 seconds. Stabilizing walking footage is the single highest-impact quality improvement for any travel video.
+5. **60-second highlight reels are the distribution format that drives views to the full film** — A 12-minute travel film on YouTube gets organic views slowly. A 60-second highlight reel on Instagram Reels or TikTok can reach thousands in hours, driving traffic to the full film. Always produce both the full film and the social highlight.
 
 ## Output Formats
 
-| Platform | Resolution | Duration |
-|----------|------------|----------|
-| YouTube | 1920×1080 | 10–20 min |
-| TikTok | 1080×1920 | 60–180s |
-| Instagram Reels | 1080×1920 | 60–90s |
+| Format | Resolution | Use Case |
+|--------|-----------|----------|
+| MP4 16:9 | 1080p / 4K | YouTube / website / TV display |
+| MP4 9:16 | 1080x1920 | TikTok / Reels / Shorts highlight |
+| MP4 1:1 | 1080x1080 | Instagram / Facebook |
+| GIF | 720p | Preview / social teaser |
 
 ## Related Skills
 
-- `van-life-video` — Mobile living and road travel lifestyle content
-- `road-trip-video-maker` — Road trip documentation content
-- `adventure-travel-video` — Outdoor and adventure travel content
+- [ai-video-highlight-maker](/skills/ai-video-highlight-maker) — Extract trip highlights
+- [ai-video-caption-generator](/skills/ai-video-caption-generator) — Travel narration captions
+- [ai-video-speed-changer](/skills/ai-video-speed-changer) — Time-lapse and slow-motion
+- [ai-video-color-grading](/skills/ai-video-color-grading) — Destination color grades
