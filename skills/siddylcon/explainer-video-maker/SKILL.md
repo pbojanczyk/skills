@@ -1,109 +1,85 @@
 ---
 name: explainer-video-maker
-version: "1.0.0"
-displayName: "Explainer Video Maker — Create Animated Explainer Videos with AI from Script"
+version: "5.0.1"
+displayName: "Explainer Video Maker — Create Animated Explainer and How-It-Works Videos"
 description: >
-  Create animated explainer videos using AI — turn scripts, product descriptions, and complex ideas into clear, engaging animated videos with voiceover narration, visual metaphors, animated diagrams, character animations, and professional motion graphics. NemoVideo produces the explainer videos that startups use on landing pages, SaaS companies use for onboarding, educators use for lesson delivery, and marketers use for product launches — all generated from text without animation software, designers, or production budgets.
-metadata: {"openclaw": {"emoji": "💡", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
+    Explainer Video Maker — Create Animated Explainer and How-It-Works Videos. Works by connecting to the NemoVideo AI backend. Supports MP4, MOV, AVI, WebM, and MKV output formats. Automatic credential setup on first use — no manual configuration needed.
+metadata: {"openclaw": {"emoji": "💡", "requires": {"env": ["NEMO_TOKEN"], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
+homepage: https://nemovideo.com
+apiDomain: https://mega-api-prod.nemovideo.ai
+repository: https://github.com/nemovideo/nemovideo_skills
 ---
 
-# Explainer Video Maker — Animated Explainers from Script to Screen
+# Explainer Video Maker — Animated Explainer and How-It-Works Videos
 
-Explainer videos are the most effective content format for converting confusion into understanding — and understanding into action. A 90-second animated explainer on a landing page increases conversion rates by 20-80% (depending on the product's complexity). A 3-minute explainer in an onboarding flow reduces support tickets by 40%. A 5-minute educational explainer gets shared 3x more than a text article covering the same topic. The reason is cognitive: animation can show abstract concepts that cameras cannot film. How does cloud computing work? You can't film "the cloud." But you can animate data flowing between servers, scaling up during traffic spikes, and distributing across regions — making the invisible visible. The barrier to explainer videos has always been production cost. A professional 90-second animated explainer costs $5,000-$15,000: scriptwriting ($500-1,000), storyboarding ($500-1,500), animation ($3,000-8,000), voiceover ($200-500), and music/sound design ($300-500). Timeline: 3-6 weeks. NemoVideo generates explainer videos from a script in minutes. Write what you want explained, describe the visual approach, and the AI produces: animated scenes matching each concept, voiceover narration with appropriate tone, visual metaphors for abstract ideas, smooth transitions between topics, and professional motion graphics — at a fraction of the cost and time.
+The product is brilliant, the pitch deck explains it in 47 slides, and every investor meeting ends with the same question: "So what does it actually do?" Explainer videos exist because complex products need a 90-second narrative that takes a confused stranger to an informed buyer without requiring a PhD in the problem space. The format — animated characters encountering a problem, discovering the solution, and experiencing the outcome — has become the standard top-of-funnel conversion tool for SaaS, fintech, healthtech, and any industry where the product's value isn't obvious from a screenshot. This tool transforms product descriptions, pitch decks, and value propositions into animated explainer videos — problem-agitation-solution narrative structures, character animations that represent the target user, process-flow visualizations showing how the product works step by step, data-point animations that make statistics feel tangible, and the clear CTA ending that tells the viewer exactly what to do next. Built for startup founders producing landing-page hero videos, marketing teams creating campaign-launch explainers, sales enablement managers building prospect-education libraries, course creators explaining complex methodologies, nonprofit organizations communicating mission impact, and any company whose homepage visitors bounce because they can't figure out what the product does in the first ten seconds.
 
-## Use Cases
+## Example Prompts
 
-1. **SaaS Product — Landing Page Explainer (60-90s)** — A project management tool needs a landing page video. NemoVideo produces: Problem scene (overwhelmed team, missed deadlines, scattered communication — animated with frustrated character and flying notifications), Solution scene (clean dashboard, organized tasks, team collaboration — animated with smooth UI mockup transitions), Benefits (3 key benefits as animated icons with counter statistics: "Save 5 hours/week"), and CTA ("Start free at teamflow.ai"). Voiceover: confident, friendly female. Music: upbeat corporate at -18dB. Animation style: modern flat design with brand colors.
-2. **Educational — Complex Concept (3-8 min)** — "How does photosynthesis work?" for middle school students. NemoVideo creates: animated plant cross-section showing sunlight entering leaves, chlorophyll molecules animated as green energy collectors, water molecules traveling up from roots, CO2 entering through stomata, glucose molecules being assembled step-by-step, and oxygen released as bubbles. Narration: friendly, patient voice with age-appropriate vocabulary. Each concept builds on the previous one with smooth transitions and recap checkpoints.
-3. **Startup Pitch — Investor Deck Companion (2-3 min)** — A startup's pitch deck needs a video version for async investor review. NemoVideo produces: market problem (animated market size charts, frustrated user personas), solution (product demo animation with key features), traction (animated growth chart, customer logos), team (brief animated bios), and ask (investment terms, use of funds as animated pie chart). Narration: authoritative yet passionate founder voice. The pitch deck becomes a standalone watchable narrative.
-4. **Internal Training — Process Explanation (3-5 min)** — A new employee onboarding module explaining the expense reporting process. NemoVideo creates: step-by-step animated workflow (submit receipt → manager approval → finance review → reimbursement), decision trees animated at approval/rejection points, timeline expectations animated on a calendar, and common mistakes shown with animated "wrong way / right way" comparisons. Clear, patient narration with no jargon.
-5. **Healthcare — Patient Education (2-4 min)** — A hospital needs to explain a surgical procedure to patients. NemoVideo generates: simplified animated anatomy showing the relevant area, step-by-step procedure animation (gentle, non-graphic), recovery timeline with animated milestones, expected outcomes shown as before/after animations, and a FAQ section addressing common concerns. Narration: calm, reassuring medical professional voice. Animations: clean, medical-illustration style — informative without being alarming.
+### 1. SaaS Startup — Problem-Solution-CTA Structure
+"Create a 90-second animated explainer for our expense-management SaaS. Problem (0-20 sec): animated office worker drowning in paper receipts, spreadsheet chaos on screen, boss asking 'Where's the Q3 report?' — text: 'Finance teams spend 15 hours/month chasing expense reports.' Agitation (20-35 sec): the consequences — 'Late reimbursements. Lost receipts. Audit nightmares. Your finance team deserves better.' Solution (35-70 sec): introduce the product — character opens the app, snaps a receipt photo (OCR extracts the data instantly), expense auto-categorizes, approval workflow sends to the manager with one tap, report generates automatically. Process flow: 'Snap → Categorize → Approve → Report → Done.' Three key benefits with icons: '90% faster processing | Zero lost receipts | Audit-ready always.' Social proof (70-80 sec): '2,400 companies trust us. $1.2B expenses processed.' CTA (80-90 sec): 'Start your free 14-day trial. No credit card required.' Logo + URL. Clean, modern 2D animation — flat design, brand colors (teal #0EA5E9 + coral #F97316), friendly character style. Upbeat corporate-but-not-boring music."
 
-## How It Works
+### 2. Healthcare — Patient Portal Explainer
+"Build a 2-minute explainer for a patient portal app. Audience: patients over 50 who are skeptical of health technology. Tone: reassuring, not patronizing. Problem: 'You called the office to reschedule. You were on hold for 22 minutes. Then they asked you to fax — fax! — your insurance card.' Solution: animated character (warm, age-appropriate — glasses, friendly face) opening the app on a tablet (not phone — larger screen reads as more accessible). Feature walkthrough: book appointments (calendar view, tap a slot), message your doctor (texting interface, response within 24 hours — 'No more phone tag'), view test results (simple cards with green/yellow/red indicators — 'Your cholesterol: 185 — in the healthy range ✓'), refill prescriptions (tap the refill button, pharmacy confirmation). Security callout: 'Your data is encrypted — the same technology your bank uses.' Closing: 'Your health information. Your schedule. Your control. Download the app or ask at your next visit.' Warm, accessible design — larger text, soft rounded shapes, muted palette (sage green, cream, soft blue). Gentle, confident narration voice. No jargon."
 
-### Step 1 — Provide Script or Topic
-Write the full script or describe the topic. NemoVideo develops the visual concept, scene breakdown, and animation approach based on the content.
+### 3. Nonprofit — Impact Explainer for Donors
+"Produce a 75-second nonprofit impact explainer for a clean-water organization. Opening: '785 million people don't have clean water. That number is impossible to feel. Let's make it real.' Zoom into one animated village: 'This is Kibo Village. 340 people. The nearest water source is 4 km away. The walk takes 3 hours. The water makes children sick.' Solution animation: a well being drilled (construction time-lapse), clean water flowing, children drinking. Impact chain: '$1 provides clean water for 1 person for 1 year. $340 serves an entire village. $12,000 builds the well that lasts 20 years.' Visual: a dollar bill transforms into a water droplet, which multiplies into a flowing stream, which feeds the village. Before/after split screen: dusty path with jerry cans → children playing at a clean water point. Social proof: '847 wells built. 288,000 people served. 0 wells failed.' CTA: 'Fund a well. Change a village. $1 starts today.' QR code + URL. Emotional but not manipulative — warm earth tones, hopeful music building to the reveal, real impact data. No sad-piano poverty imagery."
 
-### Step 2 — Choose Animation Style
-Select: modern flat design, whiteboard animation, 3D isometric, character-driven, infographic, or custom. Set brand colors, voiceover character, and music mood.
+## Parameters
 
-### Step 3 — Generate
+| Parameter | Type | Required | Description |
+|-----------|------|:--------:|-------------|
+| `prompt` | string | ✅ | Describe the product/concept, narrative structure, characters, and CTA |
+| `duration` | string | | Target video length (e.g. "75 sec", "90 sec", "2 min") |
+| `style` | string | | Animation style: "2d-flat", "whiteboard", "isometric", "character", "motion-graphics" |
+| `music` | string | | Music mood: "corporate-upbeat", "warm-hopeful", "tech-minimal", "none" |
+| `format` | string | | Output ratio: "16:9", "9:16", "1:1" |
+| `brand_colors` | string | | Primary and accent hex colors (e.g. "#0EA5E9, #F97316") |
+| `narration` | string | | Narration voice: "professional-male", "warm-female", "friendly-neutral", "none" |
+
+## Workflow
+
+1. **Describe** — Write the narrative with problem, solution, benefits, social proof, and CTA
+2. **Upload (optional)** — Add brand assets, logo, character references, or data visualizations
+3. **Generate** — AI produces the animated explainer with characters, process flows, and data animations
+4. **Review** — Preview the video, adjust the narrative pacing, verify data-point accuracy
+5. **Export** — Download in your chosen format and resolution
+
+## API Example
+
 ```bash
 curl -X POST https://mega-api-prod.nemovideo.ai/api/v1/generate \
   -H "Authorization: Bearer $NEMO_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "skill": "explainer-video-maker",
-    "prompt": "Create a 90-second explainer video for a SaaS project management tool. Structure: Problem (teams drowning in notifications, missed deadlines, scattered tools) → Solution (one dashboard, smart task prioritization, integrated communication) → Benefits (save 5 hours/week, 40%% fewer meetings, 92%% team satisfaction) → CTA (Start free at teamflow.ai). Animation: modern flat design, brand colors blue (#2563EB) and white. Voice: friendly confident female. Music: upbeat corporate at -18dB. Include animated UI mockups and counter statistics.",
-    "animation_style": "modern-flat",
-    "brand_colors": ["#2563EB", "#FFFFFF"],
-    "voice": "friendly-confident-female",
-    "music": "upbeat-corporate",
-    "music_volume": "-18dB",
+    "prompt": "Create a 90-second expense management SaaS explainer: problem (15hrs/month chasing receipts), agitation (late reimbursements, audit nightmares), solution (snap receipt, auto-categorize, one-tap approval, auto-report), 3 benefit icons, social proof 2400 companies, CTA free 14-day trial. 2D flat animation, teal #0EA5E9 + coral #F97316",
     "duration": "90 sec",
+    "style": "2d-flat",
+    "brand_colors": "#0EA5E9, #F97316",
     "format": "16:9"
   }'
 ```
 
-### Step 4 — Review Scenes and Export
-Preview each scene. Adjust animations, voiceover timing, or color palette. Export for landing page, social media, or presentation.
+## Tips for Best Results
 
-## Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|:--------:|-------------|
-| `prompt` | string | ✅ | Script/topic and visual requirements |
-| `animation_style` | string | | "modern-flat", "whiteboard", "3d-isometric", "character-driven", "infographic" |
-| `brand_colors` | array | | Hex colors for brand consistency |
-| `voice` | string | | "friendly-female", "authoritative-male", "warm", "energetic" |
-| `music` | string | | "upbeat-corporate", "cinematic", "playful", "minimal" |
-| `music_volume` | string | | "-14dB" to "-22dB" (default: "-18dB") |
-| `duration` | string | | "60 sec", "90 sec", "3 min", "5 min" |
-| `characters` | boolean | | Include animated character personas (default: true) |
-| `subtitles` | string | | "burned-in", "srt", "none" |
-| `format` | string | | "16:9", "9:16", "1:1" |
-
-## Output Example
-
-```json
-{
-  "job_id": "evm-20260328-001",
-  "status": "completed",
-  "duration_seconds": 88,
-  "scenes": 4,
-  "format": "mp4",
-  "resolution": "1920x1080",
-  "file_size_mb": 22.6,
-  "output_url": "https://mega-api-prod.nemovideo.ai/output/evm-20260328-001.mp4",
-  "production": {
-    "animation_style": "modern-flat (blue #2563EB + white)",
-    "voice": "friendly-confident-female (en)",
-    "music": "upbeat-corporate at -18dB",
-    "scenes": ["Problem (0:00-0:25)", "Solution (0:25-0:50)", "Benefits (0:50-1:12)", "CTA (1:12-1:28)"],
-    "animations": "UI mockups, counter statistics, character personas, icon transitions"
-  }
-}
-```
-
-## Tips
-
-1. **90 seconds is the landing page sweet spot** — Shorter than 60 seconds feels incomplete for a product explanation. Longer than 2 minutes loses website visitor attention. 75-90 seconds delivers the full Problem → Solution → Benefit → CTA arc.
-2. **Problem-first structure builds empathy** — Start with the pain the viewer feels before introducing the solution. "Drowning in notifications?" creates emotional agreement before "Our dashboard fixes this" offers relief.
-3. **Animated statistics are more believable** — A counter animating from 0 to "40% fewer meetings" is more credible and memorable than static text. Animation implies data; static text implies claims.
-4. **Brand colors in animation create subliminal recognition** — Using exact brand hex colors throughout the explainer means every frame reinforces brand identity. The viewer associates the positive explainer experience with the brand's visual language.
-5. **Voiceover pace should match content complexity** — Simple benefits: 160 wpm. Technical explanation: 130 wpm. The voice should slow down when the concept is hard and speed up when it's intuitive.
+1. **Follow Problem → Agitation → Solution → Proof → CTA** — This is the proven explainer structure. The AI uses your section labels to time each segment. Skipping the agitation step weakens the urgency; skipping social proof weakens the credibility.
+2. **Describe the character as the target user** — "Office worker drowning in receipts" or "patient over 50 with glasses" helps the AI create a character the viewer identifies with. Generic characters don't create the "that's me" moment that drives conversion.
+3. **Include one concrete data point per section** — "15 hours/month," "$1.2B processed," "22 minutes on hold." Numbers make abstract problems tangible. The AI animates statistics as counting-up numbers or transforming icons that are more memorable than narration alone.
+4. **Specify brand colors as hex codes** — "#0EA5E9, #F97316" produces exact brand-matched visuals. "Blue and orange" produces the AI's interpretation of blue and orange, which won't match your brand guidelines.
+5. **Keep the CTA to one action** — "Start your free trial" converts; "Visit our website, follow us on social, and download our whitepaper" confuses. The AI renders a single CTA as a prominent end card with animation emphasis.
 
 ## Output Formats
 
 | Format | Resolution | Use Case |
 |--------|-----------|----------|
-| MP4 16:9 | 1080p / 4K | Landing page / YouTube / presentation |
-| MP4 9:16 | 1080x1920 | Social media / TikTok ad |
-| MP4 1:1 | 1080x1080 | Instagram / LinkedIn feed |
-| GIF | 720p | Email embed / preview |
+| MP4 16:9 | 1080p / 4K | Website hero / YouTube explainer |
+| MP4 9:16 | 1080p | TikTok / Instagram Reels / LinkedIn vertical |
+| MP4 1:1 | 1080p | LinkedIn feed / Facebook ad |
+| MP4 15-sec | 1080p | Pre-roll ad cut-down |
 
 ## Related Skills
 
-- [youtube-shorts-maker](/skills/youtube-shorts-maker) — YouTube Shorts
-- [youtube-script-writer](/skills/youtube-script-writer) — Script writing
-- [talking-head-video](/skills/talking-head-video) — Talking head editing
+- [product-demo-video](/skills/product-demo-video) — Product walkthrough and feature demo videos
+- [brand-video-maker](/skills/brand-video-maker) — Brand story and company identity videos
+- [corporate-video-maker](/skills/corporate-video-maker) — Internal communications and corporate content
