@@ -1,0 +1,11 @@
+{
+  "owner": "slippersheepig",
+  "slug": "cloudflare-workers-ai-images",
+  "displayName": "Cloudflare Workers AI Images",
+  "latest": {
+    "version": "0.1.0",
+    "publishedAt": 1774702042688,
+    "commit": null
+  },
+  "history": []
+}
