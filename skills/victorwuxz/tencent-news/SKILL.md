@@ -1,7 +1,9 @@
 ---
 name: tencent-news 
-description: 获取7×24 新闻资讯，聚焦中国国内信息和国际热点。支持热点新闻、早报晚报、实时资讯、新闻榜单、领域新闻、新闻主体查询。当用户需要搜新闻、查新闻、看热点、早晚报、订阅新闻推送、获取主题相关新闻资讯和最新消息时使用。
-version: 1.0.0
+description: 获取7×24 新闻资讯，聚焦中国国内信息和国际热点。支持热点新闻、早报晚报、实时资讯、新闻榜单、领域新闻查询。当用户需要搜新闻、查新闻、看热点、看早晚报、订阅新闻推送、获取主题相关新闻资讯和最新消息时使用。
+description_zh: 7×24 新闻资讯，支持热点、早晚报、实时资讯、榜单、领域新闻及主题查询。
+description_en: 7×24 news updates with hot news, morning/evening briefings, real-time feeds, rankings, topic news, and subject queries.
+version: 1.0.1
 author: TencentNews 
 tags: [news, tencent, headlines, briefings, news rankings,real-time updates]
 ---
