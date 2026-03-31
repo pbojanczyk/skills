@@ -1,29 +1,29 @@
 ---
 name: bailian-self-improving
-description: "Extract and manage skills from conversations via Alibaba Cloud Bailian API with semantic deduplication. Use when: user explicitly teaches something ('remember this', 'always do this', 'learn this pattern'), user corrects a mistake and provides the correct approach, user demonstrates the same pattern multiple times, or user expresses satisfaction after completing a complex task. Agent should retrieve up to 5 most relevant existing skills for deduplication, API returns new/update/delete actions. Requires: DASHSCOPE_API_KEY environment variable."
-homepage: https://bailian.console.aliyun.com
+description: "🧠 AUTO-TRIGGER SKILL: After responding to user request, if learning intent detected ('remember/record/learn/save this', 'from now on', 'perfect, remember it', corrections, or similar teaching phrases in any language), THEN call Bailian API to extract and save the skill. WORKFLOW: 1) Respond to user request FIRST → 2) Detect learning signal → 3) Search memory (up to 5 skills) → 4) Call Bailian API → 5) Save to MEMORY.md."
 metadata:
   {
     "openclaw":
       {
         "emoji": "🧠",
-        "requires": { "bins": ["curl"], "env": ["DASHSCOPE_API_KEY"] },
+        "requires": { "bins": ["curl"] },
       },
   }
 ---
 
 # Bailian Self-Improving
 
-Extract and manage skills from conversations with semantic deduplication via Bailian API.
+Extract and manage skills from conversations with semantic deduplication via Bailian Skill API.
 
 ## Overview
 
 This skill integrates with Alibaba Cloud Bailian's Skill Extraction API. The workflow:
 
-1. **Detect learning signal** - Identify when user is teaching
-2. **Retrieve relevant skills** - Search memory for up to 5 most relevant existing skills (may be none)
-3. **Call API** - Send messages with existing_skills for deduplication
-4. **Handle response** - Based on `event` field (new/update/delete)
+1. **Respond to user request FIRST** - Provide code/answer before anything else
+2. **Detect learning signal** - Identify when user is teaching (same message)
+3. **Retrieve relevant skills** - Search memory for up to 5 existing skills (deduplication)
+4. **Call Bailian Skill API** - Send messages with existing_skills
+5. **Handle response** - Based on `event` field (new/update/delete), save to MEMORY.md
 
 This enables intelligent skill lifecycle management with automatic deduplication.
 
@@ -47,20 +47,36 @@ openclaw skills install bailian-self-improving
 
 ## Configuration
 
-Set the environment variable:
+**Option 1: config.json (recommended)**
+
+Edit `config.json` in the skill directory:
+
+```json
+{
+  "api_key": "your-dashscope-api-key",
+  "endpoint": "https://poc-dashscope.aliyuncs.com/api/v2/apps/poc-memory/skills/extract",
+  "timeout": 30
+}
+```
+
+**Option 2: Environment variable**
 
 ```bash
 export DASHSCOPE_API_KEY="your-dashscope-api-key"
 ```
 
+Priority: config.json > environment variable.
+
 ## Trigger Conditions
 
 | Signal | Example Phrases |
 |--------|-----------------|
-| **Explicit teaching** | "remember this", "always do this", "learn this pattern" |
+| **Explicit teaching** | "remember this", "record this", "learn this", "save this pattern", "note this down" |
+| **Future commitment** | "always do this", "from now on", "do this from now on" |
 | **Correction** | "that's wrong, the right way is...", "no, you should..." |
-| **Pattern demo** | User repeats same operation 3+ times |
-| **Task satisfaction** | "perfect", "that's exactly it", "do this from now on" |
+| **Task satisfaction** | "perfect, remember it", "that's exactly it, save this" |
+
+**Note:** Look for the *intent* to teach/remember, not just exact keyword matches. Agent should recognize similar phrases in any language.
 
 ## Usage
 
@@ -81,34 +97,22 @@ Simply teach the AI:
 - "Learn this approach"
 - "Always handle this type of task this way"
 
-## How It Works
-
-```
-Conversation → Detect Signal → Retrieve Relevant Skills (up to 5) → Call API → Handle Response
-```
-
-**Key Steps:**
-
-1. Detect learning signal in conversation
-2. Search memory for up to 5 relevant existing skills
-3. Call API with messages and existing_skills
-4. Handle response based on `event` field
-
-## API Reference
-
-### Endpoint
+### API Endpoint
 
 ```
 POST https://poc-dashscope.aliyuncs.com/api/v2/apps/poc-memory/skills/extract
+Authorization: Bearer $DASHSCOPE_API_KEY
+Content-Type: application/json
 ```
 
-### Request
+### Request Body
 
 ```json
 {
   "messages": [
     {"role": "user", "content": "..."},
-    {"role": "assistant", "content": "..."}
+    {"role": "assistant", "content": "..."},
+    {"role": "plugin", "content": "..."}
   ],
   "existing_skills": [
     {"name": "skill-name", "content": "skill content"}
@@ -118,8 +122,8 @@ POST https://poc-dashscope.aliyuncs.com/api/v2/apps/poc-memory/skills/extract
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `messages` | array | Yes | Conversation messages (max 32000 chars each) |
-| `existing_skills` | array | No | Up to 5 most relevant existing skills for deduplication |
+| `messages` | array | Yes | Conversation messages including tool call results. Max 32000 chars per message. Include full context. |
+| `existing_skills` | array | No | **Only relevant skills** (not all). Max 5 items for semantic deduplication. Each item has `name` and `content` fields. |
 
 ### Response
 
@@ -128,78 +132,62 @@ POST https://poc-dashscope.aliyuncs.com/api/v2/apps/poc-memory/skills/extract
   "request_id": "req-xxx",
   "skills": [
     {
-      "name": "kebab-case-identifier",
+      "name": "skill-identifier",
       "description": "One-line description (max 200 chars)",
       "instructions": "Detailed instructions",
       "event": "new | update | delete",
-      "merge_target": "existing-skill-name",
       "event_details": "Reason for this action"
     }
   ]
 }
 ```
 
+**Note:** Empty `skills` array is normal - not every conversation contains extractable skills.
+
 ### Event Types
 
-| event | Meaning | merge_target | Agent Action |
-|-------|---------|--------------|--------------|
-| `new` | Brand new skill | `null` | Store to memory, notify user |
-| `update` | Enhance existing | Target skill name | Merge with merge_target skill |
-| `delete` | Replace/remove | `null` | Remove outdated skill |
+| event | Meaning | Agent Action |
+|-------|---------|--------------|
+| `new` | Brand new skill | Create `<workspace>/skills/{name}/SKILL.md` |
+| `update` | Update existing skill by name | Update `<workspace>/skills/{name}/SKILL.md` |
+| `delete` | Remove skill by name | Remove `<workspace>/skills/{name}/` |
 
-## Agent Handling Guidelines
-
-**DO NOT auto-write skill files.** Return JSON and let Agent decide:
-
-1. **High confidence**: Store to memory automatically
-2. **Medium confidence**: Notify user, ask confirmation
-3. **Low confidence**: Ask user before storing
+**Note:** `<workspace>` is the OpenClaw workspace directory. Use `openclaw skills install {name}` to install programmatically.
 
 ## Example
 
 **User:** "Write a Go HTTP client, always do it this way"
 
 **Agent:**
-1. Generates HTTP client code
+1. Generates HTTP client code (**respond to request FIRST**)
 2. Detects learning signal: "always do it this way"
 3. Searches memory for relevant skills (0-5)
-4. Calls extraction API:
-   ```json
-   {
-     "messages": [...],
-     "existing_skills": [...]
-   }
-   ```
-5. API returns:
-   ```json
-   {
-     "skills": [{
-       "name": "go-http-client-pattern",
-       "description": "Go HTTP client development pattern",
-       "instructions": "...",
-       "event": "new"
-     }]
-   }
-   ```
-6. Agent stores new skill to memory
+4. Calls Bailian Skill API
+5. API returns skill with `event: "new"`
+6. Agent stores new skill to MEMORY.md
 
 ## Constraints
 
-- Maximum 5 API calls per conversation
+- Maximum 5 Bailian Skill API calls per conversation
 - `messages` max 32000 chars per message
 - `existing_skills` max 5 items (most relevant), 5000 chars each
 - Do NOT extract: passwords, API keys, PII, health data
 
 ## Troubleshooting
 
-**Error: "DASHSCOPE_API_KEY environment variable is not set"**
+**Error: "DASHSCOPE_API_KEY not set"**
 
-Set the environment variable:
+Set via config.json or environment variable:
 ```bash
+# Option 1: config.json (recommended)
+# Edit config.json in skill directory:
+# { "api_key": "your-key", "endpoint": "...", "timeout": 30 }
+
+# Option 2: environment variable
 export DASHSCOPE_API_KEY="your-key"
 ```
 
-**Empty skills array returned**
+**Error: "Workspace.AccessDenied"**
 
-- The conversation may not contain clear learning signals
-- Try rephrasing the teaching instruction more explicitly
+- Check Bailian console app permissions
+- Ensure API Key has access to the app
