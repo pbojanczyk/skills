@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Conference Intern — Register for Events (Batch Processing)
-# Usage: bash scripts/register.sh <conference-id> [--retry-pending] [--batch-size <n>] [--delay <seconds>]
+# Usage: bash scripts/register.sh <conference-id> [--retry-pending] [--batch-size <n>] [--tier <tiers>]
 #
 # Processes events in batches. Each run handles --batch-size events (default 10),
 # writes registration-status.json, and exits. The agent reads the status, asks the
@@ -14,6 +14,7 @@ CONFERENCE_ID=""
 RETRY_PENDING=false
 BATCH_SIZE=10
 DELAY=15
+TIER_OVERRIDE=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -24,12 +25,12 @@ while [[ $# -gt 0 ]]; do
         exit 1
       fi
       BATCH_SIZE="$2"; shift 2 ;;
-    --delay)
-      if [ -z "${2:-}" ] || ! [[ "$2" =~ ^[0-9]+$ ]]; then
-        log_error "--delay requires a positive integer (seconds)"
+    --tier)
+      if [ -z "${2:-}" ]; then
+        log_error "--tier requires a value (e.g., must_attend, must_attend,recommended)"
         exit 1
       fi
-      DELAY="$2"; shift 2 ;;
+      TIER_OVERRIDE="$2"; shift 2 ;;
     -*) log_error "Unknown flag: $1"; exit 1 ;;
     *) CONFERENCE_ID="$1"; shift ;;
   esac
@@ -47,6 +48,7 @@ STATUS_FILE="$CONF_DIR/registration-status.json"
 
 USER_NAME=$(config_get "$CONFIG" '.user_info.name')
 USER_EMAIL=$(config_get "$CONFIG" '.user_info.email')
+STRATEGY=$(config_get "$CONFIG" '.preferences.strategy // "aggressive"')
 
 if [ ! -f "$CURATED_FILE" ]; then
   log_error "No curated.md found. Run curate first: bash scripts/curate.sh $CONFERENCE_ID"
@@ -58,8 +60,17 @@ if [ ! -f "$EVENTS_FILE" ]; then
   exit 1
 fi
 
-log_info "Registering for events: $(config_get "$CONFIG" '.name')"
-log_info "Batch size: $BATCH_SIZE | Delay: ${DELAY}s"
+# --- Determine effective strategy for tier filtering ---
+if [ -n "$TIER_OVERRIDE" ]; then
+  # --tier flag overrides strategy-based filtering
+  EFFECTIVE_STRATEGY="custom:$TIER_OVERRIDE"
+  log_info "Registering for events: $(config_get "$CONFIG" '.name')"
+  log_info "Batch size: $BATCH_SIZE | Delay: ${DELAY}s | Tiers: $TIER_OVERRIDE"
+else
+  EFFECTIVE_STRATEGY="$STRATEGY"
+  log_info "Registering for events: $(config_get "$CONFIG" '.name')"
+  log_info "Batch size: $BATCH_SIZE | Delay: ${DELAY}s | Strategy: $STRATEGY"
+fi
 
 # --- Determine parse mode ---
 PARSE_MODE="all"
@@ -72,7 +83,7 @@ fi
 EVENTS_LIST=""
 while IFS=$'\t' read -r name url; do
   EVENTS_LIST+="${name}"$'\t'"${url}"$'\n'
-done < <(parse_registerable_events "$CURATED_FILE" "$EVENTS_FILE" "$PARSE_MODE")
+done < <(parse_registerable_events "$CURATED_FILE" "$EVENTS_FILE" "$PARSE_MODE" "$EFFECTIVE_STRATEGY")
 
 if [ -z "$EVENTS_LIST" ]; then
   log_info "No events to register. All events already have terminal status."
@@ -95,12 +106,12 @@ REGISTERED=0
 NEEDS_INPUT=0
 FAILED=0
 CLOSED=0
-NEEDS_INPUT_FIELDS=""
 BATCH_NUM=0
 
 # --- Temp file cleanup ---
 RESULT_FILE=$(mktemp)
-trap 'rm -f "$RESULT_FILE"' EXIT
+NEEDS_INPUT_FIELDS_FILE=$(mktemp)
+trap 'rm -f "$RESULT_FILE" "$NEEDS_INPUT_FIELDS_FILE"' EXIT
 
 # --- Batch loop ---
 while IFS=$'\t' read -r EVENT_NAME RSVP_URL; do
@@ -125,7 +136,8 @@ while IFS=$'\t' read -r EVENT_NAME RSVP_URL; do
 
   # Parse result
   STATUS=$(jq -r '.status // "failed"' "$RESULT_FILE" 2>/dev/null || echo "failed")
-  FIELDS=$(jq -r '.fields // [] | join(",")' "$RESULT_FILE" 2>/dev/null || echo "")
+  FIELDS_JSON=$(jq '.fields // []' "$RESULT_FILE" 2>/dev/null || echo "[]")
+  FIELDS_DISPLAY=$(echo "$FIELDS_JSON" | jq -r 'join(", ")' 2>/dev/null || echo "")
   MSG=$(jq -r '.message // ""' "$RESULT_FILE" 2>/dev/null || echo "")
 
   log_info "  Status: $STATUS${MSG:+ — $MSG}"
@@ -140,9 +152,10 @@ while IFS=$'\t' read -r EVENT_NAME RSVP_URL; do
       REGISTERED=$((REGISTERED + 1))
       ;;
     needs-input)
-      update_event_status "$CURATED_FILE" "$EVENT_NAME" "⏳ Needs input: [$FIELDS]"
+      update_event_status "$CURATED_FILE" "$EVENT_NAME" "⏳ Needs input: [$FIELDS_DISPLAY]"
       NEEDS_INPUT=$((NEEDS_INPUT + 1))
-      NEEDS_INPUT_FIELDS+="${FIELDS}"$'\n'
+      # Append each field as a separate line (no comma splitting)
+      echo "$FIELDS_JSON" | jq -r '.[]' 2>/dev/null >> "$NEEDS_INPUT_FIELDS_FILE"
       ;;
     closed)
       update_event_status "$CURATED_FILE" "$EVENT_NAME" "🚫 Closed"
@@ -179,8 +192,8 @@ REMAINING=$((TOTAL_COUNT - PROCESSED))
 # --- Collect new custom fields not yet in answers ---
 NEW_FIELDS="[]"
 ALL_FIELDS="[]"
-if [ -n "$NEEDS_INPUT_FIELDS" ]; then
-  ALL_FIELDS=$(echo "$NEEDS_INPUT_FIELDS" | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sort -u | jq -R . | jq -s '.')
+if [ -s "$NEEDS_INPUT_FIELDS_FILE" ]; then
+  ALL_FIELDS=$(sort -u "$NEEDS_INPUT_FIELDS_FILE" | grep -v '^$' | jq -R . | jq -s '.')
   if [ -f "$ANSWERS_FILE" ]; then
     KNOWN_KEYS=$(jq -r 'keys[]' "$ANSWERS_FILE" 2>/dev/null)
     NEW_FIELDS=$(echo "$ALL_FIELDS" | jq --argjson known "$(echo "$KNOWN_KEYS" | jq -R . | jq -s '.')" '[.[] | select(. as $f | $known | index($f) | not)]')
@@ -195,6 +208,9 @@ if [ "$REMAINING" -eq 0 ]; then
   DONE=true
 fi
 
+# Collect non-Luma events for manual registration
+MANUAL_REG=$(collect_non_luma_events "$EVENTS_FILE")
+
 jq -n \
   --argjson batch_size "$BATCH_SIZE" \
   --argjson processed "$PROCESSED" \
@@ -206,6 +222,7 @@ jq -n \
   --argjson new_fields "$NEW_FIELDS" \
   --argjson all_fields "$ALL_FIELDS" \
   --argjson done "$DONE" \
+  --argjson manual "$MANUAL_REG" \
   '{
     batch_size: $batch_size,
     processed_this_batch: $processed,
@@ -218,7 +235,8 @@ jq -n \
     },
     new_fields: $new_fields,
     all_needs_input_fields: $all_fields,
-    done: $done
+    done: $done,
+    manual_registration: $manual
   }' > "$STATUS_FILE"
 
 # --- Summary ---

@@ -3,9 +3,15 @@
   "slug": "conference-intern",
   "displayName": "Conference Intern",
   "latest": {
-    "version": "1.3.1",
-    "publishedAt": 1774458311259,
-    "commit": "https://github.com/openclaw/skills/commit/ee3f7441dc3ebc8a9a6a69584e8d11f3f48fb579"
+    "version": "2.1.4",
+    "publishedAt": 1774595807389,
+    "commit": null
   },
-  "history": []
+  "history": [
+    {
+      "version": "1.3.1",
+      "publishedAt": 1774458311259,
+      "commit": "https://github.com/openclaw/skills/commit/ee3f7441dc3ebc8a9a6a69584e8d11f3f48fb579"
+    }
+  ]
 }
