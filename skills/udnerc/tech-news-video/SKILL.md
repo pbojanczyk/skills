@@ -1,10 +1,12 @@
 ---
 name: tech-news-video
-version: "1.0.0"
+version: 1.0.4
 displayName: "Tech News Video Maker — Create Technology News and Analysis Videos"
 description: >
   Tech News Video Maker — Create Technology News and Analysis Videos.
 metadata: {"openclaw": {"emoji": "📰", "requires": {"env": [], "configPaths": ["~/.config/nemovideo/"]}, "primaryEnv": "NEMO_TOKEN"}}
+homepage: https://nemovideo.com
+repository: https://github.com/nemovideo/nemovideo_skills
 ---
 
 # Tech News Video Maker — Technology News and Analysis Videos
