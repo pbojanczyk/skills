@@ -11,19 +11,23 @@ import os
 import sys
 import tempfile
 from pathlib import Path
+from PIL import Image
 
 THEMES = {
     "warm": {
         "bg": "#FFF8F0",
+        "card": "#FDBA74",
         "accent": "#E8734A",
         "accent_light": "#FFF0E8",
         "text": "#2D2D2D",
         "text_secondary": "#6B6B6B",
         "border": "#E8DDD4",
         "code_bg": "#F5EDE5",
+        "shadow": "0 4px 12px rgba(0,0,0,0.1)",
     },
     "cool": {
         "bg": "#F0F4F8",
+        "card": "white",
         "accent": "#3B82F6",
         "accent_light": "#EBF4FF",
         "text": "#1E293B",
@@ -33,6 +37,7 @@ THEMES = {
     },
     "minimal": {
         "bg": "#FFFFFF",
+        "card": "white",
         "accent": "#333333",
         "accent_light": "#F5F5F5",
         "text": "#1A1A1A",
@@ -42,6 +47,7 @@ THEMES = {
     },
     "girly": {
         "bg": "#FFF0F5",              # 淡粉背景
+        "card": "white",
         "accent": "#FF6FA5",          # 玫粉主色
         "accent_light": "#FFE3EC",    # 浅粉辅助
         "text": "#4A2C2A",            # 温柔棕色文字
@@ -49,20 +55,37 @@ THEMES = {
         "border": "#FFD1DC",          # 粉色边框
         "code_bg": "#FFF7FA",         # 很浅的粉背景
     },
+    "metal": {
+        "bg": "#0D1117",              # 深金属黑背景
+        "card": "#2A3440",
+        "accent": "#8FA3B8",          # 冷钢蓝主色
+        "accent_light": "#2A3440",    # 深灰金属辅助
+        "text": "#E6EDF3",            # 银白文字
+        "text_secondary": "#9AA4AE",  # 冷灰次级文字
+        "border": "#3B4752",          # 金属灰边框
+        "code_bg": "#161B22",         # 深色代码背景
+    },
 
-    # 🔥 性感主题（深色 + 红色对比）
-    "sexy": {
-    "bg": "#0B0F1A",              # 深蓝黑（比纯黑更高级）
-    "accent": "#8B5CF6",          # 霓虹紫（主视觉）
-    "accent_light": "#1A1333",    # 紫色暗背景
-    "text": "#E6EAF2",            # 冷白文字
-    "text_secondary": "#9AA4B2",  # 冷灰
-    "border": "#1F2937",          # 科技灰边框
-    "code_bg": "#0F172A",         # 深蓝代码区
+    "tech": {
+        # 背景层
+        "bg": "#020617",            # 更深的黑蓝（拉开层级）
+        "card": "#0B1220",          # 卡片背景（明显区分）
+        "section": "#111827",       # 模块块背景
+        "accent_light": "#111827",
+        # 主色系统
+        "accent": "#3B82F6",        # 主蓝（更稳）
+        "highlight": "#22D3EE",     # 科技青（关键点缀🔥）
+        "glow": "#60A5FA",          # 柔和发光
 
-    # ⭐ 可选扩展（如果你UI支持）
-    "glow": "#A78BFA",            # 发光效果
-    "highlight": "#22D3EE",       # 青色点缀（科技感关键）
+        # 文本
+        "text": "#F1F5F9",          # 提亮（更清晰）
+        "text_secondary": "#94A3B8",
+
+        # 边框 / 分割
+        "border": "#1F2937",        # 更暗一点，避免抢眼
+
+        # 特殊区域
+        "code_bg": "#020617",       # 直接统一更干净
     }
 }
 
@@ -87,7 +110,7 @@ body {{
 .card {{
     max-width: {width}px;
     margin: 0 auto;
-    background: white;
+    background: {card};
     border-radius: 16px;
     padding: 40px 48px;
     box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
@@ -98,6 +121,7 @@ h1 {{
     font-size: 28px;
     font-weight: 700;
     color: {accent};
+    text-shadow: 0 0 12px rgba(59,130,246,0.4);
     margin-bottom: 24px;
     padding-bottom: 16px;
     border-bottom: 3px solid {accent};
@@ -163,7 +187,7 @@ table {{
     font-size: 14px;
     border-radius: 8px;
     overflow: hidden;
-    border: 1px solid {border};
+    border: 1px dashed {border};
 }}
 
 thead {{
@@ -312,7 +336,7 @@ def _find_browser() -> str:
     )
 
 
-def render_html_to_png(html: str, output_path: str, width: int = 800) -> str:
+def render_html_to_png(html: str, output_path: str, width: int = 820) -> str:
     """Render HTML string to PNG using html2image."""
     from html2image import Html2Image
 
@@ -345,11 +369,47 @@ def render_html_to_png(html: str, output_path: str, width: int = 800) -> str:
     finally:
         os.unlink(temp_html)
 
+def color_distance(c1, c2):
+    return sum(abs(a - b) for a, b in zip(c1, c2))
+
+
+def detect_background_color_robust(image_path: str, sample_step: int = 10, tolerance: int = 20):
+    from collections import defaultdict
+    img = Image.open(image_path).convert("RGB")
+    pixels = img.load()
+    w, h = img.size
+
+    clusters = []
+
+    # 采样边缘
+    samples = []
+    for x in range(0, w, sample_step):
+        samples.append(pixels[x, 0])
+        samples.append(pixels[x, h - 1])
+
+    for y in range(0, h, sample_step):
+        samples.append(pixels[0, y])
+        samples.append(pixels[w - 1, y])
+
+    # 聚类颜色
+    for color in samples:
+        found = False
+        for cluster in clusters:
+            if color_distance(color, cluster["color"]) < tolerance:
+                cluster["count"] += 1
+                found = True
+                break
+        if not found:
+            clusters.append({"color": color, "count": 1})
+
+    # 取最大 cluster
+    bg_color = max(clusters, key=lambda x: x["count"])["color"]
+    return bg_color
 
 def crop_image(image_path: str) -> None:
     """Crop image to remove excess whitespace at the bottom."""
     try:
-        from PIL import Image
+        #from PIL import Image
 
         img = Image.open(image_path)
         # Auto-crop: find the bounding box of non-background pixels
@@ -357,7 +417,9 @@ def crop_image(image_path: str) -> None:
         pixels = img.load()
         w, h = img.size
         # Find last non-white row (approximate)
-        bg_color = (255, 248, 240)  # warm bg
+        #bg_color = (255, 248, 240)  # warm bg
+        bg_color = detect_background_color_robust(image_path)
+        print(bg_color)
         for y in range(h - 1, 0, -1):
             row_pixels = [pixels[x, y] for x in range(0, w, 50)]
             # Check if any pixel differs from background significantly
@@ -369,7 +431,8 @@ def crop_image(image_path: str) -> None:
                 crop_h = min(y + 40, h)
                 img.crop((0, 0, w, crop_h)).save(image_path)
                 return
-    except Exception:
+    except Exception as e:
+        print(f"[crop_image ERROR] {e}")
         pass  # Skip cropping if PIL not available or any error
 
 
@@ -381,7 +444,7 @@ def main():
     parser = argparse.ArgumentParser(description="Render Markdown Knowledge Card to PNG")
     parser.add_argument("input", help="Path to Markdown file")
     parser.add_argument("--output", "-o", help="Output PNG path (default: same as input with .png)")
-    parser.add_argument("--theme", "-t", choices=["warm", "cool", "minimal", "girly", "sexy"], default="warm")
+    parser.add_argument("--theme", "-t", choices=["warm", "cool", "minimal", "girly", "tech", "metal"], default="warm")
     parser.add_argument("--width", "-w", type=int, default=800, help="Card width in pixels")
     args = parser.parse_args()
 

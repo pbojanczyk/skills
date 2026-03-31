@@ -74,7 +74,7 @@ Always output:
 
 ## Notes
 
-- Keep cards concise: one concept per card, maximum 190 words
+- Keep cards concise: one concept per card, maximum 195 words
 - Use Chinese or English based on input language
 - Emoji anchors are encouraged but keep them minimal (1–3 per section)
 - For batch requests, process cards sequentially and summarize all outputs
