@@ -1,6 +1,6 @@
 # activity-campaign-from-ui
 
-Current repository version: **0.1.6**
+Current repository version: **0.2.0**
 
 A reusable OpenClaw skill for turning campaign UI references into a **new H5/Web campaign plan and delivery-ready high-fidelity front-end draft**.
 
@@ -66,7 +66,7 @@ This skill should not:
 - directly copy the reference page
 
 ## Visual quality bar
-For `delivery` and `full`, the expected result is a **visual-first draft**, not a plain wireframe.
+For `delivery` and `full`, the expected result is a **launch-ready-feeling H5 front-end draft**, not a plain wireframe, demo shell, or generic starter.
 
 Strong outputs should:
 - summarize the screenshot's visual language before code
@@ -77,6 +77,24 @@ Strong outputs should:
 
 If the reference theme conflicts with the requested campaign theme, keep the structural ideas but rebuild the palette and decorative language around the requested theme.
 Example: a Spring Festival red-gold reference used for a Dragon Boat Festival brief should usually become a green or blue-green Dragon Boat style page rather than a red reskin.
+
+## Additional delivery defaults
+For `delivery` and `full`:
+- aim for a launch-ready H5 front-end draft feel rather than a starter shell or wireframe
+- use an adult female character-led first screen when the brief or reference clearly depends on poster-style human visual focus
+- keep the female hero styling theme-matched, including wardrobe, dominant colors, props, and accessories
+- for Spring Festival directions, default the female hero styling toward a red-dominant festive look with gold details rather than a generic modern outfit
+- allow glamorous and slightly sexy commercial-fashion styling, while keeping the result suitable for a public-facing campaign page
+- prefer tab-first mobile layouts when the page would otherwise become too long
+- if the user requests a character-led hero but provides no asset, optionally generate one original adult female hero image and wire it as `assets/hero-figure.png` when the environment supports image generation
+- this higher quality bar means production-like front-end finish, not a fully backend-connected deployment
+
+## Local artifact generation
+- in `proposal`, the result should feel closer to an operations campaign visual deck than a plain strategy memo
+- if the user explicitly asks for a local visual deck and the host environment supports local execution, Python may be used to generate `campaign-proposal.pptx`
+- in `delivery` and `full`, if the user explicitly asks for local front-end files and the host environment supports local execution, Python may be used to write `index.html`, `styles.css`, `main.js`, and `mock-data.js`
+- use a user-specified directory when provided; otherwise default to the current working directory
+- even when local artifacts are generated, do not output shell file-write commands in the response; report the created file paths instead
 
 ## Repository structure
 - `SKILL.md` — main skill rules

@@ -54,6 +54,7 @@ Return:
 - goals
 - rewards and participation path
 - anti-copy explanation
+- visual proposal direction that reads more like an operations campaign deck than a plain memo
 
 ### `architecture`
 Use when the user wants implementation planning without full code.
@@ -93,6 +94,8 @@ If the user does not specify a mode:
 - default to `delivery` if they explicitly ask for code
 - default to `full` if they ask for both plan and code
 
+For `delivery` and `full`, when the brief implies poster-style character focus and the page would otherwise become too long, default to a female-led, launch-ready, tab-first H5 front-end draft.
+
 ## Core job
 Given one or more campaign references, do all relevant parts of the following:
 1. Identify observable UI patterns
@@ -118,14 +121,31 @@ When possible, organize the answer using these sections:
 - H5/Web starter files
 - Uncertainties
 
+## Proposal presentation rule
+For `proposal`, the result should feel closer to an operations campaign visual deck than a plain strategy memo.
+
+Preferred structure:
+- strong campaign name and one-line hook
+- visual theme and mood direction
+- hero concept and key selling point
+- participation path
+- reward design
+- module highlights
+- timeline or rollout rhythm when relevant
+
+If the user explicitly asks for a local proposal deck and the host environment supports local execution, the skill may generate a local `.pptx` file with Python.
+
 ## File handoff rules
 Do not append executable local file-write commands.
+
+If the user explicitly asks for local files and the host environment supports local execution, the skill may use Python to generate artifacts directly in the workspace instead of only presenting them inline.
 
 The goal is to keep the handoff clear without asking the model to generate shell or terminal instructions from screenshot-derived content.
 
 Mode-specific file targets:
 - `analysis`: present the main result as one Markdown document such as `campaign-analysis.md`
 - `proposal`: present the main result as one Markdown document such as `campaign-proposal.md`
+- `proposal` optional local artifact: `campaign-proposal.pptx` when the user explicitly asks for a local visual deck and Python execution is available
 - `architecture`: present the main result as one Markdown document such as `campaign-architecture.md`
 - `delivery`: present the generated front-end files as `index.html`, `styles.css`, `main.js`, and `mock-data.js`
 - `full`: present the planning content as one Markdown document such as `campaign-full.md`, and present the front-end files as `index.html`, `styles.css`, `main.js`, and `mock-data.js`
@@ -134,6 +154,7 @@ Handoff requirements:
 - label each file clearly in the response body
 - keep file names and section order aligned with the response body
 - when the mode includes multiple files, provide each file's full content in its own clearly labeled section
+- when local artifacts are generated with Python, report the exact file names and paths in plain language
 - if the user explicitly asks how to save the files locally, describe the file names and where the content belongs in plain language rather than generating executable commands
 
 ## Anti-copy rules
@@ -183,11 +204,65 @@ For `delivery` and `full`, default to this file set:
 - `main.js`
 - `mock-data.js`
 
+Optional when a character-led hero is requested and image generation is available:
+- `assets/hero-figure.png`
+
+If the user explicitly asks for local front-end files and the host environment supports local execution, the skill may use Python to write these files directly to the workspace or user-specified directory.
+
 File responsibilities:
 - `index.html`: page structure, visible module internals, decorative wrappers, and realistic placeholder copy
 - `styles.css`: design tokens, background atmosphere, section chrome, CTA styling, popup styling, and responsive behavior
 - `main.js`: render repeating data, event binding, state updates, popup control, and lightweight view-state changes
 - `mock-data.js`: campaign meta, tasks, prizes, CTA text, popup data, and enough mock content to render a visually complete first screen
+
+## Optional hero asset generation
+
+When the user wants a character-led campaign page but does not provide a source image, the skill may generate one original hero asset before front-end delivery if the host environment supports image generation.
+
+Constraints:
+- generate one original adult female hero image
+- image direction should prioritize theme-matched wardrobe, dominant colors, accessories, props, and styling
+- use a glamorous, attractive, stylish, slightly sexy commercial campaign poster direction
+- do not generate a male hero by default
+- do not generate explicit sexual content, nudity, fetish styling, or pornographic framing
+- save or label the asset as `assets/hero-figure.png`
+- if image generation is unavailable, still output the hero structure and clearly reserve the asset slot
+
+## Female-led hero default
+
+For character-led campaign delivery, the default first-screen visual should use one adult female hero figure as the dominant visual focus.
+
+Requirements:
+- the hero figure must be an adult woman
+- do not replace the hero with a male figure by default
+- do not generate mixed-gender hero focus unless the user explicitly asks for it
+- the wardrobe, dominant colors, accessories, props, and styling must match the campaign theme
+- if the campaign is festival-based, the character styling should visibly reflect that festival rather than using a generic outfit
+- prioritize glamour, attractiveness, confidence, and poster-like visual appeal
+- allow stylish and slightly sexy commercial-fashion styling for stronger attention
+- keep the result within public campaign standards: no nudity, no explicit sexual pose, no fetish styling, and no pornographic framing
+- the female figure should remain the main first-screen anchor, with title, CTA, and reward device arranged around her
+
+Theme examples:
+- Spring Festival: red as the dominant color, with gold accents, festive dress or qipao-inspired styling, lanterns, knots, and warm holiday accessories
+- Dragon Boat Festival: bamboo green, jade green, lake blue, lighter summer styling, rope knots, leaf textures, and seasonal props
+- Valentine-style campaign: rose red, wine red, blush pink, elegant fitted styling, floral or gift-box props
+
+## H5 length control rule
+
+Do not default to a full top-to-bottom stack for every module.
+
+Prefer a tab-first H5 layout when any of the following is true:
+- there are more than 5 major modules
+- the page includes task lists, prize pools, records, and long rules together
+- the default layout would likely become an overly long mobile page
+
+In these cases:
+- keep the first screen focused on hero + core action + one key summary module
+- move secondary content into sticky tabs
+- render only the active tab panel by default
+- place verbose rules, records, and explanations in popups, drawers, or accordions when appropriate
+- use tabs as a page-shortening strategy, not as a cosmetic decoration
 
 ## Delivery schema guidance
 Prefer a schema that covers both campaign config and page delivery contract.
@@ -238,9 +313,28 @@ In that case, the visual extraction summary should separate:
 - reusable structural cues from the reference
 - replaced visual cues that should be rebuilt for the new theme
 
+## Launch-ready front-end quality rule
+
+For `delivery` and `full`, the generated result should feel like a launch-ready H5 front-end deliverable rather than a starter scaffold, plain wireframe, or demo shell.
+
+Requirements:
+- render a visually complete mobile-first first screen with strong hierarchy, atmosphere, and branded tone
+- include representative internal structure for each major module instead of empty containers
+- use realistic mock copy, labels, badges, numbers, CTA text, and popup content
+- cover key front-end states such as active, selected, disabled, claimed, exhausted, popup-open, and tab-selected when relevant
+- prefer compact, production-like H5 information architecture instead of excessive vertical stacking
+- include responsive behavior, stable spacing, and usable touch targets for mobile rendering
+- make CTA areas, popup layers, tab bars, and reward/task states feel polished enough for design review or front-end handoff
+- keep the code editable and data-driven without inventing backend APIs or hidden business logic
+
+Boundary:
+- this means production-like front-end finish, not a fully backend-connected production deployment
+
 ### HTML expectations
 - Do not output only empty section containers.
-- Include representative nested content for the hero, progress/task/reward modules, and popup shells.
+- Include representative nested content for the hero, progress/task/reward modules, active tab panels, and popup shells.
+- When a female-led hero is used, include an explicit figure wrapper and image slot such as `assets/hero-figure.png` instead of leaving the hero text-only.
+- For tab-first pages, include a sticky tab bar and representative nested content inside each tab panel.
 - Use realistic wrappers such as badges, ribbons, tabs, stat chips, progress nodes, reward cards, glow layers, and floating ornaments when the reference implies them.
 - Keep the structure editable, but visually expressive on first render.
 
@@ -249,11 +343,14 @@ In that case, the visual extraction summary should separate:
 - Build atmosphere first: page background, hero backdrop, decorative light/shapes, panel chrome, and CTA emphasis.
 - Prefer layered gradients, image-free ornaments, shadows, strokes, masks, and glow treatments over flat white cards.
 - Style sections as distinct visual modules instead of repeating the same generic card everywhere.
+- Support sticky mobile tabs, active tab states, and compact tab-panel switching for long H5 pages.
+- When a female-led hero is used, style the figure area as a real visual focal point with framing, light, depth, and theme-specific ornaments.
 - Include responsive handling for mobile-first rendering.
 
 ### JavaScript expectations
 - Render repeated lists from data, but avoid reducing the whole page to blank placeholders.
 - Support interactive states that help sell the concept visually, such as active tabs, selected rewards, progress states, countdown text, and popup opening.
+- Support lightweight tab switching and active panel state when the delivery uses a tab-first layout.
 - Keep interactions lightweight and front-end only unless the user provides real APIs.
 
 ### Mock data expectations
@@ -267,6 +364,12 @@ Avoid these default outputs unless the user explicitly asks for minimal scaffold
 - only one-line `<h1>` and `<p>` placeholders in the hero
 - visually neutral buttons with no hierarchy
 - a page that reads like a wireframe rather than a campaign landing page
+- a character-led brief solved with a text-only hero and no figure slot
+- a long H5 page created by vertically stacking every module by default
+- rules, records, and prize details all expanded on the main page without tabs or progressive disclosure
+- output that looks like a bare demo, starter, or wireframe instead of a near-launch H5 front-end draft
+- placeholder-only sections with weak hierarchy and incomplete module internals
+- visually finished hero areas paired with unfinished lower modules that break the sense of a shippable page
 
 ## Example user requests
 - “参考这几个活动页，给我出一个新的 H5 活动方案。”

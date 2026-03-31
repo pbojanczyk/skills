@@ -4,6 +4,22 @@ All notable changes to this skill are documented here.
 
 This repository now uses a simple repository version tracked in the `VERSION` file.
 
+## [0.2.0] - 2026-03-27
+
+### Added
+- Added female-led hero defaults for `delivery` and `full`, including theme-matched wardrobe guidance and optional generated hero assets such as `assets/hero-figure.png`.
+- Added H5 length-control guidance that prefers sticky tabs when a campaign page would otherwise become too long.
+- Added launch-ready front-end quality rules so `delivery` and `full` outputs target a more production-like H5 draft instead of a starter shell.
+- Added optional local artifact generation rules so:
+  - `proposal` may generate `campaign-proposal.pptx` with Python when the user explicitly asks for a local deck and the host supports local execution
+  - `delivery` and `full` may write `index.html`, `styles.css`, `main.js`, and `mock-data.js` locally with Python when the user explicitly asks for local files and the host supports local execution
+
+### Changed
+- Reworked the `delivery` and `full` examples to show female-led first screens, sticky-tab H5 layouts, richer module density, and a stronger near-launch front-end finish.
+- Updated `proposal` guidance and examples so proposal-mode outputs can read more like operations campaign visual decks rather than plain strategy memos.
+- Updated `README.md`, `README.zh-CN.md`, and `SKILL.md` to document the new visual defaults, local artifact options, and higher delivery quality bar.
+- Bumped the repository version from `0.1.6` to `0.2.0`.
+
 ## [0.1.6] - 2026-03-24
 
 ### Changed

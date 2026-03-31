@@ -3,7 +3,7 @@
 ## User input
 The user sends 3 campaign references and asks:
 
-> 参考这 3 个活动页，先分析共性，再给我出一个新的 H5 活动方案，最后补一套 HTML + CSS + JS 的 starter 代码。走 full mode。
+> 参考这 3 个活动页，先分析共性，再给我出一个新的 H5 活动方案，最后补一套更像可上线成品的 HTML + CSS + JS 页面。首屏要有美女人物主视觉，页面别做得太长，走 full mode。
 
 ## Expected response shape
 
@@ -16,12 +16,13 @@ full
 - each page uses a strong hero section near the top
 - a reward promise appears before the detailed rules
 - task completion is tied to a visible reward action
-- popup-based feedback is strongly implied
+- poster-like human visual focus is important to the first screen
 
 ### Inferred
 - the campaign is designed for repeat daily participation
 - the main business goal is likely short-term activation
 - reward exposure is used as the primary motivation trigger
+- a spokesperson-like female visual helps hold first-screen attention
 
 ### Assumed
 - exact microcopy and reward probabilities are not fully readable
@@ -44,10 +45,10 @@ Increase repeat visits and task completion during a short seasonal campaign wind
 
 ### Main idea
 Instead of repeating a direct lucky-draw page, this proposal changes:
-- the theme: from generic festive draw to route-based progress challenge
 - the reward design: from flat prize display to staged checkpoint rewards plus a final draw
 - the task structure: from independent tasks to daily progress tasks
 - the main interaction: users unlock reward checkpoints before reaching the final action area
+- the page structure: from long vertical stacking to a tab-first H5 layout after the hero screen
 
 ### Participation path
 Enter page → complete daily tasks → unlock route checkpoints → claim checkpoint rewards → use final draw chances
@@ -61,14 +62,12 @@ This proposal changes at least 2 required dimensions:
 ## 4. Page architecture
 ### Modules
 1. hero banner
-2. campaign meta bar
-3. progress route strip
-4. daily task list
-5. checkpoint reward area
-6. final draw area
-7. reward pool
-8. rules section
-9. record entry
+2. hero summary strip
+3. sticky tab bar
+4. daily task tab
+5. checkpoint reward tab
+6. reward pool and rules tab
+7. popup system
 
 ### Popups
 - rule popup
@@ -85,6 +84,7 @@ This proposal changes at least 2 required dimensions:
 - checkpoint_claim_click
 - draw_start_click
 - draw_result_view
+- tab_switch_click
 
 ## 5. Delivery schema
 The schema should cover both campaign config and delivery structure.
@@ -96,7 +96,7 @@ The schema should cover both campaign config and delivery structure.
 - `tasks`
 - `checkpointRewards`
 - `lottery`
-- `modules`
+- `tabs`
 - `popups`
 - `stateMachine`
 - `tracking`
@@ -104,10 +104,12 @@ The schema should cover both campaign config and delivery structure.
 ## 6. Visual direction
 - dominant palette: cherry red, amber gold, warm cream
 - page mood: festive, busy, rewarding, glossy
-- hero composition: large title art + highlight prize block + floating ornaments
+- hero composition: adult female glamour figure in red-dominant festive styling, layered title art, and a loud prize device
+- first screen should feel poster-led, with the woman as the primary visual anchor
+- secondary content should be compressed into sticky tabs instead of a long stacked page
 - module treatment: decorated panels with stronger top headers and contrast separators
 - CTA language: loud, central, badge-supported
-- popup style: branded celebration layer instead of neutral modal
+- popup style: branded celebration layer instead of a neutral modal
 
 ## 7. H5/Web high-fidelity draft files
 ### File structure
@@ -115,6 +117,9 @@ The schema should cover both campaign config and delivery structure.
 - `styles.css`
 - `main.js`
 - `mock-data.js`
+- `assets/hero-figure.png` optional
+
+If the user explicitly asks for local output and Python/local execution is available, these front-end files may be written directly to the workspace in addition to being presented in the response.
 
 ### index.html
 ```html
@@ -130,20 +135,39 @@ The schema should cover both campaign config and delivery structure.
           <span>活动时间 02.01 - 02.14</span>
           <span>累计完成越多，奖励越高</span>
         </div>
+        <div class="route-hero-actions">
+          <button class="hero-side-cta js-start-draw">冲刺终点</button>
+          <button class="hero-ghost-cta js-switch-tab" data-tab="tasks">先做任务</button>
+        </div>
       </div>
+
+      <div class="route-hero-figure">
+        <div class="hero-figure-aura"></div>
+        <img src="assets/hero-figure.png" alt="活动美女主视觉" />
+      </div>
+
       <aside class="hero-side-card">
         <p>终点大奖</p>
         <strong>锦鲤礼包 x 1</strong>
-        <button class="hero-side-cta js-start-draw">冲刺终点</button>
+        <span>再完成 1 个任务即可额外解锁 1 次抽奖</span>
       </aside>
     </section>
 
-    <section id="progress-route" class="route-panel"></section>
-    <section id="task-list" class="route-panel"></section>
-    <section id="checkpoint-rewards" class="route-panel"></section>
-    <section id="draw-zone" class="route-panel highlight-panel"></section>
-    <section id="reward-pool" class="route-panel"></section>
-    <section id="rules" class="route-panel"></section>
+    <section class="route-summary-panel">
+      <div class="summary-pill"><span>今日进度</span><strong>2 / 4</strong></div>
+      <div class="summary-pill"><span>抽奖机会</span><strong>1 次</strong></div>
+      <div class="summary-pill summary-pill-hot"><span>下一档奖励</span><strong>冲刺加速卡</strong></div>
+    </section>
+
+    <nav class="route-tabs" aria-label="活动内容导航">
+      <button class="route-tab is-active js-switch-tab" data-tab="tasks">任务</button>
+      <button class="route-tab js-switch-tab" data-tab="checkpoints">阶段奖励</button>
+      <button class="route-tab js-switch-tab" data-tab="benefits">奖池/规则</button>
+    </nav>
+
+    <section id="tab-tasks" class="route-panel is-active"></section>
+    <section id="tab-checkpoints" class="route-panel"></section>
+    <section id="tab-benefits" class="route-panel"></section>
   </main>
 </div>
 
@@ -176,6 +200,7 @@ body {
 }
 
 .route-hero,
+.route-summary-panel,
 .route-panel {
   position: relative;
   overflow: hidden;
@@ -186,7 +211,7 @@ body {
 
 .route-hero {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
+  grid-template-columns: 0.95fr 0.9fr 0.75fr;
   gap: 16px;
   padding: 24px;
   margin-bottom: 16px;
@@ -196,62 +221,72 @@ body {
     linear-gradient(140deg, #8f0f17 0%, #d33730 52%, #ff8a47 100%);
 }
 
-.route-title {
-  margin: 10px 0 8px;
-  font-size: 40px;
-  line-height: 1.05;
+.route-hero-figure {
+  position: relative;
+  min-height: 340px;
 }
 
-.hero-pill,
-.route-meta span {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-}
-
-.hero-pill {
-  padding: 6px 12px;
-  background: rgba(255, 248, 221, 0.18);
-  border: 1px solid rgba(255, 248, 221, 0.34);
-}
-
-.route-meta span {
-  margin: 12px 10px 0 0;
-  padding: 6px 12px;
-  background: rgba(94, 5, 0, 0.24);
-}
-
-.hero-side-card,
-.route-panel {
-  background: var(--route-panel);
-  color: var(--route-title);
-}
-
-.hero-side-card {
-  align-self: end;
-  padding: 18px;
-  border-radius: 22px;
-}
-
-.hero-side-cta {
+.route-hero-figure img {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  height: 48px;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+}
+
+.hero-figure-aura {
+  position: absolute;
+  inset: auto 12% 2% 12%;
+  height: 72%;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 224, 138, 0.78), rgba(255, 224, 138, 0));
+}
+
+.route-summary-panel {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+  background: var(--route-panel);
+}
+
+.route-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 8px 0 14px;
+  background: linear-gradient(180deg, rgba(93, 9, 18, 0.98), rgba(93, 9, 18, 0));
+}
+
+.route-tab {
+  height: 44px;
   border: 0;
   border-radius: 999px;
   font-weight: 700;
+  color: #ffe6ab;
+  background: rgba(255, 246, 214, 0.14);
+}
+
+.route-tab.is-active {
   color: #7a180a;
   background: linear-gradient(180deg, #ffe082 0%, #ffb533 100%);
 }
 
 .route-panel {
+  display: none;
   padding: 18px;
   margin-bottom: 14px;
+  background: var(--route-panel);
+  color: var(--route-title);
 }
 
-.highlight-panel {
-  background:
-    radial-gradient(circle at top, rgba(255, 243, 189, 0.72), transparent 38%),
-    linear-gradient(180deg, #fff3c4 0%, #ffd778 100%);
+.route-panel.is-active {
+  display: block;
 }
 ```
 
@@ -260,34 +295,29 @@ body {
 document.addEventListener('DOMContentLoaded', function () {
   renderPage(window.campaignData);
   bindEvents();
+  setActiveTab('tasks');
 });
 
 function renderPage(data) {
-  document.getElementById('progress-route').innerHTML = renderRoute(data.progressRoute);
-  document.getElementById('task-list').innerHTML = renderTasks(data.tasks);
-  document.getElementById('checkpoint-rewards').innerHTML = renderCheckpoints(data.checkpointRewards);
-  document.getElementById('draw-zone').innerHTML = renderDrawZone(data.lottery);
-  document.getElementById('reward-pool').innerHTML = renderRewardPool(data.rewardPool);
-  document.getElementById('rules').innerHTML = renderRules(data.rules);
+  document.getElementById('tab-tasks').innerHTML = renderTasksTab(data.progressRoute, data.tasks, data.lottery);
+  document.getElementById('tab-checkpoints').innerHTML = renderCheckpoints(data.checkpointRewards);
+  document.getElementById('tab-benefits').innerHTML = renderBenefitsTab(data.rewardPool, data.rules);
 }
 
-function renderRoute(route) {
+function renderTasksTab(route, tasks, lottery) {
   return '<div class="panel-title"><h2>闯关进度</h2><span>' + route.tip + '</span></div><div class="route-track">' +
     route.steps.map(function (item) {
       return '<div class="route-step' + (item.done ? ' is-done' : '') + '">' +
         '<b>' + item.label + '</b><span>' + item.note + '</span>' +
       '</div>';
     }).join('') +
-  '</div>';
-}
-
-function renderTasks(tasks) {
-  return tasks.map(function (task) {
+  '</div><div class="task-stack">' + tasks.map(function (task) {
     return '<article class="task-item">' +
       '<div><p class="task-type">' + task.type + '</p><h3>' + task.title + '</h3><p>' + task.benefit + '</p></div>' +
       '<button class="js-task-action" data-id="' + task.id + '">' + task.ctaText + '</button>' +
     '</article>';
-  }).join('');
+  }).join('') + '</div>' +
+  '<div class="draw-stage"><strong>' + lottery.chanceText + '</strong><button class="draw-button js-start-draw">' + lottery.ctaText + '</button></div>';
 }
 
 function renderCheckpoints(checkpoints) {
@@ -301,21 +331,12 @@ function renderCheckpoints(checkpoints) {
   }).join('');
 }
 
-function renderDrawZone(lottery) {
-  return '<div class="panel-title"><h2>终点抽奖</h2><span>' + lottery.tip + '</span></div>' +
-    '<div class="draw-stage"><strong>' + lottery.chanceText + '</strong><button class="draw-button js-start-draw">' + lottery.ctaText + '</button></div>';
-}
-
-function renderRewardPool(rewardPool) {
+function renderBenefitsTab(rewardPool, rules) {
   return '<div class="panel-title"><h2>奖池展示</h2></div><div class="reward-pool-grid">' +
     rewardPool.map(function (item) {
       return '<div class="reward-pool-card"><span>' + item.tag + '</span><strong>' + item.name + '</strong></div>';
     }).join('') +
-  '</div>';
-}
-
-function renderRules(rules) {
-  return '<div class="panel-title"><h2>活动规则</h2></div><ol class="rule-list">' +
+  '</div><div class="panel-title"><h2>活动规则</h2></div><ol class="rule-list">' +
     rules.map(function (rule) {
       return '<li>' + rule + '</li>';
     }).join('') +
@@ -323,12 +344,28 @@ function renderRules(rules) {
 }
 
 function bindEvents() {
-  document.getElementById('draw-zone').addEventListener('click', function (event) {
+  document.querySelector('.route-shell').addEventListener('click', function (event) {
+    var tabTrigger = event.target.closest('.js-switch-tab');
+    if (tabTrigger) {
+      setActiveTab(tabTrigger.getAttribute('data-tab'));
+      return;
+    }
+
     if (!event.target.closest('.js-start-draw')) {
       return;
     }
 
     openPopup('rewardResultPopup');
+  });
+}
+
+function setActiveTab(tabKey) {
+  document.querySelectorAll('.route-tab').forEach(function (tab) {
+    tab.classList.toggle('is-active', tab.getAttribute('data-tab') === tabKey);
+  });
+
+  document.querySelectorAll('.route-panel').forEach(function (panel) {
+    panel.classList.toggle('is-active', panel.id === 'tab-' + tabKey);
   });
 }
 
@@ -363,7 +400,6 @@ window.campaignData = {
     { index: '02', title: '冲刺加速卡', desc: '终极抽奖次数 +1', statusText: '即将解锁' }
   ],
   lottery: {
-    tip: '终点点亮后可参与 1 次',
     chanceText: '当前抽奖机会 1 次',
     ctaText: '立即抽奖'
   },
@@ -392,3 +428,5 @@ window.campaignData = {
 - do not claim backend APIs that were never provided
 - do not pretend the screenshot guarantees exact text, sizes, or hidden states
 - do not reduce the delivery to empty containers and generic white cards
+- do not replace a requested female-led hero with a male figure by default
+- do not keep stacking modules vertically when a sticky tab layout would better fit H5 delivery
