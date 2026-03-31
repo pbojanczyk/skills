@@ -1,9 +1,9 @@
 {
   "name": "n8n-integration",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "n8n workflow automation integration for OpenClaw agents",
   "main": "src/index.js",
-  "type": "module",
+  
   "scripts": {
     "start": "node src/webhook-server.js",
     "test": "node test/n8n-test.js"
