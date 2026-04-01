@@ -1,0 +1,11 @@
+{
+  "owner": "diagnostikon",
+  "slug": "polymarket-candle-volume-spike-trader",
+  "displayName": "Candle Volume Spike Trader",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774856108861,
+    "commit": null
+  },
+  "history": []
+}
