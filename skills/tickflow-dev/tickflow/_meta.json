@@ -1,0 +1,11 @@
+{
+  "owner": "tickflow-dev",
+  "slug": "tickflow",
+  "displayName": "TickFlow Data",
+  "latest": {
+    "version": "1.0.2",
+    "publishedAt": 1775010279060,
+    "commit": null
+  },
+  "history": []
+}
