@@ -1,0 +1,11 @@
+{
+  "owner": "newtry",
+  "slug": "prompt-generator-skill",
+  "displayName": "提示词生成器",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774878948303,
+    "commit": null
+  },
+  "history": []
+}
