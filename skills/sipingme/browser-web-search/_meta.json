@@ -1,0 +1,11 @@
+{
+  "owner": "sipingme",
+  "slug": "browser-web-search",
+  "displayName": "Browser Web Search Skill",
+  "latest": {
+    "version": "0.1.1",
+    "publishedAt": 1775056808309,
+    "commit": null
+  },
+  "history": []
+}
