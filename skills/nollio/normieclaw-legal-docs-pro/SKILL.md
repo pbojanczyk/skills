@@ -1,9 +1,3 @@
----
-name: Legal Docs Pro
-description: >
-  Your landlord just sent a 12-page lease renewal and you have no idea what half the clauses mean. Or you need an NDA for a freelancer by tomorrow and LegalZoom wants $59 for a template that doesn't know your business. Legal Docs Pro handles both sides: generate NDAs, contracts, privacy policies, and demand letters through natural conversation, or upload a contract you received and get every risky clause flagged with a plain-English explanation of what it actually means. It remembers your business details across sessions — company name, address, standard terms — so generating your next document takes seconds, not form fields.
----
-
 # Legal Docs Pro — Agent Skill
 
 > **⚖️ Legal Docs Pro** generates, reviews, and explains legal documents for freelancers, solopreneurs, and small businesses. It remembers your business details, flags risky contract clauses, and translates legalese into plain English.
@@ -523,4 +517,4 @@ User: "Client owes me $4,500 for a web design project. Invoice was due 60 days a
 
 ---
 
-*Legal Docs Pro is part of the NormieClaw tool ecosystem. $9.99 standalone or included in The Full Stack ($49). More info: normieclaw.ai*
+*Legal Docs Pro is part of the NormieClaw tool ecosystem. $9.99 standalone or included in The Full Stack (free). More info: normieclaw.ai*

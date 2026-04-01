@@ -2,7 +2,7 @@
 
 **AI-powered legal document generation and contract review for freelancers, solopreneurs, and small businesses.**
 
-Part of the [NormieClaw](https://normieclaw.ai) tool ecosystem. $9.99 standalone or included in The Full Stack ($49).
+Part of the [NormieClaw](https://normieclaw.ai) tool ecosystem. $9.99 standalone or included in The Full Stack (free).
 
 ---
 
