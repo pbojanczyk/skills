@@ -1,0 +1,11 @@
+{
+  "owner": "cocofhu",
+  "slug": "tencentcloud-infra",
+  "displayName": "Tencent Cloud Infra",
+  "latest": {
+    "version": "1.0.8",
+    "publishedAt": 1775024959891,
+    "commit": null
+  },
+  "history": []
+}
