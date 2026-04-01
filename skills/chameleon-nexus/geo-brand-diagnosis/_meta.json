@@ -1,0 +1,11 @@
+{
+  "owner": "chameleon-nexus",
+  "slug": "geo-brand-diagnosis",
+  "displayName": "geo_skill",
+  "latest": {
+    "version": "1.0.1",
+    "publishedAt": 1774874908141,
+    "commit": null
+  },
+  "history": []
+}
