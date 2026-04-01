@@ -1,0 +1,11 @@
+{
+  "owner": "sdk-team",
+  "slug": "alibabacloud-cloudbackup-ecs-file-backup-essential-edition",
+  "displayName": "Alibabacloud Cloudbackup Ecs File Backup Essential Edition",
+  "latest": {
+    "version": "0.0.1",
+    "publishedAt": 1774929334423,
+    "commit": null
+  },
+  "history": []
+}
