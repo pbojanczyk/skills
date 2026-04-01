@@ -224,7 +224,7 @@ class SoulCrypto:
         if raw.startswith(ENCRYPTED_MARKER):
             return self.decrypt_json(raw)
         else:
-            # Plain text JSON — just parse it
+            # Plain text JSON -- just parse it
             return json.loads(raw.decode("utf-8"))
 
     def encrypt_file_save(self, path: Path, data: dict) -> None:

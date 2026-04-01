@@ -3,11 +3,16 @@
   "slug": "soul-archive",
   "displayName": "Soul Archive",
   "latest": {
-    "version": "1.1.0",
-    "publishedAt": 1774842755376,
-    "commit": "https://github.com/openclaw/skills/commit/52e6e2c3ca46bbb4bfcde845fe09cadaef86d3f9"
+    "version": "2.1.0",
+    "publishedAt": 1774864899221,
+    "commit": null
   },
   "history": [
+    {
+      "version": "1.1.0",
+      "publishedAt": 1774842755376,
+      "commit": "https://github.com/openclaw/skills/commit/52e6e2c3ca46bbb4bfcde845fe09cadaef86d3f9"
+    },
     {
       "version": "1.0.0",
       "publishedAt": 1774842443689,

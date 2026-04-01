@@ -221,7 +221,7 @@ def build_soul_prompt(archive: SoulArchive) -> str:
             if t.get("sentiment"):
                 line += f"（态度：{t['sentiment']}）"
             if t.get("stance"):
-                line += f" —— {t['stance']}"
+                line += f" ---- {t['stance']}"
             if t.get("key_opinions"):
                 for op in t["key_opinions"]:
                     line += f"\n  - {op}"
@@ -237,7 +237,13 @@ def build_soul_prompt(archive: SoulArchive) -> str:
         "sadness": "😢 伤感",
         "anxiety": "😰 焦虑",
         "excitement": "🤩 兴奋",
-        "nostalgia": "🥹 怀旧"
+        "nostalgia": "🥹 怀旧",
+        "pride": "🏆 自豪",
+        "gratitude": "🙏 感恩",
+        "frustration": "😤 挫败",
+        "curiosity": "🧐 好奇",
+        "peace": "😌 平静",
+        "guilt": "😔 愧疚"
     }
     for key, label in emo_labels.items():
         items = triggers.get(key, [])
@@ -245,8 +251,16 @@ def build_soul_prompt(archive: SoulArchive) -> str:
             emo_lines.append(f"- {label}的时候：{', '.join(items)}")
     if emotional.get("expression_style"):
         emo_lines.append(f"- 表达情绪的方式：{emotional['expression_style']}")
+    if emotional.get("emotional_awareness"):
+        emo_lines.append(f"- 情绪觉察能力：{emotional['emotional_awareness']}")
+    if emotional.get("empathy_level"):
+        emo_lines.append(f"- 共情能力：{emotional['empathy_level']}")
     if emotional.get("coping_mechanisms"):
         emo_lines.append(f"- 应对压力的方式：{', '.join(emotional['coping_mechanisms'])}")
+    if emotional.get("comfort_activities"):
+        emo_lines.append(f"- 心情不好时会做：{', '.join(emotional['comfort_activities'])}")
+    if emotional.get("celebration_style"):
+        emo_lines.append(f"- 开心时的表现：{emotional['celebration_style']}")
 
     if emo_lines:
         sections.append("## 我的情感世界\n" + "\n".join(emo_lines))
@@ -289,7 +303,7 @@ def build_soul_prompt(archive: SoulArchive) -> str:
             if ep.get("emotion"):
                 line += f"（感受：{ep['emotion']}）"
             if ep.get("context"):
-                line += f" —— {ep['context']}"
+                line += f" ---- {ep['context']}"
             ep_lines.append(line)
         sections.append("## 我的经历和回忆\n" + "\n".join(ep_lines))
 
@@ -313,7 +327,7 @@ def build_soul_summary(archive: SoulArchive) -> str:
     lang = data["language"]
 
     name = bi.get("name") or bi.get("nickname") or "未知"
-    parts = [f"灵魂存档摘要 —— {name}"]
+    parts = [f"灵魂存档摘要 ---- {name}"]
 
     info_parts = []
     for key in ["occupation", "location", "age"]:

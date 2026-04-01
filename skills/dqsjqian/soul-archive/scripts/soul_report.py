@@ -44,7 +44,7 @@ I18N = {
         "emotions": "情感模式",
         "relationships": "人际关系",
         "memories": "记忆片段",
-        "footer": "灵魂存档 Soul Archive v1.0 · 生成于 {time}",
+        "footer": "灵魂存档 Soul Archive {version} · 生成于 {time}",
         # Identity fields
         "id_name": "姓名", "id_nickname": "昵称", "id_age": "年龄",
         "id_gender": "性别", "id_location": "所在地", "id_hometown": "老家",
@@ -97,6 +97,20 @@ I18N = {
         "bf_openness": "开放性", "bf_conscientiousness": "尽责性",
         "bf_extraversion": "外向性", "bf_agreeableness": "宜人性",
         "bf_stability": "情绪稳定",
+        # Custom personality dimensions
+        "urgency": "🔥 紧迫感", "satisfaction": "😌 满意",
+        # MBTI
+        "mbti_title": "MBTI 人格类型",
+        "mbti_dimension": "维度",
+        "mbti_E": "外向 (E)", "mbti_I": "内向 (I)",
+        "mbti_S": "感觉 (S)", "mbti_N": "直觉 (N)",
+        "mbti_T": "思考 (T)", "mbti_F": "情感 (F)",
+        "mbti_J": "判断 (J)", "mbti_P": "知觉 (P)",
+        "mbti_confidence": "置信度",
+        "mbti_note": "基于对话行为模式推断，仅供参考",
+        "mbti_energy": "能量指向", "mbti_info": "信息获取",
+        "mbti_decision": "决策方式", "mbti_lifestyle": "生活态度",
+        "confidence": "置信度",
         # Emotion labels
         "emo_joy": "😊 开心", "emo_anger": "😤 生气",
         "emo_sadness": "😢 伤感", "emo_anxiety": "😰 焦虑",
@@ -104,6 +118,12 @@ I18N = {
         "emo_pride": "🏆 自豪", "emo_gratitude": "🙏 感恩",
         "emo_frustration": "😤 挫败", "emo_curiosity": "🧐 好奇",
         "emo_peace": "😌 平静", "emo_guilt": "😔 愧疚",
+        # Episodic emotion labels
+        "calm": "😌 平静", "clarity": "💡 清明", "focused": "🎯 专注",
+        "relief": "😮 松了口气", "satisfaction": "😌 满意",
+        "shock_then_urgency": "😱 震惊后紧迫", "thoughtful": "🤔 若有所思",
+        "excitement": "🤩 兴奋", "curiosity": "🧐 好奇", "peace": "😌 平静",
+        "好奇": "🧐 好奇", "平静": "😌 平静", "满意": "😌 满意",
         # Dimension names for progress bars
         "dim_identity": "身份信息", "dim_personality": "性格特征",
         "dim_language": "语言风格", "dim_knowledge": "知识观点",
@@ -123,7 +143,7 @@ I18N = {
         "emotions": "Emotional Patterns",
         "relationships": "Relationships",
         "memories": "Memory Fragments",
-        "footer": "Soul Archive v1.0 · Generated on {time}",
+        "footer": "Soul Archive {version} · Generated on {time}",
         # Identity fields
         "id_name": "Name", "id_nickname": "Nickname", "id_age": "Age",
         "id_gender": "Gender", "id_location": "Location", "id_hometown": "Hometown",
@@ -176,6 +196,20 @@ I18N = {
         "bf_openness": "Openness", "bf_conscientiousness": "Conscientiousness",
         "bf_extraversion": "Extraversion", "bf_agreeableness": "Agreeableness",
         "bf_stability": "Emotional Stability",
+        # Custom personality dimensions
+        "urgency": "Urgency", "satisfaction": "Satisfaction",
+        # MBTI
+        "mbti_title": "MBTI Personality Type",
+        "mbti_dimension": "Dimension",
+        "mbti_E": "Extraversion (E)", "mbti_I": "Introversion (I)",
+        "mbti_S": "Sensing (S)", "mbti_N": "Intuition (N)",
+        "mbti_T": "Thinking (T)", "mbti_F": "Feeling (F)",
+        "mbti_J": "Judging (J)", "mbti_P": "Perceiving (P)",
+        "mbti_confidence": "Confidence",
+        "mbti_note": "Inferred from conversational behavior patterns. For reference only.",
+        "mbti_energy": "Energy Orientation", "mbti_info": "Information Gathering",
+        "mbti_decision": "Decision Making", "mbti_lifestyle": "Lifestyle",
+        "confidence": "Confidence",
         # Emotion labels
         "emo_joy": "😊 Joy", "emo_anger": "😤 Anger",
         "emo_sadness": "😢 Sadness", "emo_anxiety": "😰 Anxiety",
@@ -183,6 +217,12 @@ I18N = {
         "emo_pride": "🏆 Pride", "emo_gratitude": "🙏 Gratitude",
         "emo_frustration": "😤 Frustration", "emo_curiosity": "🧐 Curiosity",
         "emo_peace": "😌 Peace", "emo_guilt": "😔 Guilt",
+        # Episodic emotion labels
+        "calm": "😌 Calm", "clarity": "💡 Clarity", "focused": "🎯 Focused",
+        "relief": "😮 Relief", "satisfaction": "😌 Satisfaction",
+        "shock_then_urgency": "😱 Shock→Urgency", "thoughtful": "🤔 Thoughtful",
+        "excitement": "🤩 Excitement", "curiosity": "🧐 Curiosity",
+        "peace": "😌 Peace",
         # Dimension names for progress bars
         "dim_identity": "Identity", "dim_personality": "Personality",
         "dim_language": "Language Style", "dim_knowledge": "Knowledge",
@@ -209,7 +249,7 @@ def detect_language(name: str) -> str:
     return "en"
 
 
-def generate_html_report(archive: SoulArchive, output_path: str = None, lang: str = None) -> str:
+def generate_html_report(archive: SoulArchive, output_path: str = None, lang: str = None, skill_version: str = "v1.3.0") -> str:
     """Generate an HTML personality portrait report with automatic language detection."""
     data = archive.load_all()
     bi = data["basic_info"]
@@ -249,6 +289,68 @@ def generate_html_report(archive: SoulArchive, output_path: str = None, lang: st
         t["bf_agreeableness"]: (bf.get("agreeableness", 0) or 0) * 100,
         t["bf_stability"]: (1 - (bf.get("neuroticism", 0) or 0)) * 100
     }, ensure_ascii=False)
+
+    # ---- MBTI Inference ----
+    def infer_mbti(bf_data, emotional_data, topics_data, episodic_data=None):
+        """Infer MBTI from Big Five + emotional patterns + topics + episodes. Returns (type_str, dims)."""
+        extraversion = bf_data.get("extraversion", 0.5) or 0.5
+        openness = bf_data.get("openness", 0.5) or 0.5
+        agreeableness = bf_data.get("agreeableness", 0.5) or 0.5
+        conscientiousness = bf_data.get("conscientiousness", 0.5) or 0.5
+
+        # E / I  ← extraversion
+        e_score = extraversion
+        letter_e = "E" if extraversion >= 0.5 else "I"
+        conf_e = round(abs(extraversion - 0.5) * 2, 2)
+
+        # S / N  ← openness + topic diversity
+        topics = topics_data.get("topics", [])
+        topic_count = len(topics)
+        abstract_keywords = ["哲学", "未来", "意义", "宇宙", "AI", "哲学", "理论", "概念", "抽象",
+                             "philosophy", "future", "meaning", "universe", "concept", "abstract"]
+        abstract_count = sum(1 for tp in topics if any(kw in str(tp.get("name", "")) for kw in abstract_keywords))
+        abstract_ratio = abstract_count / max(topic_count, 1)
+        # Combine openness with abstract tendency
+        n_score = (openness * 0.7 + min(abstract_ratio * 2, 1.0) * 0.3)
+        letter_n = "N" if n_score >= 0.5 else "S"
+        conf_n = round(min(abs(n_score - 0.5) * 2.5, 1.0), 2)
+
+        # T / F  ← agreeableness + emotional memory frequency
+        emo_triggers = emotional_data.get("triggers", {})
+        emotional_count = sum(len(v) for v in emo_triggers.values())
+        # High agreeableness + rich emotions → Feeling; low → Thinking
+        f_score = agreeableness * 0.6 + min(emotional_count / 20, 1) * 0.4
+        letter_t = "F" if f_score >= 0.5 else "T"
+        conf_t = round(min(abs(f_score - 0.5) * 2.5, 1.0), 2)
+
+        # J / P  ← conscientiousness + planned vs spontaneous in memories
+        episodes = episodic_data or []
+        planned_count = sum(1 for ep in episodes if any(kw in str(ep.get("event", ""))
+            for kw in ["计划", "安排", "预约", "决定", "计划", "plan", "schedule", "decided"]))
+        spontaneous_count = len(episodes) - planned_count
+        plan_ratio = planned_count / max(len(episodes), 1)
+        j_score = conscientiousness * 0.7 + plan_ratio * 0.3
+        letter_j = "J" if j_score >= 0.5 else "P"
+        conf_j = round(min(abs(j_score - 0.5) * 2.5, 1.0), 2)
+
+        mbti_type = letter_e + letter_n + letter_t + letter_j
+        # score = percentage toward the LEFT label in each gauge bar
+        # E/I: e_score is E-leaning (high = E), left=E → use e_score directly
+        # S/N: n_score is N-leaning (high = N), left=N → use n_score directly
+        # T/F: f_score is F-leaning (high = F), left=T → use (1 - f_score)
+        # J/P: j_score is J-leaning (high = J), left=J → use j_score directly
+        t_display_score = round((1 - f_score) * 100)
+        dims = [
+            {"letter": letter_e, "other": "I", "label": t.get("mbti_E", "E"), "other_label": t.get("mbti_I", "I"),
+             "score": round(e_score * 100), "conf": conf_e, "dim": t.get("mbti_energy", "Energy")},
+            {"letter": letter_n, "other": "S", "label": t.get("mbti_N", "N"), "other_label": t.get("mbti_S", "S"),
+             "score": round(n_score * 100), "conf": conf_n, "dim": t.get("mbti_info", "Info")},
+            {"letter": letter_t, "other": "F", "label": t.get("mbti_T", "T"), "other_label": t.get("mbti_F", "F"),
+             "score": t_display_score, "conf": conf_t, "dim": t.get("mbti_decision", "Decision")},
+            {"letter": letter_j, "other": "P", "label": t.get("mbti_J", "J"), "other_label": t.get("mbti_P", "P"),
+             "score": round(j_score * 100), "conf": conf_j, "dim": t.get("mbti_lifestyle", "Lifestyle")},
+        ]
+        return mbti_type, dims
 
     # Dimension scores
     dim_json = json.dumps({
@@ -291,14 +393,32 @@ def generate_html_report(archive: SoulArchive, output_path: str = None, lang: st
                 break
     episodes_json = json.dumps(episodes[:20], ensure_ascii=False)
 
-    # Emotion label map (JS)
+    # MBTI with episodes now available
+    mbti_type, mbti_dims = infer_mbti(bf, emotional, topics_data, episodes)
+    mbti_json = json.dumps({"type": mbti_type, "dims": mbti_dims,
+                             "note": t.get("mbti_note", ""),
+                             "title": t.get("mbti_title", "MBTI")}, ensure_ascii=False)
+
+    # Emotion label map (JS) - includes standard + episodic + custom trigger emotions
     emo_labels_json = json.dumps({
         "joy": t["emo_joy"], "anger": t["emo_anger"],
         "sadness": t["emo_sadness"], "anxiety": t["emo_anxiety"],
         "excitement": t["emo_excitement"], "nostalgia": t["emo_nostalgia"],
         "pride": t["emo_pride"], "gratitude": t["emo_gratitude"],
         "frustration": t["emo_frustration"], "curiosity": t["emo_curiosity"],
-        "peace": t["emo_peace"], "guilt": t["emo_guilt"]
+        "peace": t["emo_peace"], "guilt": t["emo_guilt"],
+        # Custom personality dimensions (emotional patterns)
+        "urgency": t["urgency"], "satisfaction": t["satisfaction"],
+        # Episodic emotion labels (memory timeline)
+        "calm": t["calm"], "clarity": t["clarity"], "focused": t["focused"],
+        "relief": t["relief"], "satisfaction": t["satisfaction"],
+        "shock_then_urgency": t["shock_then_urgency"],
+        "thoughtful": t["thoughtful"],
+        # Chinese raw keys from data
+        "满意": t.get("满意", t["satisfaction"]),
+        "satisfied": t["satisfaction"],  # episodes use 'satisfied' (lowercase)
+        "平静": t.get("平静", t["emo_peace"]),
+        "好奇": t.get("好奇", t["emo_curiosity"]),
     }, ensure_ascii=False)
 
     # Identity field label map
@@ -405,6 +525,12 @@ body::before {{
   padding: 40px 20px;
   position: relative;
   z-index: 1;
+}}
+
+.identity-divider {{
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 16px 0;
 }}
 
 .header {{
@@ -522,10 +648,10 @@ body::before {{
   font-size: 1.2em; color: white;
 }}
 
-.info-row {{ display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }}
+.info-row {{ display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); gap: 12px; }}
 .info-row:last-child {{ border-bottom: none; }}
-.info-row .key {{ color: var(--text-dim); }}
-.info-row .val {{ font-weight: 500; }}
+.info-row .key {{ color: var(--text-dim); white-space: nowrap; flex-shrink: 0; }}
+.info-row .val {{ font-weight: 500; text-align: right; word-break: break-word; }}
 
 .chart-container {{ position: relative; height: 280px; }}
 
@@ -561,19 +687,27 @@ footer {{
     <div id="dim-progress"></div>
   </div>
 
-  <div class="grid-2">
-    <!-- Identity Card -->
-    <div class="card">
-      <h2><span class="icon">👤</span> {t['identity']}</h2>
-      <div id="identity-info"></div>
-    </div>
+  <!-- Identity Card -->
+  <div class="card">
+    <h2><span class="icon">👤</span> {t['identity']}</h2>
+    <div id="identity-basic" style="display:grid;grid-template-columns:1fr 1fr;gap:0 32px;"></div>
+    <hr class="identity-divider">
+    <div id="identity-extra" style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px;"></div>
+  </div>
 
-    <!-- Personality -->
-    <div class="card">
-      <h2><span class="icon">💫</span> {t['personality']}</h2>
-      <div id="personality-tags"></div>
-      <div class="chart-container" style="margin-top:20px;">
+  <!-- Personality -->
+  <div class="card" style="display:flex;flex-direction:column;gap:16px;">
+    <h2 style="margin:0;"><span class="icon">💫</span> {t['personality']}</h2>
+    <div id="personality-tags"></div>
+    <!-- Big Five + MBTI side by side -->
+    <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">
+      <div class="chart-container" style="flex:1;min-width:200px;margin:0;">
         <canvas id="big5Chart"></canvas>
+      </div>
+      <div id="mbti-panel" style="flex:1;min-width:200px;">
+        <div id="mbti-header"></div>
+        <div id="mbti-gauges"></div>
+        <div id="mbti-note" style="font-size:0.75em;color:var(--text-dim);margin-top:8px;"></div>
       </div>
     </div>
   </div>
@@ -611,7 +745,7 @@ footer {{
   </div>
 
   <footer>
-    🧬 {t['footer'].format(time=datetime.now().strftime('%Y-%m-%d %H:%M'))}
+    🧬 {t['footer'].format(version=skill_version, time=datetime.now().strftime('%Y-%m-%d %H:%M'))}
   </footer>
 </div>
 
@@ -622,6 +756,7 @@ const personality = {json.dumps(ps, ensure_ascii=False)};
 const language = {json.dumps(lang_data, ensure_ascii=False)};
 const topicsData = {topics_json};
 const bigFive = {bf_json};
+const mbtiData = {mbti_json};
 const dimScores = {dim_json};
 const emotionalData = {emo_json};
 const peopleData = {people_json};
@@ -683,39 +818,47 @@ Object.entries(dimScores).forEach(([name, score]) => {{
 }});
 
 // ---- Identity Info ----
-const idEl = document.getElementById('identity-info');
+const idBasicEl = document.getElementById('identity-basic');
+const idExtraEl = document.getElementById('identity-extra');
 
-// Core fields
+// Core fields (two-column grid)
 idFields.forEach(([label, key]) => {{
   const v = getVal(basicInfo, key);
-  if (v) idEl.innerHTML += `<div class="info-row"><span class="key">${{label}}</span><span class="val">${{v}}</span></div>`;
+  if (v) idBasicEl.innerHTML += `<div class="info-row"><span class="key">${{label}}</span><span class="val">${{v}}</span></div>`;
 }});
 
-// Hobbies and motto (special: array or string)
+// Hobbies and motto
 const hobbies = basicInfo.hobbies?.length ? basicInfo.hobbies.join(arrSep) : null;
-if (hobbies) idEl.innerHTML += `<div class="info-row"><span class="key">${{i18n.idHobbies}}</span><span class="val">${{hobbies}}</span></div>`;
+if (hobbies) idBasicEl.innerHTML += `<div class="info-row"><span class="key">${{i18n.idHobbies}}</span><span class="val">${{hobbies}}</span></div>`;
 const motto = basicInfo.life_motto;
-if (motto) idEl.innerHTML += `<div class="info-row"><span class="key">${{i18n.idMotto}}</span><span class="val">${{motto}}</span></div>`;
+if (motto) idBasicEl.innerHTML += `<div class="info-row"><span class="key">${{i18n.idMotto}}</span><span class="val">${{motto}}</span></div>`;
 
-// Lifestyle
+if (!idBasicEl.innerHTML) idBasicEl.innerHTML = `<p style="color:var(--text-dim)">${{i18n.noDataChat}}</p>`;
+
+// Lifestyle (left column of extra row)
 const filledLs = lsFields.filter(([, key]) => getVal(basicInfo, key));
-if (filledLs.length) {{
-  idEl.innerHTML += `<div style="margin:12px 0 6px;color:var(--accent);font-size:0.9em;font-weight:600;">${{i18n.lifestyle}}</div>`;
-  filledLs.forEach(([label, key]) => {{
-    idEl.innerHTML += `<div class="info-row"><span class="key">${{label}}</span><span class="val">${{getVal(basicInfo, key)}}</span></div>`;
-  }});
-}}
-
-// Digital Identity
+// Digital Identity (right column of extra row)
 const filledDg = dgFields.filter(([, key]) => getVal(basicInfo, key));
-if (filledDg.length) {{
-  idEl.innerHTML += `<div style="margin:12px 0 6px;color:var(--accent);font-size:0.9em;font-weight:600;">${{i18n.digital}}</div>`;
-  filledDg.forEach(([label, key]) => {{
-    idEl.innerHTML += `<div class="info-row"><span class="key">${{label}}</span><span class="val">${{getVal(basicInfo, key)}}</span></div>`;
-  }});
-}}
 
-if (!idEl.innerHTML) idEl.innerHTML = `<p style="color:var(--text-dim)">${{i18n.noDataChat}}</p>`;
+if (filledLs.length || filledDg.length) {{
+  let lsHtml = '';
+  if (filledLs.length) {{
+    lsHtml += `<div style="margin-bottom:6px;color:var(--accent);font-size:0.9em;font-weight:600;">${{i18n.lifestyle}}</div>`;
+    filledLs.forEach(([label, key]) => {{
+      lsHtml += `<div class="info-row"><span class="key">${{label}}</span><span class="val">${{getVal(basicInfo, key)}}</span></div>`;
+    }});
+  }}
+
+  let dgHtml = '';
+  if (filledDg.length) {{
+    dgHtml += `<div style="margin-bottom:6px;color:var(--accent);font-size:0.9em;font-weight:600;">${{i18n.digital}}</div>`;
+    filledDg.forEach(([label, key]) => {{
+      dgHtml += `<div class="info-row"><span class="key">${{label}}</span><span class="val">${{getVal(basicInfo, key)}}</span></div>`;
+    }});
+  }}
+
+  idExtraEl.innerHTML = `<div>${{lsHtml}}</div><div>${{dgHtml}}</div>`;
+}}
 
 // ---- Personality Tags ----
 const psEl = document.getElementById('personality-tags');
@@ -776,6 +919,55 @@ if (bf5.some(([,v]) => v > 0)) {{
     }}
   }});
 }}
+
+// ---- MBTI Gauge Panel ----
+(function() {{
+  if (!mbtiData || !mbtiData.type) return;
+  const {{type, dims, note, title}} = mbtiData;
+
+  // Header: type badge
+  const headerEl = document.getElementById('mbti-header');
+  if (headerEl) {{
+    headerEl.innerHTML = `<div style="text-align:center;margin-bottom:12px;">
+      <span style="font-size:2em;font-weight:700;letter-spacing:0.1em;color:var(--accent);">${{type}}</span>
+      <div style="font-size:0.8em;color:var(--text-dim);margin-top:2px;">${{title || 'MBTI'}}</div>
+    </div>`;
+  }}
+
+  // Dimension gauges
+  const gaugesEl = document.getElementById('mbti-gauges');
+  if (gaugesEl && dims) {{
+    let gaugesHtml = '';
+    dims.forEach((d) => {{
+      const pct = d.score;  // percentage toward left label
+      const dominantColor = 'var(--accent)';
+      const recessiveColor = 'rgba(255,255,255,0.15)';
+      const leanLeft = pct >= 50;
+      const leftColor = leanLeft ? dominantColor : recessiveColor;
+      const rightColor = leanLeft ? recessiveColor : dominantColor;
+      // Bar: fill from the dominant side
+      const barWidth = leanLeft ? pct : (100 - pct);
+      const barSide = leanLeft ? 'left:0;border-radius:4px 0 0 4px;' : 'right:0;border-radius:0 4px 4px 0;';
+      const displayPct = leanLeft ? pct : (100 - pct);
+      gaugesHtml += `<div style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+          <span style="font-size:0.82em;color:${{leftColor}};font-weight:${{leanLeft?'600':'400'}};">${{d.label}}</span>
+          <span style="font-size:0.75em;color:var(--text-dim);">${{d.dim}}</span>
+          <span style="font-size:0.82em;color:${{rightColor}};font-weight:${{leanLeft?'400':'600'}};">${{d.other_label}}</span>
+        </div>
+        <div style="position:relative;height:8px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;">
+          <div style="position:absolute;${{barSide}}top:0;height:100%;width:${{barWidth}}%;background:${{dominantColor}};transition:width 0.6s ease;"></div>
+          <div style="position:absolute;left:50%;top:-2px;width:2px;height:12px;background:rgba(255,255,255,0.35);transform:translateX(-50%);border-radius:1px;z-index:1;"></div>
+        </div>
+        <div style="text-align:center;font-size:0.72em;color:var(--text-dim);margin-top:3px;">${{displayPct}}%</div>
+      </div>`;
+    }});
+    gaugesEl.innerHTML = gaugesHtml;
+  }}
+
+  const noteEl = document.getElementById('mbti-note');
+  if (noteEl && note) noteEl.textContent = note;
+}})();
 
 // ---- Language Fingerprint ----
 const langEl = document.getElementById('language-section');
@@ -867,9 +1059,10 @@ if (peopleData.length) {{
 const epEl = document.getElementById('episodes-section');
 if (episodes.length) {{
   episodes.forEach(ep => {{
+    const emoLabel = ep.emotion ? (emoLabels[ep.emotion] || ep.emotion) : '';
     epEl.innerHTML += `<div class="timeline-item">
       <strong>${{ep.event || ''}}</strong>
-      ${{ep.emotion ? ' <span class="tag" style="font-size:0.8em;">' + ep.emotion + '</span>' : ''}}
+      ${{emoLabel ? ' <span class="tag" style="font-size:0.8em;">' + emoLabel + '</span>' : ''}}
       ${{ep.context ? '<br><span style="color:var(--text-dim);font-size:0.9em;">' + ep.context + '</span>' : ''}}
     </div>`;
   }});
@@ -907,6 +1100,22 @@ def main():
     args = parser.parse_args()
     archive = SoulArchive(args.soul_dir)
 
+    # Read version from SKILL.md front matter (手动解析，避免依赖 PyYAML)
+    skill_dir = Path(__file__).parent.parent
+    skill_version = "v1.3.0"
+    skill_md = skill_dir / "SKILL.md"
+    if skill_md.exists():
+        try:
+            text = skill_md.read_text(encoding="utf-8")
+            parts = text.split("---", 2)
+            if len(parts) >= 3:
+                import re as _re
+                m = _re.search(r'version:\s*["\']?([^"\'\n]+)', parts[1])
+                if m:
+                    skill_version = m.group(1).strip()
+        except Exception:
+            pass
+
     if not archive.is_initialized():
         print("❌ Soul archive not initialized. Run soul_init.py first.")
         sys.exit(1)
@@ -916,8 +1125,11 @@ def main():
     if config.get("encryption"):
         archive.init_crypto_from_config(password=args.password)
 
-    output = args.output or str(archive.root / "reports" / "soul_report.html")
-    generate_html_report(archive, output, lang=args.lang)
+    if not args.output:
+        print("❌ 请通过 --output 指定报告输出路径（建议输出到工作目录，非数据目录）")
+        sys.exit(1)
+    output = args.output
+    generate_html_report(archive, output, lang=args.lang, skill_version=skill_version)
 
 
 if __name__ == "__main__":

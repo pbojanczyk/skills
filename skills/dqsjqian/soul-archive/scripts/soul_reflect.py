@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-🧬 Soul Archive — AI Self-Improvement Engine (soul_reflect.py)
+🧬 Soul Archive -- AI Self-Improvement Engine (soul_reflect.py)
 
 AI 自我反思、自我批评、自我学习引擎。
 记录 AI 的工作经验、错误教训和行为模式，实现持续改进。
@@ -72,10 +72,8 @@ def save_json(path: Path, data: dict, crypto=None):
 def append_jsonl(path: Path, entry: dict, crypto=None):
     """Append a JSON line to a JSONL file."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    if crypto and hasattr(crypto, 'encrypt_jsonl_line'):
-        raw = crypto.encrypt_jsonl_line(entry)
-        with open(path, 'ab') as f:
-            f.write(raw)
+    if crypto and hasattr(crypto, 'append_encrypted_jsonl'):
+        crypto.append_encrypted_jsonl(path, entry)
     else:
         line = json.dumps(entry, ensure_ascii=False)
         with open(path, 'a', encoding='utf-8') as f:
@@ -87,21 +85,9 @@ def read_jsonl(path: Path, crypto=None) -> list:
     if not path.exists():
         return []
     entries = []
-    if crypto and hasattr(crypto, 'decrypt_jsonl_line'):
-        with open(path, 'rb') as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    entries.append(crypto.decrypt_jsonl_line(line))
-                except Exception:
-                    try:
-                        entries.append(json.loads(line.decode('utf-8')))
-                    except Exception:
-                        continue
-    else:
-        with open(path, 'r', encoding='utf-8') as f:
+    if crypto and hasattr(crypto, 'read_encrypted_jsonl'):
+        return crypto.read_encrypted_jsonl(path)
+    with open(path, 'r', encoding='utf-8') as f:
             for line in f:
                 line = line.strip()
                 if not line:
@@ -122,7 +108,7 @@ def today_str() -> str:
 
 
 # ============================================================
-# ReflectionBuilder — 构建反思/批评/学习结果
+# ReflectionBuilder -- 构建反思/批评/学习结果
 # ============================================================
 
 class ReflectionBuilder:
@@ -223,7 +209,7 @@ class ReflectionBuilder:
 
 
 # ============================================================
-# AgentMemory — AI 自我改进记忆管理
+# AgentMemory -- AI 自我改进记忆管理
 # ============================================================
 
 class AgentMemory:
@@ -373,7 +359,7 @@ class AgentMemory:
 # ============================================================
 
 def main():
-    parser = argparse.ArgumentParser(description="🧬 灵魂存档 — AI 自我改进引擎")
+    parser = argparse.ArgumentParser(description="🧬 灵魂存档 -- AI 自我改进引擎")
     parser.add_argument("--soul-dir", type=Path,
                         default=Path.home() / ".skills_data" / "soul-archive",
                         help="灵魂数据目录路径")

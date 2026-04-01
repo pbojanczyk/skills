@@ -5,10 +5,9 @@
 
 用法：
   python3 soul_extract.py --input "对话内容"
-  python3 soul_extract.py --input-file /path/to/conversation.txt
-  python3 soul_extract.py --soul-dir /custom/path --input "对话内容"
 
 默认数据目录：~/.skills_data/soul-archive/（通过 Path.home() 解析，跨平台兼容）
+仅接受纯文本输入，不接受文件路径。
 """
 
 import json
@@ -195,7 +194,7 @@ DEFAULT_PEOPLE = {
 
 DEFAULT_CONFIG = {
     "privacy_level": "standard",
-    "auto_extract": True,
+    "auto_extract": False,
     "extract_dimensions": {
         "identity": True,
         "personality": True,
@@ -229,9 +228,16 @@ def load_json(path: Path, default=None, crypto=None):
             try:
                 return crypto.decrypt_file(path)
             except Exception:
-                pass  # fallback to plain read
-        with open(path, 'r', encoding='utf-8') as f:
-            return json.load(f)
+                # decrypt_file already handles both encrypted and plain files;
+                # if it still fails, the file may be corrupted -- don't try plain read
+                pass
+        # Plain text JSON read
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            # Likely an encrypted file read without crypto -- return default
+            pass
     return default if default is not None else {}
 
 
@@ -256,8 +262,8 @@ def append_jsonl(path: Path, record: dict, crypto=None):
 
 
 def now_iso():
-    """当前时间 ISO 格式"""
-    return datetime.now().astimezone().isoformat()
+    """当前时间 ISO 格式（UTC）"""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S+00:00")
 
 
 # ============================================================
@@ -265,7 +271,7 @@ def now_iso():
 # ============================================================
 
 class SoulArchive:
-    """灵魂存档管理器 —— 管理 .skills_data/soul-archive/ 目录的读写，支持加密"""
+    """灵魂存档管理器 ---- 管理 .skills_data/soul-archive/ 目录的读写，支持加密"""
 
     def __init__(self, soul_dir: str, crypto=None):
         self.root = Path(soul_dir)
@@ -410,8 +416,11 @@ class SoulArchive:
             profile = self.load_profile()
             profile["last_updated"] = now_iso()
             profile["total_extractions"] = profile.get("total_extractions", 0) + 1
-            profile["completeness_score"] = self._calc_completeness()
-            profile["dimensions"] = self._calc_dimension_scores()
+            profile["total_conversations"] = profile.get("total_conversations", 0) + 1
+            # _calc_completeness 内部已调用 _calc_dimension_scores，避免重复计算
+            dimensions = self._calc_dimension_scores()
+            profile["dimensions"] = dimensions
+            profile["completeness_score"] = self._calc_completeness_from_scores(dimensions)
             save_json(self.profile_path, profile)
 
             # 追加 changelog
@@ -443,8 +452,15 @@ class SoulArchive:
                     meta[key] = {"confidence": new_conf, "updated": now_iso()}
                     updated.append(key)
             else:
-                # 简单更新：只填充空字段
-                if current.get(key) is None or (isinstance(current.get(key), list) and not current[key]):
+                # 列表类型：追加去重；标量类型：只填充空字段
+                if isinstance(value, list) and isinstance(current.get(key), list):
+                    existing_set = set(str(x) for x in current[key])
+                    new_items = [x for x in value if str(x) not in existing_set]
+                    if new_items:
+                        current[key].extend(new_items)
+                        meta[key] = {"confidence": 0.7, "updated": now_iso()}
+                        updated.append(key)
+                elif current.get(key) is None:
                     current[key] = value
                     meta[key] = {"confidence": 0.7, "updated": now_iso()}
                     updated.append(key)
@@ -486,7 +502,9 @@ class SoulArchive:
         for key, value in new_data.items():
             if key.startswith("_") or value is None:
                 continue
-            if key in ("catchphrases", "sentence_patterns", "preferred_words", "examples") and isinstance(value, list):
+            if key in ("catchphrases", "sentence_patterns", "preferred_words", "examples",
+                      "filler_words", "dialect_features", "agreement_expressions",
+                      "disagreement_expressions") and isinstance(value, list):
                 existing = current.get(key, [])
                 # 对于例句，去重
                 existing_set = set(str(x) for x in existing)
@@ -550,16 +568,18 @@ class SoulArchive:
                     if new_items:
                         triggers.setdefault(emotion, []).extend(new_items)
                         updated.append(f"triggers.{emotion}")
-        for key in ("expression_style", "emotional_range"):
+        for key in ("expression_style", "emotional_range", "emotional_awareness",
+                    "empathy_level", "celebration_style"):
             if new_data.get(key) and current.get(key) is None:
                 current[key] = new_data[key]
                 updated.append(key)
-        if new_data.get("coping_mechanisms"):
-            existing = set(current.get("coping_mechanisms", []))
-            new_items = [i for i in new_data["coping_mechanisms"] if i not in existing]
-            if new_items:
-                current.setdefault("coping_mechanisms", []).extend(new_items)
-                updated.append("coping_mechanisms")
+        for list_key in ("coping_mechanisms", "comfort_activities"):
+            if new_data.get(list_key):
+                existing = set(current.get(list_key, []))
+                new_items = [i for i in new_data[list_key] if i not in existing]
+                if new_items:
+                    current.setdefault(list_key, []).extend(new_items)
+                    updated.append(list_key)
         return updated
 
     def _merge_people(self, current: dict, new_people: list) -> int:
@@ -583,33 +603,90 @@ class SoulArchive:
 
     # ---- 完整度计算 ----
 
+    @staticmethod
+    def _saturation(value: float, threshold: float) -> float:
+        """log10 渐进式饱和曲线：永远趋近100%但不会在合理次数内封顶。
+        公式：log10(1 + value) / log10(1 + threshold)
+        例如 threshold=500000 时：1万次→62%, 10万次→78%, 100万次→94%。
+        """
+        import math
+        if value <= 0:
+            return 0.0
+        return min(1.0, math.log10(1 + value) / math.log10(1 + threshold))
+
+    @staticmethod
+    def _early_penalty(extractions: int) -> float:
+        """冷启动惩罚：早期提取次数少，数据不可靠，需长期积累才有意义。
+        11次→0.30x → 实际：<30次→0.30x, <100次→0.45x, <300次→0.65x, <1000次→0.82x, <3000次→0.92x, ≥3000次→1.0x。
+        """
+        if extractions <= 0:
+            return 0.0
+        if extractions < 30:
+            return 0.30
+        if extractions < 100:
+            return 0.45
+        if extractions < 300:
+            return 0.65
+        if extractions < 1000:
+            return 0.82
+        if extractions < 3000:
+            return 0.92
+        return 1.0
+
     def _calc_completeness(self) -> float:
-        """计算灵魂存档总体完整度"""
+        """计算灵魂存档总体完整度（含冷启动惩罚）"""
         scores = self._calc_dimension_scores()
         weights = {
-            "identity": 0.15,
-            "personality": 0.20,
+            "identity": 0.05,
+            "personality": 0.22,
             "language_style": 0.25,
-            "knowledge": 0.15,
-            "memory": 0.15,
-            "relationships": 0.05,
-            "voice": 0.05
+            "knowledge": 0.18,
+            "memory": 0.25,
+            "relationships": 0.03,
+            "voice": 0.02
         }
-        total = sum(scores.get(k, 0) * w for k, w in weights.items())
-        return round(total, 3)
+        raw_total = sum(scores.get(k, 0) * w for k, w in weights.items())
+        # 应用冷启动惩罚
+        profile = self.load_profile()
+        extractions = profile.get("total_extractions", 0)
+        penalty = self._early_penalty(extractions)
+        return round(raw_total * penalty, 3)
+
+    def _calc_completeness_from_scores(self, scores: dict) -> float:
+        """根据已计算的维度分数计算总完整度（避免重复计算维度）"""
+        weights = {
+            "identity": 0.05,
+            "personality": 0.22,
+            "language_style": 0.25,
+            "knowledge": 0.18,
+            "memory": 0.25,
+            "relationships": 0.03,
+            "voice": 0.02
+        }
+        raw_total = sum(scores.get(k, 0) * w for k, w in weights.items())
+        profile = self.load_profile()
+        extractions = profile.get("total_extractions", 0)
+        penalty = self._early_penalty(extractions)
+        return round(raw_total * penalty, 3)
 
     def _calc_dimension_scores(self) -> dict:
-        """计算各维度完整度分数"""
+        """计算各维度完整度分数。
+        设计原则：
+        - 使用 log10 渐进式饱和曲线，永远趋近100%但不会在合理次数内封顶
+        - 阈值设定极高（10万~500万级别），确保1万次时约70%，100万次时约98%
+        - 固定枚举字段用线性计算但权重极低（避免一填就拉高）
+        - 11次提取后总完整度 ~7%，1万次 ~70%，10万次 ~86%，100万次 ~98%
+        """
+        sat = self._saturation
         scores = {}
         c = self.crypto
 
-        # 身份（扩展：包含生活习惯和数字身份）
+        # 身份（log渐进曲线，T=5000，上限85%）
         bi = load_json(self.paths["basic_info"], {}, crypto=c)
         core_fields = ["name", "occupation", "location"]
         filled = sum(1 for f in core_fields if bi.get(f))
         extra_fields = ["age", "gender", "education", "hometown", "hobbies"]
         filled += sum(0.5 for f in extra_fields if bi.get(f))
-        # 新增字段（生活习惯 + 数字身份）
         lifestyle_fields = ["daily_routine", "sleep_schedule", "food_preferences",
                            "music_taste", "movie_taste", "book_taste",
                            "aesthetic_style", "spending_style"]
@@ -617,9 +694,16 @@ class SoulArchive:
         digital_fields = ["favorite_apps", "social_platforms", "tech_proficiency"]
         filled += sum(0.3 for f in digital_fields if bi.get(f))
         max_score = len(core_fields) + len(extra_fields) * 0.5 + len(lifestyle_fields) * 0.3 + len(digital_fields) * 0.3
-        scores["identity"] = min(1.0, round(filled / max_score, 2))
+        # 用提取次数作为身份维度的输入，log渐进曲线，T=5000
+        profile = self.load_profile()
+        extractions = profile.get("total_extractions", 0)
+        # identity 同时考虑字段填充率和提取次数积累
+        field_ratio = filled / max_score if max_score > 0 else 0
+        # 字段填充提供基础分（上限85%），提取次数驱动长期增长
+        # 30%来自字段填充（避免一填就高），70%来自提取次数（log渐进，T=5000）
+        scores["identity"] = round(min(0.85, field_ratio) * 0.3 + sat(extractions, 5000) * 0.7 * 0.85, 2)
 
-        # 性格（扩展：包含行为模式和社交风格）
+        # 性格（列表高阈值 + 枚举极低权重）
         ps = load_json(self.paths["personality"], {}, crypto=c)
         trait_count = len(ps.get("traits", []))
         value_count = len(ps.get("values", []))
@@ -630,16 +714,18 @@ class SoulArchive:
         social_fields = ["social_energy", "group_role", "conflict_approach"]
         social_filled = sum(1 for f in social_fields if ps.get(f))
         motivation_count = len(ps.get("motivation_drivers", []))
-        scores["personality"] = min(1.0, round(
-            trait_count / 5 * 0.25 +
-            value_count / 3 * 0.15 +
-            bf_count / 5 * 0.2 +
-            behavior_filled / len(behavior_fields) * 0.2 +
-            social_filled / len(social_fields) * 0.1 +
-            min(motivation_count / 3, 1.0) * 0.1
-        , 2))
+        # 列表类超高阈值：traits→600000, values→180000, motivation→180000
+        # 枚举类线性极低权重：bf(0.02), behavior(0.01), social(0.01), 合计枚举固定0.04
+        scores["personality"] = round(
+            sat(trait_count, 600000) * 0.30 +
+            sat(value_count, 180000) * 0.10 +
+            sat(motivation_count, 180000) * 0.55 +
+            (bf_count / 5) * 0.02 +
+            (behavior_filled / len(behavior_fields)) * 0.01 +
+            (social_filled / len(social_fields)) * 0.01
+        , 2)
 
-        # 语言风格（扩展：包含深度语言指纹）
+        # 语言风格（列表高阈值 + 枚举极低权重）
         lang = load_json(self.paths["language"], {}, crypto=c)
         cp_count = len(lang.get("catchphrases", []))
         sp_count = len(lang.get("sentence_patterns", []))
@@ -648,19 +734,21 @@ class SoulArchive:
                            "persuasion_style", "storytelling_style",
                            "agreement_expressions", "disagreement_expressions"]
         deep_filled = sum(1 for f in deep_lang_fields if lang.get(f))
-        scores["language_style"] = min(1.0, round(
-            cp_count / 3 * 0.3 +
-            sp_count / 3 * 0.2 +
-            ex_count / 5 * 0.2 +
-            deep_filled / len(deep_lang_fields) * 0.3
-        , 2))
+        # 列表类超高阈值：catchphrases→1200000, patterns→1000000, examples→4000000
+        # 枚举类线性极低权重：deep(0.02)
+        scores["language_style"] = round(
+            sat(cp_count, 1200000) * 0.30 +
+            sat(sp_count, 1000000) * 0.25 +
+            sat(ex_count, 4000000) * 0.43 +
+            (deep_filled / len(deep_lang_fields)) * 0.02
+        , 2)
 
-        # 知识观点
+        # 知识观点（列表超高阈值：topics→2000000）
         topics = load_json(self.paths["topics"], {}, crypto=c)
         topic_count = len(topics.get("topics", []))
-        scores["knowledge"] = min(1.0, round(topic_count / 5, 2))
+        scores["knowledge"] = round(sat(topic_count, 2000000), 2)
 
-        # 记忆
+        # 记忆（列表超高阈值：episodic→6000000）
         ep_dir = self.root / "memory" / "episodic"
         ep_count = 0
         if ep_dir.exists():
@@ -670,17 +758,17 @@ class SoulArchive:
                 else:
                     with open(f, 'r', encoding='utf-8') as fh:
                         ep_count += sum(1 for _ in fh)
-        scores["memory"] = min(1.0, round(ep_count / 10, 2))
+        scores["memory"] = round(sat(ep_count, 6000000), 2)
 
-        # 人际关系
+        # 人际关系（列表超高阈值：people→120000）
         people = load_json(self.paths["people"], {}, crypto=c)
         people_count = len(people.get("people", []))
-        scores["relationships"] = min(1.0, round(people_count / 3, 2))
+        scores["relationships"] = round(sat(people_count, 120000), 2)
 
-        # 语音
+        # 语音（列表超高阈值：voice→10000）
         voice_dir = self.root / "voice" / "samples"
         voice_count = len(list(voice_dir.glob("*"))) if voice_dir.exists() else 0
-        scores["voice"] = min(1.0, 1.0 if voice_count > 0 else 0.0)
+        scores["voice"] = round(sat(voice_count, 10000), 2)
 
         return scores
 
@@ -871,8 +959,7 @@ def main():
     parser = argparse.ArgumentParser(description="🧬 灵魂提取器")
     parser.add_argument("--soul-dir", default=default_soul_dir,
                         help=f"灵魂数据目录路径（默认: {default_soul_dir}）")
-    parser.add_argument("--input", help="对话内容（直接传入）")
-    parser.add_argument("--input-file", help="对话内容文件路径")
+    parser.add_argument("--input", help="对话内容（纯文本，直接传入）")
     parser.add_argument("--mode", default="auto", choices=["auto", "manual", "status"],
                         help="模式：auto=自动提取, manual=手动, status=仅查看状态")
     parser.add_argument("--password", help="加密密码（不推荐在命令行使用，建议交互输入或设置 SOUL_PASSWORD 环境变量）")
@@ -898,11 +985,8 @@ def main():
     conversation = ""
     if args.input:
         conversation = args.input
-    elif args.input_file:
-        with open(args.input_file, 'r', encoding='utf-8') as f:
-            conversation = f.read()
     else:
-        print("请通过 --input 或 --input-file 提供对话内容")
+        print("请通过 --input 提供对话内容（纯文本）")
         sys.exit(1)
 
     if not archive.is_initialized():

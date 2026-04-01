@@ -94,7 +94,7 @@ def main():
     # config.json
     config_data = {
         "privacy_level": "standard",
-        "auto_extract": True,
+        "auto_extract": False,
         "extract_dimensions": {
             "identity": True,
             "personality": True,
@@ -108,7 +108,7 @@ def main():
         "sensitive_topics_filter": True,
         "require_confirmation_for": ["health", "finance", "intimate_relationships"],
         "data_retention_days": None,
-        "encryption": False,
+        "encryption": True,
         "auto_reflect": True,
         "agent_self_improvement": {
             "enabled": True,
@@ -237,18 +237,18 @@ def main():
         "accent": None, "sample_count": 0, "_meta": {}
     })
 
-    # agent/patterns.json — AI 自我学习：抽象行为模式
+    # agent/patterns.json -- AI 自我学习：抽象行为模式
     write_json(soul_dir / "agent" / "patterns.json", {
         "patterns": {},
         "_meta": {"description": "AI behavioral patterns learned from experience"}
     })
 
-    # agent/corrections.jsonl — AI 自我批评日志（空文件）
+    # agent/corrections.jsonl -- AI 自我批评日志（空文件）
     corrections = soul_dir / "agent" / "corrections.jsonl"
     if not corrections.exists():
         corrections.touch()
 
-    # agent/reflections.jsonl — AI 自我反思日志（空文件）
+    # agent/reflections.jsonl -- AI 自我反思日志（空文件）
     reflections = soul_dir / "agent" / "reflections.jsonl"
     if not reflections.exists():
         reflections.touch()
@@ -261,7 +261,7 @@ def main():
     # .gitignore
     gitignore = soul_dir / ".gitignore"
     gitignore.write_text(
-        "# Soul archive data — highly private, never commit to VCS\n*\n!.gitignore\n",
+        "# Soul archive data -- highly private, never commit to VCS\n*\n!.gitignore\n",
         encoding="utf-8"
     )
 

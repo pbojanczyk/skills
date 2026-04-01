@@ -8,15 +8,15 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://python.org)
-[![Zero Dependencies](https://img.shields.io/badge/Core-Zero%20Deps-green.svg)](#tech-stack)
+[![Core: Zero Deps](https://img.shields.io/badge/Core-Zero%20Deps-green.svg)](#tech-stack)
+[![Encryption: Optional](https://img.shields.io/badge/Encryption-AES--256--GCM-orange.svg)](#encryption)
 [![Privacy First](https://img.shields.io/badge/Privacy-Local%20Only-purple.svg)](#privacy-by-design)
-[![AES-256-GCM](https://img.shields.io/badge/Encryption-AES--256--GCM-orange.svg)](#encryption)
 
 [中文](./README_CN.md) · [Quick Start](#quick-start) · [Architecture](#architecture) · [Four Modes](#four-modes) · [Privacy](#privacy-by-design)
 
 ---
 
-**Soul Archive** silently captures your speaking habits, personality traits, knowledge, opinions, and emotional patterns through everyday AI conversations — building a **digital soul clone** that is uniquely, authentically *you*.
+**Soul Archive** automatically extracts your speaking habits, personality traits, knowledge, opinions, and emotional patterns through everyday AI conversations -- building a **digital soul clone** that is uniquely, authentically *you*.
 
 🗣️ It knows how you talk &nbsp;·&nbsp; 🧠 It understands how you think &nbsp;·&nbsp; ❤️ It feels what moves you &nbsp;·&nbsp; 👤 It *is* the digital you
 
@@ -26,17 +26,17 @@
 
 ## ✨ Why Soul Archive?
 
-We exchange hundreds of messages with AI every day. But when the conversation ends, **everything vanishes** — the AI doesn't remember who you are, how you speak, or what you care about.
+We exchange hundreds of messages with AI every day. But when the conversation ends, **everything vanishes** -- the AI doesn't remember who you are, how you speak, or what you care about.
 
-Soul Archive changes that. It works in the background during your normal AI conversations — **no interruptions, no interrogations** — gradually building a multi-dimensional digital portrait of your personality.
+Soul Archive changes that. It works alongside your normal AI conversations -- **no interruptions, no interrogations** -- gradually building a multi-dimensional digital portrait of your personality.
 
 ### What Can Your "Digital Soul" Do?
 
 | Scenario | Description |
 |----------|-------------|
-| 🤖 **Act on Your Behalf** | Reply to messages, write content in *your* style — not "AI-flavored", but genuinely *you* |
+| 🤖 **Act on Your Behalf** | Reply to messages, write content in *your* style -- not "AI-flavored", but genuinely *you* |
 | 🪞 **Self-Discovery** | Generate a personality portrait report, revealing language habits and thinking patterns you never noticed |
-| 💬 **Soul Conversation** | Let your clone talk to others — using your catchphrases, your tone, your values |
+| 💬 **Soul Conversation** | Let your clone talk to others -- using your catchphrases, your tone, your values |
 | 🌅 **Digital Legacy** | One day, your loved ones can continue talking to "you", preserving the emotional connection |
 
 ---
@@ -69,16 +69,16 @@ Soul Archive uses a **separation of engine and data** architecture:
 ```
 
 **Why this design?**
-- 🔄 **Upgradeable engine** — Update extraction algorithms without affecting existing data
-- 🏠 **Portable data** — The `~/.skills_data/soul-archive/` directory *is* the complete soul; copy it to migrate
-- 🔒 **Controllable privacy** — Data stays local in your home directory; you decide what gets collected
-- 🌐 **Cross-tool access** — Data in home directory means any IDE, AI tool, or workspace on the same machine can access the same soul
+- 🔄 **Upgradeable engine** -- Update extraction algorithms without affecting existing data
+- 🏠 **Portable data** -- The `~/.skills_data/soul-archive/` directory *is* the complete soul; copy it to migrate
+- 🔒 **Controllable privacy** -- Data stays local in your home directory; you decide what gets collected
+- 🌐 **Cross-tool access** -- Data in home directory means any IDE, AI tool, or workspace on the same machine can access the same soul
 
 ---
 
 ## 🧬 Seven Dimensions, Thirteen Layers Deep
 
-Soul Archive captures personality data across **7 core dimensions**, each with deep sub-dimensions:
+Soul Archive extracts personality data across **7 core dimensions**, each with deep sub-dimensions:
 
 ```
 🧬 Soul Completeness
@@ -121,16 +121,14 @@ Soul Archive captures personality data across **7 core dimensions**, each with d
 ### Requirements
 
 - Python 3.10+
-- Zero third-party dependencies (pure standard library)
+- Zero third-party dependencies for core functionality
+- `cryptography` package required only if you enable encryption (`pip install cryptography`)
 
 ### Initialize
 
 ```bash
 # Initialize soul archive (data stored in ~/.skills_data/soul-archive/ by default)
 python3 scripts/soul_init.py
-
-# Or specify a custom data directory
-python3 scripts/soul_init.py --soul-dir /custom/path
 
 
 # This creates a ~/.skills_data/soul-archive/ data directory in your home folder
@@ -176,16 +174,11 @@ python3 scripts/soul_extract.py \
   --soul-dir ~/.skills_data/soul-archive \
   --input "Your conversation content here..." \
   --mode auto
-
-# Extract from file
-python3 scripts/soul_extract.py \
-  --soul-dir ~/.skills_data/soul-archive \
-  --input-file conversation.txt
 ```
 
 **Extraction Rules:**
 - 🎯 Only high-confidence information (confidence > 0.6)
-- ⚖️ Conflicting data is flagged, never silently overwritten
+- ⚖️ Conflicting data is flagged, never automatically overwritten
 - 📊 Completeness scores updated after every extraction
 - 📝 All changes logged to `soul_changelog.jsonl`
 
@@ -213,8 +206,10 @@ Generate an interactive HTML personality portrait report.
 ```bash
 python3 scripts/soul_report.py \
   --soul-dir ~/.skills_data/soul-archive \
-  --output ~/.skills_data/soul-archive/reports/soul_report.html
+  --output ~/WorkBuddy/Claw/soul_report.html
 ```
+
+> ⚠️ The report is plaintext HTML containing full personality data. Do NOT save it to the data directory. Output to your work directory instead.
 
 The report includes:
 - 📌 Profile card with core identity
@@ -226,14 +221,14 @@ The report includes:
 - 📈 Completeness assessment & suggestions
 
 <div align="center">
-  <img src="docs/en/screenshot_header.png" alt="Soul Portrait Overview — Completeness ring & dimension progress bars" width="700" />
-  <p><em>▲ Soul Portrait Overview — Completeness Score & 7-Dimension Progress</em></p>
+  <img src="docs/en/screenshot_header.png" alt="Soul Portrait Overview -- Completeness ring & dimension progress bars" width="700" />
+  <p><em>▲ Soul Portrait Overview -- Completeness Score & 7-Dimension Progress</em></p>
   <br/>
-  <img src="docs/en/screenshot_identity.png" alt="Identity & Personality — Big Five radar chart" width="700" />
-  <p><em>▲ Identity & Personality — Life Habits, Behavioral Patterns, Big Five Radar Chart</em></p>
+  <img src="docs/en/screenshot_identity.png" alt="Identity & Personality -- Big Five radar chart" width="700" />
+  <p><em>▲ Identity & Personality -- Life Habits, Behavioral Patterns, Big Five Radar Chart</em></p>
   <br/>
-  <img src="docs/en/screenshot_language.png" alt="Language Fingerprint — Catchphrases, patterns, speech samples" width="700" />
-  <p><em>▲ Language Fingerprint — Catchphrases, Sentence Patterns, Speech Samples</em></p>
+  <img src="docs/en/screenshot_language.png" alt="Language Fingerprint -- Catchphrases, patterns, speech samples" width="700" />
+  <p><em>▲ Language Fingerprint -- Catchphrases, Sentence Patterns, Speech Samples</em></p>
   <br/>
   <img src="docs/en/screenshot_topics.png" alt="Topics, Emotions, Memories" width="700" />
   <p><em>▲ Topic Interests, Emotional Patterns, Relationships & Memory Fragments</em></p>
@@ -262,7 +257,7 @@ python3 scripts/soul_reflect.py --mode patterns
 | 📚 **Self-Learning** | Abstract reusable behavioral patterns | From reflections & critiques |
 | 🧹 **Self-Organization** | Merge, prune, and connect memories | When memory grows large |
 
-**Auto-trigger:** After every substantial interaction, the AI automatically reflects and records lessons learned — no hooks required. Agents that support hooks (e.g., Claude Code) can also configure automatic triggers.
+**Auto-trigger:** After every substantial interaction, the AI automatically reflects and records lessons learned -- no hooks required. Agents that support hooks (e.g., Claude Code) can also configure automatic triggers.
 
 ---
 
@@ -305,10 +300,9 @@ python3 scripts/soul_reflect.py --mode patterns
 ├── voice/                        # Voice data (optional)
 │   ├── samples/
 │   └── voice_profile.json
-│
-└── reports/
-    └── soul_report.html          # Generated portrait report
 ```
+
+> Reports are generated on-demand to your specified output path (not stored in the data directory).
 
 ---
 
@@ -318,17 +312,19 @@ python3 scripts/soul_reflect.py --mode patterns
 
 | Decision | Why |
 |----------|-----|
-| 🏠 **100% Local Storage** | All data lives in `~/.skills_data/soul-archive/` — nothing leaves your machine |
+| 🏠 **100% Local Storage** | All data lives in `~/.skills_data/soul-archive/` -- nothing leaves your machine |
 | 🔧 **Granular Control** | `config.json` lets you disable any dimension |
 | 🛡️ **Sensitive Protection** | Health, finance, and intimate topics require explicit confirmation |
 | 🚫 **Git Isolation** | Data lives outside any project directory, safe from accidental commits |
 | 🤫 **Silent Collection** | Never tells the user "I'm recording you" during conversation |
 | ⚙️ **Minimal Defaults** | Relationships and voice dimensions are OFF by default |
-| 🔐 **Optional Encryption** | AES-256-GCM encryption for all sensitive data files |
+| 🔐 **AES-256-GCM Encryption** | Strongly recommended -- encrypt all sensitive data files |
 
 ### 🔐 Encryption
 
-Soul Archive supports optional **AES-256-GCM** encryption for all sensitive data files.
+Soul Archive supports **AES-256-GCM** encryption for all sensitive data files.
+
+> ⚠️ **Strongly recommended.** Soul Archive stores highly sensitive personal data (identity, personality, language fingerprints, emotional patterns, relationships). If data files are exposed without encryption, the consequences are irreversible. With AES-256-GCM encryption enabled, files are unreadable without the password.
 
 ```bash
 # Initialize with encryption enabled
@@ -339,8 +335,9 @@ python3 scripts/soul_init.py --enable-encryption
 - **Key derivation**: PBKDF2-HMAC-SHA256 (600,000 iterations)
 - **Scope**: All identity, personality, language, memory, and relationship files
 - **No backdoor**: Lost password = lost data
-- **Password input**: Interactive prompt (recommended), `SOUL_PASSWORD` env var, or `--password` flag
-- **Dependency**: `pip install cryptography`
+- **Password input**: Interactive prompt (recommended), `SOUL_PASSWORD` env var (ensure your environment is secure), or `--password` flag (not recommended -- leaks into shell history)
+- **Dependency**: `pip install cryptography` (optional; install only if you enable encryption)
+- **Env var**: `SOUL_PASSWORD` -- only required when encryption is enabled
 
 ---
 
@@ -348,7 +345,7 @@ python3 scripts/soul_init.py --enable-encryption
 
 | Layer | Technology |
 |-------|-----------|
-| Core Language | Python 3 (pure standard library for core, `cryptography` optional for encryption) |
+| Core Language | Python 3 (pure standard library for core; `cryptography` package optional for encryption) |
 | Init Script | Python (cross-platform) / Bash (macOS & Linux) |
 | Data Format | JSON (structured) / JSONL (time-series logs) |
 | Report Output | HTML + Chart.js (interactive visualization) |
@@ -359,17 +356,23 @@ python3 scripts/soul_init.py --enable-encryption
 
 ## 🧭 Completeness Scoring
 
-Each dimension has an independent weight. Total = Σ(dimension score × weight):
+Each dimension uses a **log10 saturation curve** -- extremely slow, asymptotic growth that never hard-caps at 100% within realistic usage. Thresholds are set very high (100K~6M) to reflect true long-term personality accumulation.
 
-| Dimension | Weight | Completion Criteria |
+**Cold start penalty**: Early extractions are heavily discounted (<30 ext → 0.30x, <100 → 0.45x, <300 → 0.65x, <1000 → 0.82x, <3000 → 0.92x, ≥3000 → 1.0x).
+
+Total = Σ(dimension score × weight) × cold_start_penalty:
+
+| Dimension | Weight | Saturation Curve |
 |-----------|--------|-------------------|
-| 👤 Identity | 15% | Core fields + lifestyle + digital identity |
-| 💫 Personality | 20% | 5+ trait tags + behavior patterns + social style + drivers |
-| 🗣️ Language | 25% | 3+ catchphrases + sentence patterns + deep fingerprint |
-| 🧠 Knowledge | 15% | 5+ topics with recorded opinions |
-| 📝 Memory | 15% | 10+ episodic records |
-| ❤️ Emotion | 5% | 3+ emotion triggers + coping + empathy |
-| 🤝 Relationships | 5% | 3+ recorded relationships |
+| 👤 Identity | 5% | Field fill rate (30%) + extraction count log(5000) (70%), cap 85% |
+| 💫 Personality | 22% | traits log(600K)×0.30 + values log(180K)×0.10 + motivation log(180K)×0.55 + enum×0.04 |
+| 🗣️ Language | 25% | catchphrases log(1.2M)×0.30 + patterns log(1M)×0.25 + examples log(4M)×0.43 + deep×0.02 |
+| 🧠 Knowledge | 18% | topics log(2M) |
+| 📝 Memory | 25% | episodic records log(6M) |
+| 🤝 Relationships | 3% | people log(120K) |
+| 🎤 Voice | 2% | voice samples log(10K) |
+
+**Typical scores**: 11 extractions → ~7%, 1K → ~51%, 10K → ~71%, 100K → ~86%, 1M → ~98%
 
 ---
 
