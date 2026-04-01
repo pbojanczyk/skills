@@ -128,16 +128,20 @@ def append_to_sheet(row_data):
 
 def append_to_log(row_data):
     """Append row to local CSV log"""
-    os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
+    import csv as csv_module
+    log_dir = os.path.dirname(LOG_FILE)
+    if log_dir:
+        os.makedirs(log_dir, exist_ok=True)
 
-    header = "Date,Vendor,Description,Original Amount,Currency,EUR Amount,Exchange Rate,Category,Drive Link,Notes"
+    header = ["Date", "Vendor", "Description", "Original Amount", "Currency",
+              "EUR Amount", "Exchange Rate", "Category", "Drive Link", "Notes"]
 
-    if not os.path.exists(LOG_FILE):
-        with open(LOG_FILE, 'w') as f:
-            f.write(header + "\n")
-
-    with open(LOG_FILE, 'a') as f:
-        f.write(",".join(str(x) for x in row_data) + "\n")
+    write_header = not os.path.exists(LOG_FILE)
+    with open(LOG_FILE, 'a', newline='', encoding='utf-8') as f:
+        writer = csv_module.writer(f)
+        if write_header:
+            writer.writerow(header)
+        writer.writerow([str(x) for x in row_data])
 
     return True
 
@@ -154,7 +158,7 @@ def cmd_process(args):
     eur_amount = round(float(args.amount) * rate, 2)
 
     ext = os.path.splitext(args.file)[1] if args.file else ".pdf"
-    if not ext or ext == args.file:
+    if not ext:
         ext = ".pdf"
     filename = f"{sanitize_filename(args.vendor)}_{args.date}_{eur_amount}EUR{ext}"
 

@@ -6,46 +6,39 @@ description: >
   Use when user sends a receipt with #recibo or processes expense receipts for tax reporting.
   Handles: PDF invoices, photo screenshots, USD to EUR conversion, Spanish expense categories,
   quarterly reporting for tax purposes.
+metadata: {"clawdbot":{"emoji":"� 영수증","os":["darwin","linux"],"requires":{"bins":["gog"],"envvars":["RECEIPT_DRIVE_FOLDER_ID","RECEIPT_GOOGLE_SHEET_ID","RECEIPT_LOG_FILE"]},"install":[{"id":"brew","kind":"brew","formula":"faradayhq/gog/gog","bins":["gog"],"label":"Install gog CLI via Homebrew"}]}}
 ---
 
 # Receipt Snap Skill
 
 Process receipts for tax reporting. Handles receipt capture, currency conversion, Drive storage, and logging to Google Sheets.
 
-## Requirements
+## Setup
 
-**Binaries:**
-- `gog` CLI — install via `brew install faradayhq/gog/gog`, then authenticate with `gog auth login`
+### 1. Install gog CLI
 
-**Environment variables** (set in shell, `.env` file, or launchd plist):
-- `RECEIPT_DRIVE_FOLDER_ID` — Google Drive folder ID to upload receipts
-- `RECEIPT_GOOGLE_SHEET_ID` — Google Sheet ID to append log rows
-- `RECEIPT_LOG_FILE` (optional) — local CSV backup path, default: `~/receipts/log.csv`
+```bash
+brew install faradayhq/gog/gog
+gog auth login
+```
 
-**Google account:** The `gog` CLI must be authenticated with a Google account that has read/write access to the Drive folder and Sheet ID above.
+### 2. Set environment variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `RECEIPT_DRIVE_FOLDER_ID` | Yes | Google Drive folder ID for uploads |
+| `RECEIPT_GOOGLE_SHEET_ID` | Yes | Google Sheet ID for log rows |
+| `RECEIPT_LOG_FILE` | No | Local CSV backup path (default: `~/receipts/log.csv`) |
+
+### 3. Google Drive & Sheets setup
+
+**Drive:** Create a folder, share it with the Google account authenticated in `gog`, copy the folder ID from the URL.
+
+**Sheets:** Create a sheet with a tab named `log`, add headers in row 1: `Date | Vendor | Description | Original Amount | Currency | EUR Amount | Exchange Rate | Category | Drive Link | Notes`. Copy the Sheet ID from the URL.
 
 ## Model Usage
 
-**Cost optimization:** Prefer cheaper models for simple text extraction:
-1. **Local model** — free, use for text-based PDFs
-2. **MiniMax** — default fallback, good for image receipts
-3. Only escalate to Sonnet/Opus if genuinely ambiguous
-
-## Prerequisites
-
-1. Install the `gog` CLI: `brew install faradayhq/gog/gog`
-2. Authenticate: `gog auth login`
-3. Create a Google Drive folder and a Google Sheet with a "log" tab
-4. Copy `.env.example` to `.env` and fill in your IDs:
-
-```bash
-cp .env.example .env
-# Edit .env with your values:
-# RECEIPT_DRIVE_FOLDER_ID="1abc123XYZ..."
-# RECEIPT_GOOGLE_SHEET_ID="1abc123XYZ..."
-```
-
-**Security:** Never commit `.env` to version control — it contains credentials. The `.gitignore` file excludes it by default.
+Use local model (free) for simple receipts. Escalate to MiniMax for ambiguous receipts (handwritten, poor lighting).
 
 ## Workflow
 
@@ -63,7 +56,7 @@ Extract from receipt:
 - **Currency** (EUR, USD, etc.)
 - **Description** (what was purchased)
 
-### 2.5 Check for Duplicates
+### 3. Check for Duplicates
 Before processing, check if this receipt already exists:
 
 ```bash
@@ -71,13 +64,13 @@ gog sheets get "$RECEIPT_GOOGLE_SHEET_ID" "log!A:J" --json
 ```
 Search for matching vendor + date + amount. If duplicate found → warn user and ask before proceeding.
 
-### 3. Currency Conversion
+### 4. Currency Conversion
 If non-EUR:
 - Fetch rate from `https://open.er-api.com/v6/latest/{currency}`
 - Convert to EUR
 - Log both original and EUR amounts
 
-### 4. Categorize
+### 5. Categorize
 Spanish tax categories:
 
 - **Software y suscripciones** — SaaS, API credits, subscriptions
@@ -89,14 +82,14 @@ Spanish tax categories:
 - **Formación** — courses, education
 - **Otros gastos** — other
 
-### 5. Upload to Google Drive
+### 6. Upload to Google Drive
 
 ```bash
 gog drive upload <file> --parent "$RECEIPT_DRIVE_FOLDER_ID"
 gog drive rename <file-id> "VendorName_2026-01-15_42.50EUR.pdf"
 ```
 
-### 6. Log to Google Sheet
+### 7. Log to Google Sheet
 
 ```bash
 gog sheets append "$RECEIPT_GOOGLE_SHEET_ID" "log!A:J" \
@@ -104,7 +97,7 @@ gog sheets append "$RECEIPT_GOOGLE_SHEET_ID" "log!A:J" \
   --insert INSERT_ROWS
 ```
 
-### 7. Quarterly Report
+### 8. Quarterly Report
 At quarter-end:
 - Generate category summary: `python3 receipt_snap.py summary`
 - Zip receipt images from Drive
@@ -138,19 +131,9 @@ Create a Google Sheet with a tab named `log`. Add this header row (A through J):
 
 | Date | Vendor | Description | Original Amount | Currency | EUR Amount | Exchange Rate | Category | Drive Link | Notes |
 
-## PDF Extraction
-
-Use the `pdf` tool for automatic extraction from PDF invoices:
-
-```
-pdf <path-to-invoice.pdf>
-```
-
-Parse output for vendor, date, amount, currency.
-
 ## Security
 
 - Add `receipts/` and `*.csv` to `.gitignore` — contains real financial data
-- Never hardcode IDs in source files — use the `.env` file
+- Never hardcode IDs in source files — use environment variables
 - `gog` manages OAuth tokens locally — verify your Google account is secure
 - Files uploaded to Drive and rows appended to Sheets leave copies on Google services
