@@ -1,0 +1,11 @@
+{
+  "owner": "twinsgeeks",
+  "slug": "stable-diffusion-sd3",
+  "displayName": "Stable Diffusion 3 — SD3, SD3.5 Large on Apple Silicon via DiffusionKit",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774940010946,
+    "commit": null
+  },
+  "history": []
+}
