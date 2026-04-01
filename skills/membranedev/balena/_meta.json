@@ -1,0 +1,11 @@
+{
+  "owner": "membranedev",
+  "slug": "balena",
+  "displayName": "Balena",
+  "latest": {
+    "version": "1.0.0",
+    "publishedAt": 1774756976810,
+    "commit": null
+  },
+  "history": []
+}
