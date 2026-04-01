@@ -1,11 +1,27 @@
 # Command Map (Full)
 
-This reference is exhaustive for `aihealingme-cli` command families, command syntax, and parameter meanings.
+AIHeal (`https://aihealing.me/`) is an AI emotional-healing platform that supports audio healing, single-session healing, deep healing plans, AI chat support, emotion-space tracking, and user/subscription management.
+
+`aihealingmecli` provides terminal access to those workflows. This reference is exhaustive for command families, command syntax, and parameter meanings.
+
+If you want the full visual and interactive experience, visit `https://aihealing.me/` directly.
+
+Command-family overview:
+
+- account/session: `config`, `auth`, `whoami`
+- user and content: `user`, `audio`
+- healing generation: `single-job`, `plan`, `plan-stage-job`
+- conversational healing: `chat`
+- emotion-space: `emotion`
+- billing/entitlement: `subscription`
+- communication/feedback: `notification`, `feedback`
+- memory context: `memory`, `behavior`
+- advanced access: `api`, `healing`
 
 ## Runtime Setup
 
-- Recommended: `npm install -g aihealingme-cli`
-- No-global fallback: `npx -y -p aihealingme-cli aiheal ...`
+- Recommended: `npm install -g aihealingmecli`
+- No-global fallback: `npx -y -p aihealingmecli aiheal ...`
 - Canonical command prefix: `aiheal`
 
 ## Global Options
@@ -55,6 +71,7 @@ This reference is exhaustive for `aihealingme-cli` command families, command syn
 ### `audio`
 
 - `audio list [--category <v>] [--search <v>] [--sort <trending|newest|popular>] [--locale <zh|en>] [--page <n>] [--limit <n>]`
+- `audio recommended [--limit <n>] [--locale <zh|en>]`
 - `audio get <audioId>`
 - `audio by-request <requestId>`
 - `audio my [--sort <v>] [--page <n>] [--limit <n>]`
@@ -65,6 +82,9 @@ This reference is exhaustive for `aihealingme-cli` command families, command syn
 - `audio like <audioId>`
 - `audio favorite <audioId>`
 - `audio heart-echo <audioId> [--payload-file <path> | --body <json>]`
+- `audio web-url <audioId>`
+- `audio links <audioId>`
+- `audio download-url --url <url> --output <path> [--audio-id <audioId>]`
 - `audio download <audioId> --output <path>`
 
 `audio comments`:
@@ -134,6 +154,7 @@ This reference is exhaustive for `aihealingme-cli` command families, command syn
 - `subscription orders`
 - `subscription order-get <orderId>`
 - `subscription order-cancel <orderId>`
+- `subscription admin-refund --order-id <orderId> [--reason <text>]`
 - `subscription create-order --plan-type <7d|1m|1y>`
 - `subscription confirm --order-id <orderId>`
 - `subscription paypal-create-order --plan-type <7d|1m|1y>`
@@ -183,6 +204,10 @@ This reference is exhaustive for `aihealingme-cli` command families, command syn
 ## Parameter Glossary
 
 - `<userId>`: target user identifier
+- `<email>`: email used for auth commands
+- `<phone>`: phone number used for auth commands
+- `<pwd>`: password value in command examples
+- `<code>`: email or sms verification code
 - `<audioId>`: audio identifier
 - `<planId>`: healing plan identifier
 - `<requestId>`: async request identifier
@@ -195,6 +220,8 @@ This reference is exhaustive for `aihealingme-cli` command families, command syn
 - `<id>`: notification identifier
 - `<METHOD>`: HTTP method such as `GET|POST|PUT|DELETE|PATCH`
 - `<endpointPath>`: API path, e.g. `/audio`
+- `<base>`: healing service base URL
+- `<path>`: remote file path argument for `healing download-file`
 - `<remotePath>`: remote file path for healing file download endpoint
 - `<paypalOrderId>`: PayPal platform order id
 - `<title>`: new title for chat session rename
@@ -207,7 +234,7 @@ This reference is exhaustive for `aihealingme-cli` command families, command syn
   - `emotion timeline`: `active|released|all`
 - `--sort`:
   - `audio list`: `trending|newest|popular`
-  - `audio my/liked`: backend-supported sort value
+  - `audio my/liked`: service-supported sort value
 - `--locale`: `zh|en`
 - `--region`: `zh|en`
 - `--page`: paginated page index
@@ -217,6 +244,8 @@ This reference is exhaustive for `aihealingme-cli` command families, command syn
 - `--timeout-ms`: timeout in milliseconds
 - `--file`: local file path used by upload commands
 - `--output`: local output file path for download/export commands
+- `--url`: source URL/path for `audio download-url`
+- `--audio-id`: optional audio id for `audio download-url`
 - `--occurred-at`: ISO datetime for voice emotion entry timestamp
 - `--query key=value`: repeated query kv pairs in raw API mode
 - `--body`: inline JSON payload string
@@ -224,6 +253,64 @@ This reference is exhaustive for `aihealingme-cli` command families, command syn
 - `--no-auth`: disable auth header in raw API mode
 - `--regenerate`: regenerate chat draft
 - `--checkout-id`: optional checkout identifier for creem confirm
+- `--reason`: optional reason text for `subscription admin-refund`
+
+## Required Field Matrix
+
+Rules:
+
+- Positional args (`<...>`) are required.
+- Flags shown without `[]` are required.
+- Payload required fields are enforced by server validation.
+
+Payload commands summary:
+
+- `auth send-code`: R=`email`; O=`type`
+- `auth send-sms-code`: R=`phone`; O=`type`
+- `auth register`: R=`email,password,code`
+- `auth register-phone`: R=`phone,password,code`
+- `auth login`: R=`email,password`
+- `auth login-phone`: R=`phone,code`
+- `auth login-phone-password`: R=`phone,password`
+- `auth reset-password`: R=`email,password,code`
+- `auth reset-password-phone`: R=`phone,password,code`
+- `auth password-update`: R=`currentPassword,newPassword`
+- `auth onboarding-complete`:
+  - R=`birthDate,gender,lifeStage,traitRationality,traitPace,interests`
+  - O=`nickname,lifeStageDetail,longTermGoals,responseLengthPreference,encouragementStrength,mbti,lowMoodCoping,therapyHistory,healingPreference,motto,bio`
+- `user profile-update`: all optional
+- `audio create`: R=`title,duration,category`; O=`description,healingOutline,audioUrl,healingFilePath,coverImage,tags,isPublic,shareText,userSelections,planId,planStage,healingRequestId`
+- `audio update`: all optional
+- `audio heart-echo`: R=`helpful`; O=`fitScore,whisper`
+- `audio web-url`: R=`audioId`
+- `audio links`: R=`audioId`
+- `audio download-url`: R=`url,output`; O=`audioId`
+- `audio comments add`: R=`content`; O=`parentComment`
+- `plan create`: R=`title`; O=`description,stages,currentStage,status,totalDuration,healingRequestId,healingTheme,launchWish,userSelections`
+- `plan update`: all optional
+- `single-job create`: R=`requestId,userRequest`; O=`shareText,voiceId,selectedEmotions,intensity,energyLevel,selectedScenarios,bodySensations,currentEnvironment,sessionGoal,sessionApproach,avoidTopics,useHistoryMemory,selectedGoals,gender,age,mbti,lifeStage,sleepQuality,meditationExp`
+- `plan-stage-job create`: R=`planId,stageIndex,planPath,day`; O=`requestId,userRequest,shareText,voiceModel,voiceId,userSelections,fixedTags`
+- `chat send`: R=`message`
+- `chat send-stream`: R=`message`
+- `chat session rename`: R=`title`
+- `emotion text-job-create`: R=`text`; O=`occurredAt`
+- `emotion text-entry-create`: R=`text`; O=`occurredAt`
+- `emotion voice-entry-create`: R=`file`; O=`occurredAt`
+- `emotion release`: O=`style,message`
+- `subscription create-order`: R=`planType`
+- `subscription admin-refund`: R=`orderId`; O=`reason`
+- `subscription confirm`: R=`orderId`
+- `subscription paypal-create-order`: R=`planType`
+- `subscription paypal-capture-order`: R=`orderId,paypalOrderId`
+- `subscription creem-create-order`: R=`planType`
+- `subscription creem-confirm-order`: R=`orderId`; O=`checkoutId`
+- `subscription consume`: R=`feature`
+- `feedback submit`: R=`content`; O=`contact,pageUrl`
+- `behavior ingest`: O=`events` (array, recommended)
+- `api request`: R=`method,path`; O=`query,body,payloadFile,noAuth`
+- `healing pipeline`: R=`base` + payload
+- `healing plan`: R=`base` + payload
+- `healing voice-preview`: R=`base,output`; O=`payload`
 
 ## Fast Recipes
 
@@ -262,6 +349,26 @@ aiheal api request --method GET --path /audio --query page=1 limit=10 --no-auth
 6. Smoke check installed CLI package (path-independent):
 
 ```bash
-NPM_CONFIG_CACHE=/tmp/aiheal-npm-cache npx -y -p aihealingme-cli aiheal --help
-NPM_CONFIG_CACHE=/tmp/aiheal-npm-cache npx -y -p aihealingme-cli aiheal config get
+NPM_CONFIG_CACHE=/tmp/aiheal-npm-cache npx -y -p aihealingmecli aiheal --help
+NPM_CONFIG_CACHE=/tmp/aiheal-npm-cache npx -y -p aihealingmecli aiheal config get
+```
+
+Smoke script parameters:
+
+- Script: `scripts/smoke_check.sh`
+- `AIHEAL_NPM_PACKAGE`: npm source used in `npx -p` (default `aihealingmecli`; can be tarball path)
+- `AIHEAL_NPM_CACHE_DIR`: cache dir for npm/npx
+- `RUN_NETWORK_SMOKE=1`: additionally run `audio list --limit 1 --sort newest`
+
+7. Resolve website/detail and downloadable links for one audio:
+
+```bash
+aiheal audio links <audioId>
+aiheal audio web-url <audioId>
+```
+
+8. Download from a raw OSS/direct URL:
+
+```bash
+aiheal audio download-url --url "<source-url-or-path>" --output ./audio.mp3
 ```

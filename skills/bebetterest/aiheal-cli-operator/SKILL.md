@@ -1,15 +1,29 @@
 ---
 name: aiheal-cli-operator
-description: Operate and troubleshoot the AIHealingMe frontend CLI through the npm package (`aihealingme-cli`). Use when tasks involve auth/user/audio/plan/chat/emotion/subscription workflows, payload shaping, command diagnostics, and API failure handling without backend secret access.
+description: Operate and troubleshoot the AIHealingMe CLI through the npm package (`aihealingmecli`). Use when tasks involve auth/user/audio/plan/chat/emotion/subscription workflows, payload shaping, command diagnostics, and API failure handling.
 ---
 
 # Aiheal Cli Operator
 
+AIHeal is an AI emotional-healing platform available at `https://aihealing.me/`, covering personalized audio healing, single-session healing, deep healing plans, conversation support, emotion-space tracking, and account/subscription workflows.
+
+This skill operates the CLI side of those capabilities and is designed for reliable command execution, payload shaping, diagnostics, and coverage verification.
+
+Human users are welcome to experience the full interactive product directly on `https://aihealing.me/`.
+
+Command-family scope in this skill:
+
+- account/session: `config`, `auth`, `whoami`
+- content/healing: `audio`, `plan`, `single-job`, `plan-stage-job`
+- conversation/emotion: `chat`, `emotion`
+- account-side operations: `user`, `subscription`, `notification`, `feedback`, `memory`, `behavior`
+- raw/advanced requests: `api`, `healing`
+
 ## Quick Start
 
 - Use npm package runtime by default.
-- Global runtime: `npm install -g aihealingme-cli` then `aiheal ...`.
-- No-global runtime: `npx -y -p aihealingme-cli aiheal ...`.
+- Global runtime: `npm install -g aihealingmecli` then `aiheal ...`.
+- No-global runtime: `npx -y -p aihealingmecli aiheal ...`.
 - Keep all operations in package runtime.
 
 ## Workflow
@@ -35,9 +49,13 @@ description: Operate and troubleshoot the AIHealingMe frontend CLI through the n
 - Use `error.code` and `error.status` as primary diagnostics.
 - For async jobs, use `single-job wait` and `plan-stage-job wait` with explicit timeout values.
 
+5. Verify capability coverage (detect fake/unimplemented commands).
+- For public endpoints, expect `200` with valid response envelopes.
+- For protected endpoints, use `api request --no-auth` and expect `401/403` rather than `404`.
+- Treat repeated `404` as possible missing/incorrect CLI mapping and patch command endpoint mapping immediately.
+
 ## Execution Rules
 
-- Keep operations frontend-only; never use backend secret files.
 - Keep default API on public endpoint `https://aihealing.me/api` unless task explicitly requires override.
 - Require explicit `--output` for download/export commands.
 - Use global overrides (`--api-base`, `--locale`, `--region`, `--token`) only in the current command context.
@@ -47,10 +65,21 @@ description: Operate and troubleshoot the AIHealingMe frontend CLI through the n
 - `AUTH_ERROR`: login again and verify with `whoami`.
 - `API_ERROR` with `status: 0`: verify network and `apiBaseUrl`.
 - `npx` cache `EPERM`: set `NPM_CONFIG_CACHE=/tmp/aiheal-npm-cache` or use global install.
+- `API_ERROR` with `status: 404`: prioritize checking endpoint mapping or command naming mismatch.
 - Async wait timeout: query status endpoints (`get`/`by-request`) and inspect progress fields.
 
 ## Resources
 
 - Read [references/command-map.md](references/command-map.md) for full command syntax and parameter meanings.
 - Read [references/error-playbook.md](references/error-playbook.md) for failure signatures and fix flow.
-- Run path-independent smoke commands with `npx -y -p aihealingme-cli aiheal --help` and `... config get`.
+- Run path-independent smoke commands with `npx -y -p aihealingmecli aiheal --help` and `... config get`.
+
+## Smoke Script
+
+- Script: `scripts/smoke_check.sh`
+- Path-independent run:
+  - `bash /absolute/path/to/scripts/smoke_check.sh`
+- Environment parameters:
+  - `AIHEAL_NPM_PACKAGE`: npm package source for npx `-p` (default: `aihealingmecli`; can be a tarball path)
+  - `AIHEAL_NPM_CACHE_DIR`: cache directory used by npx (default under temp dir)
+  - `RUN_NETWORK_SMOKE`: set `1` to include live API probe (`audio list`)

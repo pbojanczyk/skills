@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PKG_NAME="${AIHEAL_NPM_PACKAGE:-aihealingme-cli}"
+PKG_NAME="${AIHEAL_NPM_PACKAGE:-aihealingmecli}"
 CACHE_DIR="${AIHEAL_NPM_CACHE_DIR:-${TMPDIR:-/tmp}/aiheal-cli-npm-cache-${UID}}"
 
 run_cli_checks() {

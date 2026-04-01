@@ -20,7 +20,7 @@ Primary fields:
 Symptoms:
 
 - `error.code = AUTH_ERROR`
-- message like `Missing auth token` or backend auth rejection
+- message like `Missing auth token` or auth rejection
 
 Actions:
 
@@ -46,7 +46,7 @@ Actions:
 
 Symptoms:
 
-- backend returns field validation messages
+- service returns field validation messages
 
 Actions:
 
@@ -75,15 +75,15 @@ Symptoms:
 
 Actions:
 
-1. Prefer global install: `npm install -g aihealingme-cli`
+1. Prefer global install: `npm install -g aihealingmecli`
 2. Use temp cache for one-shot runs:
 
 ```bash
-NPM_CONFIG_CACHE=/tmp/aiheal-npm-cache npx -y -p aihealingme-cli aiheal --help
+NPM_CONFIG_CACHE=/tmp/aiheal-npm-cache npx -y -p aihealingmecli aiheal --help
 ```
 
 ## Runtime Notes
 
 - Prefer installed package execution (`aiheal ...`)
-- Use `npx -y -p aihealingme-cli aiheal ...` when global binary is unavailable
+- Use `npx -y -p aihealingmecli aiheal ...` when global binary is unavailable
 - Keep API target on public endpoint unless user explicitly asks otherwise
